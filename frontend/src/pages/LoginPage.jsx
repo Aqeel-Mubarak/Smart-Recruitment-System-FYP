@@ -1,0 +1,108 @@
+import React from 'react';
+import backgroundImage from '../assets/background.jpg'; 
+import logo from '../assets/logo.jpg'; 
+import { Link, useNavigate } from 'react-router-dom';
+
+const LoginPage = () => {
+  const navigate = useNavigate();
+
+  const handleLogin = () => {
+    navigate('#'); // Redirect to Home page
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {/* Navigation Bar */}
+      <nav className="p-4 fixed top-0 left-0 w-full z-50" style={{ backgroundColor: '#800080' }}>
+        <div className="container mx-auto flex justify-between items-center">
+          {/* Logo */}
+          <div className="flex items-center">
+            <img src={logo} alt="Company Logo" className="h-8 w-8" />
+          </div>
+
+          {/* Navigation Links */}
+          <div className="flex space-x-8 text-white font-light text-lg" style={{ fontFamily: 'Arial, sans-serif' }}>
+            <Link to="/about" className="hover:text-gray-300">About</Link>
+            <Link to="/contact" className="hover:text-gray-300">Contact</Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content Section */}
+      <div className="flex flex-1 pt-16 relative">
+        {/* Full-screen Background Image */}
+        <div
+          className="absolute inset-0 bg-center"
+          style={{
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundSize: '100%',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
+
+        {/* Left Section with Login Form */}
+        <div className="relative z-10 w-full md:w-1/2 flex items-center justify-center min-h-screen">
+          <div
+            className="bg-white p-8 shadow-lg rounded-lg max-w-sm w-full"
+            style={{
+              transform: 'scale(0.8)',
+              marginTop: '-1in',
+              marginLeft: '-1in',
+            }}
+          >
+            <h2 className="text-3xl font-bold mb-6 text-left" style={{ color: '#000000' }}>Log in</h2>
+            <form>
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+                  Email
+                </label>
+                <input
+                  className="shadow appearance-none border border-gray-300 rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline"
+                  id="email"
+                  type="email"
+                  placeholder="name@example.com"
+                  style={{ backgroundColor: '#ffffff', color: '#333333' }}
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+                  Password
+                </label>
+                <input
+                  className="shadow appearance-none border border-gray-300 rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline"
+                  id="password"
+                  type="password"
+                  placeholder="*********"
+                  style={{ backgroundColor: '#ffffff', color: '#333333' }}
+                />
+              </div>
+              <div className="flex items-center justify-between mb-4">
+                <span style={{ color: '#000000' }}>Forgot your password? <a href="#" style={{ color: '#0000ff' }}>Reset here</a></span>
+              </div>
+              <div className="mb-6">
+                <button
+                  className="hover:bg-gray-800 text-white font-bold py-2 px-4 w-full rounded focus:outline-none focus:shadow-outline"
+                  type="button"
+                  onClick={handleLogin}
+                  style={{ backgroundColor: '#000000' }}
+                >
+                  LOGIN
+                </button>
+              </div>
+              <div className="flex items-center justify-start">
+  <span style={{ color: '#000000' }}>Don’t have an account?&nbsp;</span>
+  <Link to="/signup" className="font-normal" style={{ color: '#0000ff' }}>
+    Register here
+  </Link>
+</div>
+
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default LoginPage;
