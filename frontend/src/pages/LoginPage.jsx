@@ -14,9 +14,9 @@ const LoginPage = () => {
     <div className="min-h-screen flex flex-col">
       {/* Navigation Bar */}
       <nav className="p-4 fixed top-0 left-0 w-full z-50" style={{ backgroundColor: '#800080' }}>
-        <div className="container mx-auto flex justify-between items-center">
+        <div className="flex justify-between items-center">
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex items-center" style={{ marginLeft: '0px' }}>
             <img src={logo} alt="Company Logo" className="h-8 w-8" />
           </div>
 
@@ -91,12 +91,11 @@ const LoginPage = () => {
                 </button>
               </div>
               <div className="flex items-center justify-start">
-  <span style={{ color: '#000000' }}>Don’t have an account?&nbsp;</span>
-  <Link to="/signup" className="font-normal" style={{ color: '#0000ff' }}>
-    Register here
-  </Link>
-</div>
-
+                <span style={{ color: '#000000' }}>Don’t have an account?&nbsp;</span>
+                <Link to="/signup" className="font-normal" style={{ color: '#0000ff' }}>
+                  Register here
+                </Link>
+              </div>
             </form>
           </div>
         </div>
