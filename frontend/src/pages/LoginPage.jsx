@@ -1,7 +1,8 @@
+// src/pages/LoginPage.jsx
 import React from 'react';
-import backgroundImage from '../assets/background.jpg'; 
-import logo from '../assets/logo.jpg'; 
+import backgroundImage from '../assets/background.jpg';
 import { Link, useNavigate } from 'react-router-dom';
+import Navbar from '../components/Navbar';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -13,20 +14,7 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Navigation Bar */}
-      <nav className="p-4 fixed top-0 left-0 w-full z-50" style={{ backgroundColor: '#800080' }}>
-        <div className="flex justify-between items-center">
-          {/* Logo */}
-          <div className="flex items-center" style={{ marginLeft: '0px' }}>
-            <img src={logo} alt="Company Logo" className="h-8 w-8" />
-          </div>
-
-          {/* Navigation Links */}
-          <div className="flex space-x-8 text-white font-light text-lg" style={{ fontFamily: 'Arial, sans-serif' }}>
-            <Link to="/about" className="hover:text-gray-300">About</Link>
-            <Link to="/contact" className="hover:text-gray-300">Contact</Link>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Main Content Section */}
       <div className="flex flex-1 pt-16 relative">
