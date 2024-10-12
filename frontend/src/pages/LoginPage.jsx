@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import backgroundImage from '../assets/background1.jpg';
 import { Link, useNavigate } from 'react-router-dom';
@@ -13,27 +11,31 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="h-screen overflow-hidden flex flex-col">
+    <div className="min-h-screen flex flex-col">
       {/* Navigation Bar */}
       <Navbar />
 
       {/* Main Content Section */}
-      <div className="flex flex-1 relative">
+      <div className="flex flex-1 pt-16 relative">
         {/* Full-screen Background Image */}
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-center"
           style={{
             backgroundImage: `url(${backgroundImage})`,
+            backgroundSize: '100%',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
           }}
         />
 
         {/* Left Section with Login Form */}
-        <div className="relative z-10 w-full md:w-1/2 flex items-center justify-center mt-[.5in]">
+        <div className="relative z-10 w-full md:w-1/2 flex items-center justify-center min-h-screen">
           <div
             className="bg-white p-8 shadow-lg rounded-lg max-w-sm w-full"
             style={{
               transform: 'scale(0.8)',
-              marginLeft: '-1in', // Reduced left margin to half of the previous value
+              marginTop: '-1in',
+              marginLeft: '-1in',
             }}
           >
             <h2 className="text-3xl font-bold mb-6 text-left" style={{ color: '#000000' }}>Log in</h2>
@@ -90,4 +92,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-
