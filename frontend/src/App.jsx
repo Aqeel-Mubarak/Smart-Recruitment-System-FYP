@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
 import Home from './pages/home'; // Importing the Home component
 import ForgetPassword from './pages/ForgetPassword';
+import ApplicationForm from './pages/ApplicationForm';
 
 
 
@@ -15,6 +16,7 @@ function App() {
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/home" element={<Home />} />
         <Route path="/resetpassword" element={<ForgetPassword />} />
+        <Route path="/application" element={<ApplicationForm />} />
 
 
       </Routes>

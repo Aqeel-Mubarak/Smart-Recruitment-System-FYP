@@ -26,8 +26,6 @@ const LoginPage = () => {
         />
 
         {/* Left Section with Login Form */}
-        <div className="relative z-10 w-full md:w-1/2 flex items-center justify-center mt-[.5in]">
-        {/* Left Section with reset Form */}
         <div className="relative z-10 w-full md:w-1/2 flex items-center justify-center min-h-screen">
           <div
             className="bg-white p-8 shadow-lg rounded-lg max-w-sm w-full"
