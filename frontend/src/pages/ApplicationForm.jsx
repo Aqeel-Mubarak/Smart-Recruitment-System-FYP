@@ -134,8 +134,8 @@ const ApplicationForm = () => {
       borderRadius: '5px',
       border: '1px solid #dcdcdc',
       backgroundColor: '#f9f9f9',
-      minHeight: '300px', // Set height to match form size
-      maxHeight: '300px', // Fix the height for scrollable content
+      minHeight: '600px', // Set height to match form size
+      maxHeight: '600px', // Fix the height for scrollable content
       display: 'flex',
       alignItems: 'flex-start',
       overflowY: 'auto', // Allow scrolling if the text is long
@@ -151,7 +151,7 @@ const ApplicationForm = () => {
         <div style={styles.formContainer}>
           <h2 style={styles.formHeader}>Application Form</h2>
 
-          <label style={styles.label}>First name</label>
+          <label style={styles.label}>First name<span style={{ color: 'red' }}>*</span></label>
           <input
             style={styles.input}
             type="text"
@@ -161,7 +161,7 @@ const ApplicationForm = () => {
             placeholder="Enter your First Name"
           />
 
-          <label style={styles.label}>Last name</label>
+          <label style={styles.label}>Last name<span style={{ color: 'red' }}>*</span></label>
           <input
             style={styles.input}
             type="text"
@@ -171,7 +171,7 @@ const ApplicationForm = () => {
             placeholder="Enter your Last Name"
           />
 
-          <label style={styles.label}>Graduation Year</label>
+          <label style={styles.label}>Graduation Year<span style={{ color: 'red' }}>*</span></label>
           <input
             style={styles.input}
             type="text"
@@ -181,7 +181,7 @@ const ApplicationForm = () => {
             placeholder="20XX"
           />
 
-          <label style={styles.label}>Degree Title</label>
+          <label style={styles.label}>Degree Title<span style={{ color: 'red' }}>*</span></label>
           <input
             style={styles.input}
             type="text"
@@ -191,7 +191,7 @@ const ApplicationForm = () => {
             placeholder="Enter your Degree Title"
           />
 
-          <label style={styles.label}>Institute Name</label>
+          <label style={styles.label}>Institute Name<span style={{ color: 'red' }}>*</span></label>
           <input
             style={styles.input}
             type="text"
@@ -201,7 +201,7 @@ const ApplicationForm = () => {
             placeholder="Enter your Institute Name"
           />
 
-          <label style={styles.label}>CGPA</label>
+          <label style={styles.label}>CGPA<span style={{ color: 'red' }}>*</span></label>
           <input
             style={styles.input}
             type="text"
@@ -211,7 +211,7 @@ const ApplicationForm = () => {
             placeholder="x.xx/x.xx"
           />
 
-          <label style={styles.label}>Phone Number</label>
+          <label style={styles.label}>Phone Number<span style={{ color: 'red' }}>*</span></label>
           <input
             style={styles.input}
             type="text"
@@ -220,8 +220,17 @@ const ApplicationForm = () => {
             onChange={handleChange}
             placeholder="Enter Phone number without dashes. e.g(01232387643)"
           />
+          <label style={styles.label}>Email<span style={{ color: 'red' }}>*</span></label>
+          <input
+            style={styles.input}
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="name@example.com"
+          />
 
-          <label style={styles.label}>Upload your Resume</label>
+          <label style={styles.label}>Upload your Resume<span style={{ color: 'red' }}>*</span></label>
           <div style={styles.uploadResume}>
             <FiUploadCloud size={24} />
             <label htmlFor="resume-upload" style={styles.label}>
@@ -236,15 +245,7 @@ const ApplicationForm = () => {
             />
           </div>
 
-          <label style={styles.label}>Email</label>
-          <input
-            style={styles.input}
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="name@example.com"
-          />
+          
 
           <button style={styles.button} type="submit">
             Submit Application
