@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Navbarapp from '../components/Navbarapp'; // Adjust the path based on your project structure
 import { FiUploadCloud } from 'react-icons/fi'; // Import react-icons
+import { MdMargin } from 'react-icons/md';
 
 const ApplicationForm = () => {
   const [formData, setFormData] = useState({
@@ -37,6 +38,7 @@ const ApplicationForm = () => {
       justifyContent: 'space-between',
       minHeight: '100vh',
       padding: '20px',
+      margin : 50 , 
       backgroundColor: '#f0f4f8', // Background color
     },
     formContainer: {
@@ -137,7 +139,6 @@ const ApplicationForm = () => {
       display: 'flex',
       alignItems: 'flex-start',
       overflowY: 'auto', // Allow scrolling if the text is long
-      overflowX: 'hidden'
       wordWrap: 'break-word',
     },
   };
@@ -260,6 +261,14 @@ const ApplicationForm = () => {
           <label style={styles.jobInfoHeading}>Job Description</label>
           <div style={styles.jobInfoBoxDescription}>
             Responsible for developing scalable web applications using React.js, Node.js, and other cutting-edge technologies.
+            This role will require strong communication and problem-solving skills. You will work closely with product teams
+            to build seamless user experiences. The job may also include mentoring junior developers and assisting in design
+            reviews for various product features.
+            Responsible for developing scalable web applications using React.js, Node.js, and other cutting-edge technologies.
+            This role will require strong communication and problem-solving skills. You will work closely with product teams
+            to build seamless user experiences. The job may also include mentoring junior developers and assisting in design
+            reviews for various product features.
+            Responsible for developing scalable web applications using React.js, Node.js, and other cutting-edge technologiesesponsible for developing scalable web applications using React.js, Node.js, and other cutting-edge technologies..
             This role will require strong communication and problem-solving skills. You will work closely with product teams
             to build seamless user experiences. The job may also include mentoring junior developers and assisting in design
             reviews for various product features.
