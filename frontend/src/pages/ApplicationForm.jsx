@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import Navbarapp from '../components/Navbarapp'; // Adjust the path based on your project structure
 import { FiUploadCloud } from 'react-icons/fi'; // Import react-icons
-import { MdMargin } from 'react-icons/md';
 
 const ApplicationForm = () => {
   const [formData, setFormData] = useState({
@@ -27,249 +26,161 @@ const ApplicationForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Logic for form submission
     console.log(formData);
   };
 
-  // Inline Styles
-  const styles = {
-    container: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      minHeight: '100vh',
-      padding: '20px',
-      margin : 50 , 
-      backgroundColor: '#f0f4f8', // Background color
-    },
-    formContainer: {
-      width: '48%',
-      backgroundColor: '#ffffff', // Form background
-      padding: '40px',
-      borderRadius: '10px',
-      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)', // Shadow
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '20px',
-    },
-    formHeader: {
-      fontWeight: 'bold', // Bold main heading
-      fontSize: '24px',
-      marginBottom: '20px',
-    },
-    label: {
-      fontWeight: 'bold',
-      marginBottom: '5px',
-      fontSize: '14px',
-      display: 'block',
-    },
-    input: {
-      width: '100%',
-      padding: '10px',
-      marginBottom: '15px',
-      borderRadius: '5px',
-      border: '1px solid #dcdcdc',
-      fontSize: '14px',
-    },
-    uploadResume: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '10px',
-      cursor: 'pointer',
-      backgroundColor: '#f3f4f6',
-      border: '2px dashed #7400b8',
-      padding: '20px',
-      borderRadius: '10px',
-      textAlign: 'center',
-      width: '100%',
-      minHeight: '100px',
-    },
-    button: {
-      backgroundColor: 'black',
-      color: 'white',
-      padding: '15px',
-      border: 'none',
-      borderRadius: '25px',
-      cursor: 'pointer',
-      fontSize: '16px',
-      fontWeight: 'bold',
-      transition: 'background-color 0.3s ease',
-      width: '100%',
-    },
-    jobInfoContainer: {
-      width: '48%',
-      backgroundColor: '#ffffff', // Background color for job info form
-      padding: '40px',
-      borderRadius: '10px',
-      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)', // Shadow
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '20px',
-      height: '100%', // Set height to match the form
-    },
-    jobInfoHeader: {
-      fontWeight: 'bold', // Bold main heading
-      fontSize: '24px',
-    },
-    jobInfoHeading: {
-      fontSize: '18px',
-      fontWeight: 'bold',
-      marginBottom: '10px',
-    },
-    jobInfoBoxTitle: {
-      padding: '15px',
-      borderRadius: '5px',
-      border: '1px solid #dcdcdc',
-      backgroundColor: '#f9f9f9',
-      minHeight: '50px', // Make the title box smaller
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center', // Center the title text
-      wordWrap: 'break-word',
-      fontWeight: 'bold',
-      color: '#333',
-    },
-    jobInfoBoxDescription: {
-      padding: '15px',
-      borderRadius: '5px',
-      border: '1px solid #dcdcdc',
-      backgroundColor: '#f9f9f9',
-      minHeight: '600px', // Set height to match form size
-      maxHeight: '600px', // Fix the height for scrollable content
-      display: 'flex',
-      alignItems: 'flex-start',
-      overflowY: 'auto', // Allow scrolling if the text is long
-      wordWrap: 'break-word',
-    },
-  };
-
   return (
-    <div>
+    <div className="flex flex-col min-h-screen">
       <Navbarapp /> {/* Navbar component */}
-      <div style={styles.container}>
-        {/* Left Section: Application Form */}
-        <div style={styles.formContainer}>
-          <h2 style={styles.formHeader}>Application Form</h2>
 
-          <label style={styles.label}>First name<span style={{ color: 'red' }}>*</span></label>
+      <div className="flex justify-between p-12">
+        {/* Left Section: Application Form */}
+        <div className="w-1/2 bg-white p-10 rounded-lg shadow-lg space-y-6">
+          <h2 className="text-2xl font-bold mb-6">Application Form</h2>
+
+          <label className="block font-bold text-sm mb-2">
+            First name <span className="text-red-600">*</span>
+          </label>
           <input
-            style={styles.input}
+            className="w-full p-3 mb-4 border rounded border-gray-300 focus:outline-none focus:ring focus:ring-indigo-200"
             type="text"
             name="firstName"
             value={formData.firstName}
             onChange={handleChange}
             placeholder="Enter your First Name"
+            required
           />
 
-          <label style={styles.label}>Last name<span style={{ color: 'red' }}>*</span></label>
+          <label className="block font-bold text-sm mb-2">
+            Last name <span className="text-red-600">*</span>
+          </label>
           <input
-            style={styles.input}
+            className="w-full p-3 mb-4 border rounded border-gray-300 focus:outline-none focus:ring focus:ring-indigo-200"
             type="text"
             name="lastName"
             value={formData.lastName}
             onChange={handleChange}
             placeholder="Enter your Last Name"
+            required
           />
 
-          <label style={styles.label}>Graduation Year<span style={{ color: 'red' }}>*</span></label>
+          <label className="block font-bold text-sm mb-2">
+            Graduation Year <span className="text-red-600">*</span>
+          </label>
           <input
-            style={styles.input}
+            className="w-full p-3 mb-4 border rounded border-gray-300 focus:outline-none focus:ring focus:ring-indigo-200"
             type="text"
             name="graduationYear"
             value={formData.graduationYear}
             onChange={handleChange}
             placeholder="20XX"
+            required
           />
 
-          <label style={styles.label}>Degree Title<span style={{ color: 'red' }}>*</span></label>
+          <label className="block font-bold text-sm mb-2">
+            Degree Title <span className="text-red-600">*</span>
+          </label>
           <input
-            style={styles.input}
+            className="w-full p-3 mb-4 border rounded border-gray-300 focus:outline-none focus:ring focus:ring-indigo-200"
             type="text"
             name="degreeTitle"
             value={formData.degreeTitle}
             onChange={handleChange}
             placeholder="Enter your Degree Title"
+            required
           />
 
-          <label style={styles.label}>Institute Name<span style={{ color: 'red' }}>*</span></label>
+          <label className="block font-bold text-sm mb-2">
+            Institute Name <span className="text-red-600">*</span>
+          </label>
           <input
-            style={styles.input}
+            className="w-full p-3 mb-4 border rounded border-gray-300 focus:outline-none focus:ring focus:ring-indigo-200"
             type="text"
             name="instituteName"
             value={formData.instituteName}
             onChange={handleChange}
             placeholder="Enter your Institute Name"
+            required
           />
 
-          <label style={styles.label}>CGPA<span style={{ color: 'red' }}>*</span></label>
+          <label className="block font-bold text-sm mb-2">
+            CGPA <span className="text-red-600">*</span>
+          </label>
           <input
-            style={styles.input}
+            className="w-full p-3 mb-4 border rounded border-gray-300 focus:outline-none focus:ring focus:ring-indigo-200"
             type="text"
             name="cgpa"
             value={formData.cgpa}
             onChange={handleChange}
             placeholder="x.xx/x.xx"
+            required
           />
 
-          <label style={styles.label}>Phone Number<span style={{ color: 'red' }}>*</span></label>
+          <label className="block font-bold text-sm mb-2">
+            Phone Number <span className="text-red-600">*</span>
+          </label>
           <input
-            style={styles.input}
+            className="w-full p-3 mb-4 border rounded border-gray-300 focus:outline-none focus:ring focus:ring-indigo-200"
             type="text"
             name="phoneNumber"
             value={formData.phoneNumber}
             onChange={handleChange}
             placeholder="Enter Phone number without dashes. e.g(01232387643)"
+            required
           />
-          <label style={styles.label}>Email<span style={{ color: 'red' }}>*</span></label>
+
+          <label className="block font-bold text-sm mb-2">
+            Email <span className="text-red-600">*</span>
+          </label>
           <input
-            style={styles.input}
+            className="w-full p-3 mb-4 border rounded border-gray-300 focus:outline-none focus:ring focus:ring-indigo-200"
             type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
             placeholder="name@example.com"
+            required
           />
 
-          <label style={styles.label}>Upload your Resume<span style={{ color: 'red' }}>*</span></label>
-          <div style={styles.uploadResume}>
+          <label className="block font-bold text-sm mb-2">
+            Upload your Resume <span className="text-red-600">*</span>
+          </label>
+          <div className="flex items-center justify-center gap-3 cursor-pointer bg-gray-100 border-2 border-dashed border-indigo-600 p-6 rounded-lg">
             <FiUploadCloud size={24} />
-            <label htmlFor="resume-upload" style={styles.label}>
-              Drag and drop to upload or <span>Browse</span>
+            <label htmlFor="resume-upload" className="font-bold text-indigo-600 cursor-pointer">
+              Drag and drop to upload or <span className="text-indigo-700">Browse</span>
             </label>
             <input
               type="file"
               id="resume-upload"
               name="resume"
               onChange={handleFileChange}
-              style={{ display: 'none' }}
+              className="hidden"
+              required
             />
           </div>
 
-          
-
-          <button style={styles.button} type="submit">
+          <button
+            className="bg-black text-white py-3 px-6 rounded-lg w-full mt-6 hover:bg-gray-800"
+            type="submit"
+            onClick={handleSubmit}
+          >
             Submit Application
           </button>
         </div>
 
         {/* Right Section: Static Job Info */}
-        <div style={styles.jobInfoContainer}>
-          <h2 style={styles.jobInfoHeader}>Job Information</h2>
+        <div className="w-1/2 bg-white p-10 rounded-lg shadow-lg">
+          <h2 className="text-2xl font-bold mb-6">Job Information</h2>
 
-          <label style={styles.jobInfoHeading}>Job Title</label>
-          <div style={styles.jobInfoBoxTitle}>Software Engineer</div>
+          <label className="block font-bold text-sm mb-2">Job Title</label>
+          <div className="p-4 border rounded bg-gray-100 text-gray-800 mb-6">
+            Software Engineer
+          </div>
 
-          <label style={styles.jobInfoHeading}>Job Description</label>
-          <div style={styles.jobInfoBoxDescription}>
+          <label className="block font-bold text-sm mb-2">Job Description</label>
+          <div className="p-4 border rounded bg-gray-100 text-gray-800 h-96 overflow-y-auto">
             Responsible for developing scalable web applications using React.js, Node.js, and other cutting-edge technologies.
-            This role will require strong communication and problem-solving skills. You will work closely with product teams
-            to build seamless user experiences. The job may also include mentoring junior developers and assisting in design
-            reviews for various product features.
-            Responsible for developing scalable web applications using React.js, Node.js, and other cutting-edge technologies.
-            This role will require strong communication and problem-solving skills. You will work closely with product teams
-            to build seamless user experiences. The job may also include mentoring junior developers and assisting in design
-            reviews for various product features.
-            Responsible for developing scalable web applications using React.js, Node.js, and other cutting-edge technologiesesponsible for developing scalable web applications using React.js, Node.js, and other cutting-edge technologies..
             This role will require strong communication and problem-solving skills. You will work closely with product teams
             to build seamless user experiences. The job may also include mentoring junior developers and assisting in design
             reviews for various product features.
