@@ -1,6 +1,5 @@
 import React from "react";
 import Navbarapp from "../components/Navbarapp";
-import { Link } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 
 function CreateJob(){
