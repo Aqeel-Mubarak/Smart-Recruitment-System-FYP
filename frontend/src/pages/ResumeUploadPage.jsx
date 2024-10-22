@@ -85,7 +85,7 @@ const ResumeUploadPage = () => {
 
               <div className="flex justify-center mt-6">
                 <button className="bg-black text-white py-4 px-8 rounded-full">
-                  Shortlisted Candidates
+                  Shortlist Candidates
                 </button>
               </div>
             </div>

@@ -9,6 +9,7 @@ import CreateJob from './pages/CreateJob';
 import Report from './pages/Report';
 import ShortlistCandidate from './pages/ShortlistCandidate';
 import ResumeUploadPage from './pages/ResumeUploadPage';
+import CurrentOpenJobs from './pages/CurrentOpenJobs';
 
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
         <Route path="/reports" element={<Report />} />
         <Route path='/shortlist-candidate' element={<ShortlistCandidate/>} />
         <Route path='/resume-upload' element={<ResumeUploadPage/>} />
+        <Route path='/open-jobs' element={<CurrentOpenJobs/>} />
       </Routes>
     </Router>
   );
