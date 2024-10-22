@@ -1,5 +1,5 @@
 import React from 'react';
-import Navbar from '../components/Navbar'; // Assuming the Navbar is correctly implemented
+import Navbarapp from '../components/Navbarapp'; // Assuming the Navbar is correctly implemented
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import { faInstagram, faFacebookF } from '@fortawesome/free-brands-svg-icons';
@@ -7,7 +7,7 @@ import { faInstagram, faFacebookF } from '@fortawesome/free-brands-svg-icons';
 const ContactPage = () => {
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
+      <Navbarapp />
       <div className="flex-grow p-10 bg-white-100" style={{ paddingTop: '90px' }}> {/* Adjusting top padding to create space below the navbar */}
         <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Name and Email Input Fields */}
