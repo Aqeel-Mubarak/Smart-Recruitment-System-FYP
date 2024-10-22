@@ -17,7 +17,7 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/resetpassword" element={<ForgetPassword />} />
         <Route path="/application" element={<ApplicationForm />} />
-        <Route path='shortlist-candidate' element={<ShortlistCandidate/>} />
+        <Route path='/shortlist-candidate' element={<ShortlistCandidate/>} />
 
       </Routes>
     </Router>
