@@ -5,7 +5,6 @@ import Sidebar from "../components/Sidebar";
 import Tabledrow from "../components/Tabledrow";
 import Tablehrow from "../components/Tablehrow";
 import HorizontalHistogram from "../components/HorizontalHistogram";
-import { Bubble } from "react-chartjs-2";
 
 function Report(){
     return (
