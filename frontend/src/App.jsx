@@ -8,6 +8,7 @@ import ApplicationForm from './pages/ApplicationForm';
 import CreateJob from './pages/CreateJob';
 import Report from './pages/Report';
 // import UpcomingInterview from './pages/UpcomingInterviews';
+import ShortlistCandidate from './pages/ShortlistCandidate';
 
 
 function App() {
@@ -22,8 +23,9 @@ function App() {
         <Route path="/create-job" element={<CreateJob />} />
         <Route path="/reports" element={<Report />} />
         {/* <Route path="/upcoming-interviews" element={<UpcomingInterview />} />  */}
-
-
+        {/* <Route path="/reports" element={<Report />} />
+        <Route path="/upcoming-interviews" element={<UpcomingInterview />} /> */}
+        <Route path='/shortlist-candidate' element={<ShortlistCandidate/>} />
       </Routes>
     </Router>
   );
