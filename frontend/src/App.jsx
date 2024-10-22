@@ -6,7 +6,7 @@ import Home from './pages/home'; // Importing the Home component
 import ForgetPassword from './pages/ForgetPassword';
 import ApplicationForm from './pages/ApplicationForm';
 import CreateJob from './pages/CreateJob';
-// import Report from './pages/Report';
+import Report from './pages/Report';
 // import UpcomingInterview from './pages/UpcomingInterviews';
 import ShortlistCandidate from './pages/ShortlistCandidate';
 
@@ -21,6 +21,8 @@ function App() {
         <Route path="/resetpassword" element={<ForgetPassword />} />
         <Route path="/application" element={<ApplicationForm />} />
         <Route path="/create-job" element={<CreateJob />} />
+        <Route path="/reports" element={<Report />} />
+        {/* <Route path="/upcoming-interviews" element={<UpcomingInterview />} />  */}
         {/* <Route path="/reports" element={<Report />} />
         <Route path="/upcoming-interviews" element={<UpcomingInterview />} /> */}
         <Route path='/shortlist-candidate' element={<ShortlistCandidate/>} />
