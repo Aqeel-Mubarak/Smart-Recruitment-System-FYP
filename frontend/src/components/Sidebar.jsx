@@ -9,6 +9,7 @@ const Sidebar = () => {
   const isResumeUpload = location.pathname === '/resume-upload';
   const isCreateJob = location.pathname === '/create-job';
   const isOpenJobs = location.pathname === '/open-jobs';
+  const isShortlistCandidate = location.pathname === '/shortlist-candidate';
   const isUpcomingInterviews = location.pathname === '/upcoming-interviews';
   const isReports = location.pathname === '/reports';
 
@@ -49,6 +50,17 @@ const Sidebar = () => {
             >
               <span className="font-medium">Open Jobs</span>
               <FaBriefcase className="text-[#800080]" />
+            </Link>
+            <hr className="border-[#800080]" />
+          </li>
+          <li>
+            <Link
+              to="/shortlist-candidate"
+              className={`flex justify-between items-center p-2 text-gray-800 hover:text-[#800080] hover:bg-gray-100 rounded-lg ${isShortlistCandidate ? 'bg-[#F0CBF0]' : ''
+                }`}
+            >
+              <span className="font-medium">Shortlist Candidates</span>
+              <FaClipboardList className="text-[#800080]" />
             </Link>
             <hr className="border-[#800080]" />
           </li>
