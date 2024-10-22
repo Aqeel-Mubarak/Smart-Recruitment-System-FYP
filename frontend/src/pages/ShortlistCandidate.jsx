@@ -1,7 +1,7 @@
 import React from 'react';
 import Navbarapp from '../components/Navbarapp';
 import Sidebar from '../components/Sidebar';
-import  useNavigate  from 'react-router-dom';
+import  {useNavigate}  from 'react-router-dom';
 
 const ShortlistCandidate = () => {
     const navigate = useNavigate();
