@@ -32,13 +32,13 @@ const CurrentOpenJobs = () => {
         {/* Main Content Area */}
         <div className="flex-1 bg-gray-100 p-8 mt-12">
           {/* Table Section for Open Jobs */}
-          <div className="bg-[#F0CBF0] rounded-lg shadow-lg p-6 h-full"> {/* Updated background color */}
-            <h2 className="text-2xl font-bold mb-4 text-purple-600 flex items-center">
-              <FaClipboardList className="mr-2" />  Open Jobs
+          <div className="bg-[#F0CBf0] rounded-lg shadow-lg p-6 h-full"> {/* Updated background color */}
+            <h2 className="text-2xl font-bold mb-4 text-black-600 flex items-center">
+              <FaClipboardList className="mr-2 " />  Open Jobs
             </h2>
             <div className="overflow-y-auto h-4/5"> {/* Increased height to utilize more of the screen */}
               <table className="w-full border-collapse">
-                <thead className="bg-purple-800 text-white sticky top-0">
+                <thead className="bg-[#800080] text-white sticky top-0">
                   <tr>
                     <th className="p-3 border border-purple-900 rounded-tl-lg text-left">Sr</th>
                     <th className="p-3 border border-purple-900 text-left">
