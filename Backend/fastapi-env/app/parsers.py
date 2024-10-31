@@ -3,6 +3,27 @@ from docx import Document
 from io import BytesIO
 from PyPDF2 import PdfReader
 import textract
+import re
+
+
+from typing import Optional
+
+
+def extract_email(text: str) -> Optional[str]:
+    """
+    Extract email address from the given text using regular expressions.
+    Returns None if no email is found.
+    """
+    cleaned_text = re.sub(r'\s+', ' ', text)  # Replace any whitespace characters with a single space
+
+    email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}'
+
+    # Find all matches (in case there are multiple emails)
+    matches = re.findall(email_pattern, cleaned_text)
+
+    # Return the first match if available
+    return matches[0] if matches else None
+
 
 def parse_pdf(file: UploadFile):
     """

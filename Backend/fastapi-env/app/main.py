@@ -5,6 +5,7 @@ from .database import engine, Base, get_db
 from .models import Candidate, JobDescription
 from .parsers import parse_pdf, parse_doc
 from .ai_scoring import calculate_ai_score
+from .parsers import parse_pdf, parse_doc, extract_email
 
 from .schemas import CandidateCreate, CandidateOut, JobDescriptionCreate, JobDescriptionOut
 
@@ -47,6 +48,8 @@ def upload_resume(file: UploadFile = File(...), job_description_id: int = None, 
     job_description = db.query(JobDescription).filter(JobDescription.id == job_description_id).first()
     if not job_description:
         raise HTTPException(status_code=404, detail="Job description not found.")
+    
+
 
     # Parse the resume based on file type
     if file.content_type == "application/pdf":
@@ -55,6 +58,10 @@ def upload_resume(file: UploadFile = File(...), job_description_id: int = None, 
         resume_text = parse_doc(file)
     else:
         raise HTTPException(status_code=400, detail="Unsupported file format")
+        
+        
+    email = extract_email(resume_text)
+
 
     # Calculate the AI score
     ai_score = calculate_ai_score(resume_text, job_description.description_text)
@@ -63,7 +70,9 @@ def upload_resume(file: UploadFile = File(...), job_description_id: int = None, 
         name=file.filename, 
         resume_text=resume_text, 
         job_description_id=job_description_id, 
+        email= email,
         score=ai_score
+
     )
     
     db.add(candidate)

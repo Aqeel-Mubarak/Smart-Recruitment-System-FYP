@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field
+from typing import Optional
+
 
 class JobDescriptionCreate(BaseModel):
     title: str
@@ -14,6 +16,7 @@ class CandidateCreate(BaseModel):
     name: str
     resume_text: str
     job_description_id: int  # Link candidate to a job description
+    email: Optional[EmailStr] = None
 
 class CandidateOut(CandidateCreate):
     id: int

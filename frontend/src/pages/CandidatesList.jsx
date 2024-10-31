@@ -39,6 +39,9 @@ const CandidatesList = () => {
               <div className="flex justify-between items-center mb-4">
                 <p className="text-gray-500 text-sm">AI Score: <span className="font-semibold text-gray-800">{candidate.score}</span></p>
               </div>
+              <div className="mb-4">
+                <p className="text-gray-500 text-sm">Email: <span className="font-semibold text-gray-800">{candidate.email || 'Not Provided'}</span></p> {/* Displaying email */}
+              </div>
               <div className="text-gray-700 whitespace-pre-line leading-relaxed">
                 {candidate.resume_text}
               </div>

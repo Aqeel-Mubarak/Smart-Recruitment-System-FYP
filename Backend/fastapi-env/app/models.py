@@ -18,6 +18,7 @@ class Candidate(Base):
     name = Column(String, index=True)
     resume_text = Column(Text)
     score = Column(Integer, default=0)
+    email = Column(String, index=True, nullable=True)  # New field for email
     job_description_id = Column(Integer, ForeignKey("job_descriptions.id"))
 
     job_description = relationship("JobDescription", back_populates="candidates")
