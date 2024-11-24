@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr
 from typing import Optional
 
 
@@ -10,12 +10,12 @@ class JobDescriptionOut(JobDescriptionCreate):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True  # Updated for Pydantic v2
 
 class CandidateCreate(BaseModel):
     name: str
     resume_text: str
-    job_description_id: int  # Link candidate to a job description
+    job_description_id: int
     email: Optional[EmailStr] = None
 
 class CandidateOut(CandidateCreate):
@@ -23,4 +23,4 @@ class CandidateOut(CandidateCreate):
     score: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True  # Updated for Pydantic v2
