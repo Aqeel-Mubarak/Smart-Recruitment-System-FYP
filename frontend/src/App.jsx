@@ -10,7 +10,8 @@ import Report from './pages/Report';
 import ShortlistCandidate from './pages/ShortlistCandidate';
 import ResumeUploadPage from './pages/ResumeUploadPage';
 import CurrentOpenJobs from './pages/CurrentOpenJobs';
-
+import ContactPage from './pages/ContactPage';
+import CandidatesList from './pages/CandidatesList';
 
 function App() {
   return (
@@ -25,8 +26,9 @@ function App() {
         <Route path="/reports" element={<Report />} />
         <Route path='/shortlist-candidate' element={<ShortlistCandidate/>} />
         <Route path='/resume-upload' element={<ResumeUploadPage/>} />
-
         <Route path='/open-jobs' element={<CurrentOpenJobs/>} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/candidates" element={<CandidatesList />} />
       </Routes>
     </Router>
   );

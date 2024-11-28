@@ -1,14 +1,87 @@
-// ResumeUploadPage.jsx
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import the useNavigate hook
 import Navbarapp from "../components/Navbarapp";
 import Sidebar from "../components/Sidebar";
 import { FiUploadCloud } from 'react-icons/fi';
-import { FaShareAlt, FaPrint, FaSave, FaCopy, FaPlus } from 'react-icons/fa';
+import axios from 'axios';
 
 const ResumeUploadPage = () => {
+  const [file, setFile] = useState(null);
+  const [jobTitle, setJobTitle] = useState('');
+  const [jobDescription, setJobDescription] = useState('');
+  const [jobId, setJobId] = useState(null);
+  const [uploadStatus, setUploadStatus] = useState('');
+  const [selectedFileName, setSelectedFileName] = useState(null); // Added state for selected file
+  const [jobDescriptionStatus, setJobDescriptionStatus] = useState(''); // Added state for job description status
+
+  const navigate = useNavigate(); // Hook to handle navigation
+
   const handleFileChange = (event) => {
-    // Logic to handle file change
-    console.log(event.target.files[0]);
+    const selectedFile = event.target.files[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setSelectedFileName(`${selectedFile.name} (${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)`); // Display file name and size
+    } else {
+      setSelectedFileName(null); // Reset if no file is selected
+    }
+  };
+
+  const handleDescriptionChange = (event) => {
+    setJobDescription(event.target.value);
+  };
+
+  const handleJobTitleChange = (event) => {
+    setJobTitle(event.target.value);
+  };
+
+  // Handle job description upload
+  const handleJobDescriptionUpload = async () => {
+    if (!jobTitle || !jobDescription) {
+      setJobDescriptionStatus('Please provide both job title and description.');
+      return;
+    }
+
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/add_job_description', {
+        title: jobTitle,
+        description_text: jobDescription,
+      });
+      setJobId(response.data.id);
+      setJobDescriptionStatus(`Job Description uploaded successfully: ${response.data.title}`);
+    } catch (error) {
+      setJobDescriptionStatus(`Job Description upload failed: ${error.response?.data?.detail || error.message}`);
+    }
+  };
+
+  // Handle resume upload
+  const handleResumeUpload = async () => {
+    if (!file) {
+      setUploadStatus('Please select a file first.');
+      return;
+    }
+    if (!jobId) {
+      setUploadStatus('Please upload a job description first.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await axios.post(`http://127.0.0.1:8000/upload_resume?job_description_id=${jobId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      setUploadStatus(`Resume uploaded successfully: ${response.data.name}`);
+    } catch (error) {
+      setUploadStatus(`Upload failed: ${error.response?.data?.detail || error.message}`);
+    }
+  };
+
+  // Handle navigation to shortlisted candidates page
+  const handleShortlistRedirect = () => {
+    navigate('/shortlisted-candidates'); // Redirect to the shortlisted candidates page
   };
 
   return (
@@ -17,10 +90,10 @@ const ResumeUploadPage = () => {
       <Navbarapp />
 
       {/* Main Content Section */}
-      <div className="flex flex-1">
-        {/* Sidebar with same top margin */}
-        <div className="mt-12">
-          <Sidebar />
+      <div className="flex flex-1 h-full">
+        {/* Sidebar with full height */}
+        <div className="h-full">
+          <Sidebar className="min-h-full h-full" /> {/* Ensure the sidebar takes full height */}
         </div>
 
         {/* Main Content Area */}
@@ -29,19 +102,33 @@ const ResumeUploadPage = () => {
             {/* Job Description Section */}
             <div className="w-1/3 bg-white rounded-lg shadow-md p-5">
               <h2 className="text-xl font-bold mb-4">Job Description</h2>
-              <div className="text-gray-500 space-y-4">
-                {/* Placeholder for job description lines */}
-                {/* You can write the content later here */}
-                {[...Array(10)].map((_, index) => (
-                  <div key={index} className="h-6 bg-gray-200 rounded-full"></div>
-                ))}
-              </div>
+              <input
+                type="text"
+                placeholder="Job Title"
+                value={jobTitle}
+                onChange={handleJobTitleChange}
+                className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
+              />
+              <textarea
+                value={jobDescription}
+                onChange={handleDescriptionChange}
+                className="w-full h-80 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 resize-none"
+                placeholder="Enter the job description here..."
+                style={{ minHeight: '200px' }}
+              ></textarea>
+              <button 
+                onClick={handleJobDescriptionUpload} 
+                className="mt-4 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
+                Upload Job Description
+              </button>
+              {/* Display job description upload status */}
+              {jobDescriptionStatus && <p className="text-green-600 mt-2">{jobDescriptionStatus}</p>}
             </div>
 
             {/* Upload Section */}
             <div className="w-2/3 bg-white rounded-lg shadow-md p-8">
               <label className="block font-bold text-xl mb-2">
-                Upload your Resume 
+                Upload your Resume
               </label>
               <div className="flex flex-col items-center justify-center gap-3 cursor-pointer bg-gray-100 border-2 border-dashed border-indigo-600 p-10 rounded-lg">
                 <FiUploadCloud size={80} className="text-indigo-600" />
@@ -54,71 +141,38 @@ const ResumeUploadPage = () => {
                   name="resume"
                   onChange={handleFileChange}
                   className="hidden"
+                  accept=".pdf"
                   required
                 />
               </div>
-              {/* File Details Section */}
-              <div className="flex justify-between mt-4">
-                <div>
-                  <p className="text-gray-600">My current CV.PDF</p>
-                  <p className="text-xs text-gray-500">2.9 mb</p>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <p className="text-xs text-gray-500">JPEG, PNG, GIF, BMP</p>
-                  <button className="text-gray-500 hover:text-red-600">
-                    <i className="fas fa-times-circle"></i> {/* Font Awesome Close Icon */}
-                  </button>
-                </div>
-              </div>
+              {/* Display selected file name */}
+              {selectedFileName && <p className="text-gray-600 mt-2">Selected File: {selectedFileName}</p>}
 
-              {/* Progress Bar */}
-              <div className="w-full bg-purple-300 h-1 rounded-full mt-1">
-                <div className="bg-purple-600 h-full rounded-full" style={{ width: '100%' }}></div>
-              </div>
-
-              {/* Time Remaining and Percentage */}
-              <div className="flex justify-between mt-1">
-                <p className="text-xs text-gray-500">Time remaining: 0 sec</p>
-                <p className="text-xs text-gray-500">100%</p>
-              </div>
-
-
+              {/* Upload Button */}
               <div className="flex justify-center mt-6">
-                <button className="bg-black text-white py-4 px-8 rounded-full">
-                  Shortlisted Candidates
+                <button 
+                  onClick={handleResumeUpload} 
+                  className="bg-black text-white py-4 px-8 rounded-full">
+                  Upload Resume
                 </button>
               </div>
+
+              {/* Shortlist Candidates Button */}
+              <div className="flex justify-center mt-6">
+                <button 
+                  onClick={handleShortlistRedirect} 
+                  className="bg-black text-white py-4 px-8 rounded-full">
+                  Shortlist Candidates
+                </button>
+              </div>
+
+              {/* Display resume upload status */}
+              {uploadStatus && <p className="text-green-600 mt-2">{uploadStatus}</p>}
             </div>
           </div>
         </div>
       </div>
-
-      {/* Footer Section */}
-      <footer className="w-full bg-white shadow-md p-4 flex justify-end items-center">
-        <div className="flex space-x-4">
-          <ActionButton label="Share" icon={<FaShareAlt />} />
-          <ActionButton label="Print" icon={<FaPrint />} />
-          <ActionButton label="Save" icon={<FaSave />} />
-          <ActionButton label="Copy" icon={<FaCopy />} />
-        </div>
-        {/* Plus Button */}
-        <button className="bg-gray-200 rounded-full p-3 shadow-md">
-          <FaPlus className="text-2xl text-purple-700" />
-        </button>
-      </footer>
     </div>
-  );
-};
-
-// ActionButton Component for Bottom Icons
-const ActionButton = ({ label, icon }) => {
-  return (
-    <button className="flex items-center space-x-2 bg-gray-100 rounded-lg shadow-md px-4 py-2">
-      <div className="text-purple-700 text-lg">
-        {icon}
-      </div>
-      <span className="text-gray-600">{label}</span>
-    </button>
   );
 };
 
