@@ -11,7 +11,6 @@ import ShortlistCandidate from './pages/ShortlistCandidate';
 import ResumeUploadPage from './pages/ResumeUploadPage';
 import CurrentOpenJobs from './pages/CurrentOpenJobs';
 import ContactPage from './pages/ContactPage';
-
 import CandidatesList from './pages/CandidatesList';
 
 function App() {
