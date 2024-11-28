@@ -81,7 +81,7 @@ const ResumeUploadPage = () => {
 
   // Handle navigation to shortlisted candidates page
   const handleShortlistRedirect = () => {
-    navigate('/shortlisted-candidates'); // Redirect to the shortlisted candidates page
+    navigate('/shortlist-candidate'); // Redirect to the shortlisted candidates page
   };
 
   return (
