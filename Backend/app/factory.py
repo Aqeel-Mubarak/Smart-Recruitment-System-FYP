@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from app.api.__init__ import api_router
 from app.core.config import settings
-from app.utils.faiss_utils import rebuild_faiss_index  # Updated import
+from app.utils.qdrant_utils import create_qdrant_collection  # Import correct function
 
 def create_app():
     """
@@ -23,11 +23,10 @@ def create_app():
     # Setup CORS middleware
     setup_cors_middleware(app)
 
-    # Initialize FAISS index
-    rebuild_faiss_index()  # Updated to use rebuild_faiss_index
+    # Initialize Qdrant collection
+    create_qdrant_collection()  # Ensure this is called correctly
 
     return app
-
 
 def setup_cors_middleware(app):
     """
