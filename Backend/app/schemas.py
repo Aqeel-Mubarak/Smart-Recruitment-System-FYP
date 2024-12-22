@@ -24,3 +24,13 @@ class CandidateOut(CandidateCreate):
 
     class Config:
         from_attributes = True  # Updated for Pydantic v2
+        
+        
+class Calendar(BaseModel):
+    title: str
+    startdate: str
+    starttime: str
+    enddate: str
+    endtime: str
+    status:str
+    

@@ -22,3 +22,16 @@ class Candidate(Base):
     job_description_id = Column(Integer, ForeignKey("job_descriptions.id"))
 
     job_description = relationship("JobDescription", back_populates="candidates")
+
+
+
+class Calendar(Base):
+    __tablename__ = "calendar"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True)
+    startdate= Column(String)
+    starttime= Column(String)
+    enddate= Column(String)
+    endtime= Column(String)
+    status=Column(String)

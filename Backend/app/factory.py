@@ -25,6 +25,8 @@ def create_app():
 
     # Initialize Qdrant collection
     create_qdrant_collection()  # Ensure this is called correctly
+    # Initialize FAISS index
+    # rebuild_faiss_index()  # Updated to use rebuild_faiss_index
 
     return app
 

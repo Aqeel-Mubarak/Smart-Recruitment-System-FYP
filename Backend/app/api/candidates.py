@@ -1,15 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models import Candidate
+from app.models import Candidate,JobDescription
 from app.schemas import CandidateOut
 from app.utils.qdrant_utils import qdrant_client, collection_name  # Import Qdrant client functions
 from pydantic import BaseModel
-from typing import List
+from typing import List,Optional
 import numpy as np
 from sentence_transformers import SentenceTransformer, util
 
 embedding_model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+
 
 router = APIRouter()
 
@@ -63,3 +64,14 @@ def filter_candidates(request: PromptRequest, db: Session = Depends(get_db)):
     )
 
     return sorted_candidates
+
+
+@router.get("/candidates_of_job", response_model=List[CandidateOut])
+def get_specific_candidates(title : Optional[str] = None,db: Session = Depends(get_db)):
+    """
+    Fetch all candidates from the database.
+    """
+    print(title)
+    job=db.query(JobDescription).filter(JobDescription.title==title).first()
+    print(job.id)
+    return db.query(Candidate).filter(Candidate.job_description_id==job.id).all()

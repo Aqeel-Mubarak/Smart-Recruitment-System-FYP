@@ -36,10 +36,8 @@ const ShortlistCandidate = () => {
       console.error('Error filtering candidates:', error);
     }
   };
-
-  const handleSubmit = () => {
-    alert('Invitation sent');
-    navigate('/home');
+  const handleSubmit = (e) => {
+    e.preventDefault();
   };
 
   return (

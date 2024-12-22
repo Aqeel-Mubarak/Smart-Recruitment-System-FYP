@@ -1,0 +1,124 @@
+import React, { useEffect, useState } from 'react';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction'; // Required for interactions like select
+import axios from 'axios';
+import './calendar.css'; // Custom styles for FullCalendar
+import  CalendarPopUp from '../components/CalendarPopUp'
+import { useAppContext } from "../components/AppContext";
+import moment from 'moment';
+import { useLocation } from 'react-router-dom';
+import { useParams } from "react-router-dom";
+
+
+
+const MyCalendar = () => {
+  const [events, setEvents] = useState([]);
+  const [status, setStatus] = useState('pending');
+  // const location = useLocation();
+  // const propsFromNavigate = location.state || {};
+  const { title } = useParams(); 
+  const [time, setTime] = useState({
+    title:'',startdate:'00',starttime:'00',enddate:'00',endtime:'00',status:status
+  });
+  const {popUp,setPopUp} = useAppContext()
+  
+  // Handle date range selection
+  const handleSelect = (selectionInfo) => {
+    const startdate = moment(selectionInfo.start).format('YYYY-MM-DD');
+    const starttime = moment(selectionInfo.start).format(' HH:mm:ss');
+    const enddate = moment(selectionInfo.end).format(' YYYY-MM-DD');// Correctly get start time
+    const endtime = moment(selectionInfo.end).format(' HH:mm:ss'); // Correctly get end time
+    setTime({
+      title:title,
+      startdate:startdate,starttime:starttime,enddate:enddate,endtime:endtime,status:status
+    })
+    console.log(time) // Update end state
+    setPopUp(true);
+  
+    }
+    const handlePopUp = () => {
+      setPopUp(!popUp)
+    }
+    useEffect ( () => {
+      axios
+        .get('http://127.0.0.1:8000/get_data_from_calendar',{params:{title:title}})     
+          .then((response) => {
+            const formattedEvents = response.data.map((event) => ({
+              title: event.title,
+              start: moment(event.startdate+event.starttime).format('YYYY-MM-DDTHH:mm:ss'), // Ensure ISO 8601 format
+              end:  moment(event.enddate+event.endtime).format('YYYY-MM-DDTHH:mm:ss'),
+              // status:event.status
+            }));
+            setEvents(formattedEvents);
+            console.log(events)
+          })
+          .catch((error) => {
+            console.error('Error booking an appointment:', error);
+          });}
+    ,[popUp,setPopUp])
+
+  const handledelete= () => {
+    isDeleted(true)
+  }
+  
+  // Handle event clicks for deleting events
+  const handleEventClick = (selectionInfo) => {
+    console.log('jfksk')
+    const title= (selectionInfo.event.title)
+    const startdate = moment(selectionInfo.event.start).format('YYYY-MM-DD');
+    const starttime = moment(selectionInfo.event.start).format(' HH:mm:ss');
+    const enddate = moment(selectionInfo.event.end).format(' YYYY-MM-DD');// Correctly get start time
+    const endtime = moment(selectionInfo.event.end).format(' HH:mm:ss'); // Correctly get end time
+    const statusfunction = () => {
+      axios
+        .get('http://127.0.0.1:8000/get_status',{params:{
+          title:title ,startdate:startdate,starttime:starttime,enddate:enddate,endtime:endtime
+        }})     
+          .then((response) => {
+            console.log(response.data.status)
+            setTime({
+              title:title ,startdate:startdate,starttime:starttime,enddate:enddate,endtime:endtime,status:response.data.status
+            });
+          })
+          .catch((error) => {
+            console.error('Error getting status:', error);
+          })
+          .finally(() => {
+            setPopUp(true)
+          });
+    }
+    statusfunction();
+    ;}
+    
+    
+  
+  console.log(events)
+  return (
+    <div className="p-6 bg-gray-100 min-h-screen">
+      <h1 className="text-2xl font-bold mb-6 text-center text-black" >My Calendar</h1>
+      <div className="bg-white shadow-md rounded-lg p-4">
+        <FullCalendar 
+          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+          initialView="dayGridMonth"
+          headerToolbar={{
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay',
+          }}
+          editable={true}
+          selectable={true} // Enable selection
+          selectMirror={true} // Show the selection visually
+          select={handleSelect} // Handle selection
+          events={events} // Render the events
+          eventClick={handleEventClick} // Handle event clicks
+          height="auto"
+        />
+      </div>
+      {popUp &&   <CalendarPopUp title={time.title} startdate={time.startdate} starttime={time.starttime} enddate={time.enddate} endtime={time.endtime} status={time.status}  />
+  }
+    </div>
+  );}
+
+export default MyCalendar;
