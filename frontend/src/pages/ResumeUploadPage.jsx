@@ -1,28 +1,30 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import the useNavigate hook
+import { useNavigate } from "react-router-dom";
 import Navbarapp from "../components/Navbarapp";
 import Sidebar from "../components/Sidebar";
 import { FiUploadCloud } from 'react-icons/fi';
 import axios from 'axios';
 
 const ResumeUploadPage = () => {
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [jobTitle, setJobTitle] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [jobId, setJobId] = useState(null);
   const [uploadStatus, setUploadStatus] = useState('');
-  const [selectedFileName, setSelectedFileName] = useState(null); // Added state for selected file
-  const [jobDescriptionStatus, setJobDescriptionStatus] = useState(''); // Added state for job description status
+  const [selectedFileNames, setSelectedFileNames] = useState(null);
+  const [jobDescriptionStatus, setJobDescriptionStatus] = useState('');
+  const [loading, setLoading] = useState(false);  // Loading state for the resume upload
 
-  const navigate = useNavigate(); // Hook to handle navigation
+  const navigate = useNavigate();
 
   const handleFileChange = (event) => {
-    const selectedFile = event.target.files[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setSelectedFileName(`${selectedFile.name} (${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)`); // Display file name and size
+    const selectedFiles = event.target.files;
+    if (selectedFiles.length > 0) {
+      setFiles(selectedFiles);
+      setSelectedFileNames(`Selected Files: ${Array.from(selectedFiles).map(file => `${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`).join(', ')}`);
     } else {
-      setSelectedFileName(null); // Reset if no file is selected
+      setFiles([]);
+      setSelectedFileNames(null);
     }
   };
 
@@ -34,7 +36,6 @@ const ResumeUploadPage = () => {
     setJobTitle(event.target.value);
   };
 
-  // Handle job description upload
   const handleJobDescriptionUpload = async () => {
     if (!jobTitle || !jobDescription) {
       setJobDescriptionStatus('Please provide both job title and description.');
@@ -53,10 +54,9 @@ const ResumeUploadPage = () => {
     }
   };
 
-  // Handle resume upload
   const handleResumeUpload = async () => {
-    if (!file) {
-      setUploadStatus('Please select a file first.');
+    if (files.length === 0) {
+      setUploadStatus('Please select at least one file.');
       return;
     }
     if (!jobId) {
@@ -65,7 +65,11 @@ const ResumeUploadPage = () => {
     }
 
     const formData = new FormData();
-    formData.append('file', file);
+    Array.from(files).forEach(file => {
+      formData.append('files', file);
+    });
+
+    setLoading(true); // Start loading indicator
 
     try {
       const response = await axios.post(`http://127.0.0.1:8000/upload_resume?job_description_id=${jobId}`, formData, {
@@ -73,33 +77,27 @@ const ResumeUploadPage = () => {
           'Content-Type': 'multipart/form-data',
         },
       });
-      setUploadStatus(`Resume uploaded successfully: ${response.data.name}`);
+      setUploadStatus(`Resumes uploaded successfully. Processed ${response.data.length} files.`);
+      setFiles([]);  // Reset selected files after successful upload
+      setSelectedFileNames(null);
     } catch (error) {
       setUploadStatus(`Upload failed: ${error.response?.data?.detail || error.message}`);
+    } finally {
+      setLoading(false); // Stop loading indicator
     }
   };
 
-  // Handle navigation to shortlisted candidates page
   const handleShortlistRedirect = () => {
-    navigate('/shortlist-candidate'); // Redirect to the shortlisted candidates page
+    navigate('/shortlist-candidate');
   };
 
   return (
     <div className="h-screen flex flex-col">
-      {/* Navbar */}
       <Navbarapp />
-
-      {/* Main Content Section */}
       <div className="flex flex-1 h-full">
-        {/* Sidebar with full height */}
-        <div className="h-full">
-          <Sidebar className="min-h-full h-full" /> {/* Ensure the sidebar takes full height */}
-        </div>
-
-        {/* Main Content Area */}
+        <Sidebar className="min-h-full h-full" />
         <div className="flex-1 bg-gray-100 p-8 mt-12">
           <div className="flex space-x-10">
-            {/* Job Description Section */}
             <div className="w-1/3 bg-white rounded-lg shadow-md p-5">
               <h2 className="text-xl font-bold mb-4">Job Description</h2>
               <input
@@ -121,14 +119,11 @@ const ResumeUploadPage = () => {
                 className="mt-4 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
                 Upload Job Description
               </button>
-              {/* Display job description upload status */}
               {jobDescriptionStatus && <p className="text-green-600 mt-2">{jobDescriptionStatus}</p>}
             </div>
-
-            {/* Upload Section */}
             <div className="w-2/3 bg-white rounded-lg shadow-md p-8">
               <label className="block font-bold text-xl mb-2">
-                Upload your Resume
+                Upload your Resume(s)
               </label>
               <div className="flex flex-col items-center justify-center gap-3 cursor-pointer bg-gray-100 border-2 border-dashed border-indigo-600 p-10 rounded-lg">
                 <FiUploadCloud size={80} className="text-indigo-600" />
@@ -141,23 +136,19 @@ const ResumeUploadPage = () => {
                   name="resume"
                   onChange={handleFileChange}
                   className="hidden"
-                  accept=".pdf"
+                  accept=".pdf,.doc,.docx"
+                  multiple
                   required
                 />
               </div>
-              {/* Display selected file name */}
-              {selectedFileName && <p className="text-gray-600 mt-2">Selected File: {selectedFileName}</p>}
-
-              {/* Upload Button */}
+              {selectedFileNames && <p className="text-gray-600 mt-2">{selectedFileNames}</p>}
               <div className="flex justify-center mt-6">
                 <button 
                   onClick={handleResumeUpload} 
                   className="bg-black text-white py-4 px-8 rounded-full">
-                  Upload Resume
+                  {loading ? 'Uploading...' : 'Upload Resume'}
                 </button>
               </div>
-
-              {/* Shortlist Candidates Button */}
               <div className="flex justify-center mt-6">
                 <button 
                   onClick={handleShortlistRedirect} 
@@ -165,8 +156,6 @@ const ResumeUploadPage = () => {
                   Shortlist Candidates
                 </button>
               </div>
-
-              {/* Display resume upload status */}
               {uploadStatus && <p className="text-green-600 mt-2">{uploadStatus}</p>}
             </div>
           </div>

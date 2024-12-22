@@ -2,7 +2,12 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from app.api.__init__ import api_router
 from app.core.config import settings
-from app.utils.faiss_utils import rebuild_faiss_index  # Updated import
+from app.utils.qdrant_utils import create_qdrant_collection  # Import correct function
+from sqlalchemy import create_engine
+from sqlalchemy.exc import ProgrammingError
+from sqlalchemy_utils import database_exists, create_database
+from app.database import engine  # Import database engine
+from app.models import Base  # Import Base for table creation
 
 def create_app():
     """
@@ -23,11 +28,13 @@ def create_app():
     # Setup CORS middleware
     setup_cors_middleware(app)
 
-    # Initialize FAISS index
-    rebuild_faiss_index()  # Updated to use rebuild_faiss_index
+    # Create the database if it doesn't exist
+    initialize_database()
+
+    # Initialize Qdrant collection
+    create_qdrant_collection()
 
     return app
-
 
 def setup_cors_middleware(app):
     """
@@ -41,3 +48,18 @@ def setup_cors_middleware(app):
             allow_methods=["*"],  # Allow all methods
             allow_headers=["*"],  # Allow all headers
         )
+
+def initialize_database():
+    """
+    Ensures the database and tables are created.
+    """
+    # Extract the database URL
+    database_url = engine.url
+
+    # Check if the database exists
+    if not database_exists(database_url):
+        print(f"Database does not exist. Creating database: {database_url.database}")
+        create_database(database_url)
+
+    # Create tables if they don't exist
+    Base.metadata.create_all(bind=engine)

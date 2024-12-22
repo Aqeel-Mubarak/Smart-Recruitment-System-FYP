@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     FRONTEND_URL: AnyHttpUrl = "http://localhost:5173/"
     BACKEND_CORS_ORIGINS: Union[str, List[AnyHttpUrl]] = ["http://localhost:5173", "http://localhost:8000"]
 
-    DATABASE_URL: PostgresDsn = "postgresql://postgres:bsdsf21m019@localhost/hr1"
+    DATABASE_URL: PostgresDsn = "postgresql://postgres:bsdsf21m019@localhost/kh"
 
 
 settings = Settings()
