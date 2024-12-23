@@ -161,3 +161,6 @@ async def filter_candidates(request: PromptRequest, db: Session = Depends(get_db
         error_msg = f"Error processing request: {str(e)}"
         print(error_msg)  # Debug log
         raise HTTPException(status_code=500, detail=error_msg)
+
+
+#
