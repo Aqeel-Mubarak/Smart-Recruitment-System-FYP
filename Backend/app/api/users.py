@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException,Form
+from fastapi import APIRouter, Depends, HTTPException, status, Form
 from sqlalchemy.orm import Session
-from app.auth.utils import hash_password
+from app.auth.utils import hash_password, verify_password, create_access_token, decode_access_token
 from app.models import User
-from app.schemas import UserCreate
-from app.database import get_db  # Assume database session setup
+from app.schemas import UserCreate, Token
+from app.database import get_db  
 from app.crud.users import (
     get_user_by_email,
     user_create,
@@ -44,3 +44,20 @@ def signup(
     user = user_create(db, new_user)
     print(user.email)
     return user
+
+
+@router.post("/login", response_model=Token)
+def login(
+    db: Session = Depends(get_db),
+    email : str = Form(...),
+    password : str = Form(...),
+):
+    user = get_user_by_email(db, email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User Not registered with this email")
+    if not verify_password(password, user.hashed_password):
+        raise HTTPException(
+            status_code=401, detail="Invalid Password"
+        )
+    access_token = create_access_token({"sub": str(user.id)})
+    return {"access_token": access_token, "token_type": "bearer"}
