@@ -10,7 +10,7 @@ class JobDescriptionOut(JobDescriptionCreate):
     id: int
 
     class Config:
-        from_attributes = True  # Updated for Pydantic v2
+        from_attributes = True 
 
 class CandidateCreate(BaseModel):
     name: str
@@ -23,4 +23,17 @@ class CandidateOut(CandidateCreate):
     score: int
 
     class Config:
-        from_attributes = True  # Updated for Pydantic v2
+        from_attributes = True  
+
+class UserCreate(BaseModel):
+    email: str
+    id: int
+    company_name: str
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
