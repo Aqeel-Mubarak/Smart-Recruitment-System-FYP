@@ -1,13 +1,64 @@
 
-import React from 'react';
+import React, {useState} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import backgroundImage from '../assets/background2.jpg';
 import logo from '../assets/logo.jpg';
 import Navbar from '../components/Navbar';
+import axios from 'axios';
+
 
 
 const SignupPage = () => {
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    first_name: "",
+    last_name: "",
+    cell_phone: "",
+    company_name: "",
+    city: "",
+    country: "",
+    gender: "",
+    email: "",
+    password: "",
+  });
+
+  // Handle form input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
+   // Handle form submission
+   const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log(formData);
+    try {
+      const response = await axios.post("http://localhost:8000/signup", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data", // Required for FormData
+        },
+      });
+
+      setSuccessMessage("Signup successful!");
+      setErrorMessage(""); // Clear any previous error
+      console.log("Response:", response.data);
+      navigate('/');
+    } catch (error) {
+      if (error.response && error.response.status === 409) {
+        setErrorMessage("Email is already registered.");
+      } else {
+        setErrorMessage("An error occurred during signup.");
+      }
+      setSuccessMessage(""); // Clear any previous success message
+      console.error("Error:", error);
+    }
+  };
 
   const handleSignIn = () => {
     navigate('/'); // Redirect to Login page
@@ -34,17 +85,21 @@ const SignupPage = () => {
         {/* Signup Form */}
         <div className="relative z-10 w-full md:w-[calc(25%+.7in)] bg-white p-4 pl-4 pr-8 shadow-lg rounded-lg max-w-lg ml-[.8in] mt-24 mb-8">
         <h1 className="text-3xl font-bold mb-2 text-left" style={{ color: '#000000' }}>Sign up</h1>
-          <form>
+          <form onSubmit={handleSubmit}>
             {/* First Name */}
             <div className="mb-2">
               <label className="block text-gray-700 text-xs font-bold mb-1" htmlFor="firstName">
                 First Name
               </label>
               <input
+                name="first_name"
                 className="shadow border rounded w-full py-1 px-2 text-gray-700 focus:outline-none focus:shadow-outline text-xs"
                 id="firstName"
                 type="text"
                 placeholder="First Name"
+                value={formData.first_name}
+                onChange={handleChange}
+                required
               />
             </div>
 
@@ -54,10 +109,14 @@ const SignupPage = () => {
                 Last Name
               </label>
               <input
+                name="last_name"
                 className="shadow border rounded w-full py-1 px-2 text-gray-700 focus:outline-none focus:shadow-outline text-xs"
                 id="lastName"
                 type="text"
                 placeholder="Last Name"
+                value={formData.last_name}
+                onChange={handleChange}
+                required
               />
             </div>
 
@@ -67,10 +126,14 @@ const SignupPage = () => {
                 Cell Phone
               </label>
               <input
+                name= "cell_phone"
                 className="shadow border rounded w-full py-1 px-2 text-gray-700 focus:outline-none focus:shadow-outline text-xs"
                 id="cellPhone"
                 type="text"
                 placeholder="123-456-7890"
+                value={formData.cell_phone}
+                onChange={handleChange}
+                required
               />
             </div>
 
@@ -80,10 +143,14 @@ const SignupPage = () => {
                 Company Name
               </label>
               <input
+                name = "company_name"
                 className="shadow border rounded w-full py-1 px-2 text-gray-700 focus:outline-none focus:shadow-outline text-xs"
                 id="companyName"
                 type="text"
                 placeholder="Your Company"
+                value={formData.company_name}
+                onChange={handleChange}
+                required
               />
             </div>
 
@@ -94,10 +161,14 @@ const SignupPage = () => {
                   City
                 </label>
                 <input
+                  name="city"
                   className="shadow border rounded w-full py-1 px-2 text-gray-700 focus:outline-none focus:shadow-outline text-xs"
                   id="city"
                   type="text"
                   placeholder="City"
+                  value={formData.city}
+                  onChange={handleChange}
+                  required
                 />
               </div>
               <div>
@@ -105,10 +176,14 @@ const SignupPage = () => {
                   Country
                 </label>
                 <input
+                  name="country"
                   className="shadow border rounded w-full py-1 px-2 text-gray-700 focus:outline-none focus:shadow-outline text-xs"
                   id="country"
                   type="text"
                   placeholder="Country"
+                  value={formData.country}
+                  onChange={handleChange}
+                  required
                 />
               </div>
             </div>
@@ -120,16 +195,12 @@ const SignupPage = () => {
               </label>
               <div className="flex space-x-2">
                 <label className="inline-flex items-center">
-                  <input type="radio" name="gender" value="male" className="form-radio" />
+                  <input type="radio" name="gender" value="male" checked={formData.gender === "male"} onChange={handleChange}className="form-radio" required/>
                   <span className="ml-1 text-xs">Male</span>
                 </label>
                 <label className="inline-flex items-center">
-                  <input type="radio" name="gender" value="female" className="form-radio" />
+                  <input type="radio" name="gender" value="female" checked={formData.gender === "female"} onChange={handleChange} className="form-radio" required/>
                   <span className="ml-1 text-xs">Female</span>
-                </label>
-                <label className="inline-flex items-center">
-                  <input type="radio" name="gender" value="other" className="form-radio" />
-                  <span className="ml-1 text-xs">Other</span>
                 </label>
               </div>
             </div>
@@ -140,10 +211,30 @@ const SignupPage = () => {
                 Email
               </label>
               <input
+                name="email"
                 className="shadow border rounded w-full py-1 px-2 text-gray-700 focus:outline-none focus:shadow-outline text-xs"
                 id="email"
                 type="email"
                 placeholder="john.doe@example.com"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="mb-2">
+              <label className="block text-gray-700 text-xs font-bold mb-1" htmlFor="email">
+                Password
+              </label>
+              <input
+                name="password"
+                className="shadow border rounded w-full py-1 px-2 text-gray-700 focus:outline-none focus:shadow-outline text-xs"
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={handleChange}
+                required
               />
             </div>
 
