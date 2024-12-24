@@ -1,13 +1,49 @@
-import React from 'react';
+import React, {useState} from 'react';
 import backgroundImage from '../assets/background2.jpg';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import axios from 'axios';
+
 
 const LoginPage = () => {
-  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleLogin = () => {
-    navigate('/home'); // Redirect to Home page
+  const handleLogin = async (e) => {
+    e.preventDefault(); // Prevent the form from refreshing the page
+
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('password', password);
+
+    try {
+      // API call to FastAPI login endpoint
+      const response = await axios.post('http://localhost:8000/login', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data', // For sending form data
+        },
+      });
+
+      // On successful login
+      if (response.status === 200) {
+        const { access_token, token_type } = response.data;
+
+        // Save the token to localStorage
+        localStorage.setItem('accessToken', access_token);
+        localStorage.setItem('tokenType', token_type);
+
+        // Redirect to dashboard or any other secure page
+        window.location.href = '/home';
+      }
+    } catch (error) {
+      // Handle errors
+      if (error.response) {
+        setErrorMessage(error.response.data.detail || 'Login failed. Please try again.');
+      } else {
+        setErrorMessage('Network error. Please try again later.');
+      }
+    }
   };
 
   return (
@@ -34,6 +70,7 @@ const LoginPage = () => {
               marginLeft: '-1in', // Reduced left margin to half of the previous value
             }}
           >
+            {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
             <h2 className="text-3xl font-bold mb-6 text-left" style={{ color: '#000000' }}>Log in</h2>
             <form>
               <div className="mb-4">
@@ -44,7 +81,9 @@ const LoginPage = () => {
                   className="shadow appearance-none border border-gray-300 rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline"
                   id="email"
                   type="email"
+                  value={email}
                   placeholder="name@example.com"
+                  onChange={(e) => setEmail(e.target.value)}
                   style={{ backgroundColor: '#ffffff', color: '#333333' }}
                 />
               </div>
@@ -57,6 +96,8 @@ const LoginPage = () => {
                   id="password"
                   type="password"
                   placeholder="***"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   style={{ backgroundColor: '#ffffff', color: '#333333' }}
                 />
               </div>
@@ -65,9 +106,9 @@ const LoginPage = () => {
               </div>
               <div className="mb-6">
                 <button
+                onClick={handleLogin}
                   className="hover:bg-gray-800 text-white font-bold py-2 px-4 w-full rounded focus:outline-none focus:shadow-outline"
                   type="button"
-                  onClick={handleLogin}
                   style={{ backgroundColor: '#000000' }}
                 >
                   LOGIN
