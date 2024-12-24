@@ -3,63 +3,164 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import Candidate
 from app.schemas import CandidateOut
-from app.utils.qdrant_utils import qdrant_client, collection_name  # Import Qdrant client functions
 from pydantic import BaseModel
-from typing import List
-import numpy as np
-from sentence_transformers import SentenceTransformer, util
+from typing import List, Dict
+import os
+from dotenv import load_dotenv
+import re
+from groq import Groq
 
-embedding_model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+# Load environment variables
+load_dotenv()
 
 router = APIRouter()
-
 
 class PromptRequest(BaseModel):
     prompt: str
 
+class GroqAnalyzer:
+    """Handler for Groq LLM-based resume analysis."""
+    
+    def __init__(self):
+        """Initialize the Groq client."""
+        self.api_key = os.getenv("GROQ_API_KEY")
+        if not self.api_key:
+            raise ValueError("GROQ_API_KEY not found in .env file")
+        
+        self.client = Groq(api_key=self.api_key)
+        print("Groq client initialized successfully")  # Debug confirmation
+    
+    def analyze_resume(self, resume_text: str, prompt: str) -> Dict:
+        """
+        Analyze a resume using the Groq LLM.
+        
+        Args:
+            resume_text (str): The resume content to analyze
+            prompt (str): The job requirements/prompt
+            
+        Returns:
+            Dict: Analysis results including score and detailed analysis
+        """
+        try:
+            messages = [
+                {
+                    "role": "system",
+                    "content": "You are an expert resume analyzer. Analyze resumes against job requirements and provide concise responses with matching qualities, gaps, and a numerical score."
+                },
+                {
+                    "role": "user",
+                    "content": f"""Analyze the following resume against the job requirements and provide a concise 
+                    response in exactly this format:
+                    **Fit**: [Brief description of match]
+                    **Match Score**: [0-100]
+                    **Analysis**: 
+                    - Matching qualities and strengths
+                    - Gaps or deficiencies (if any)
+
+                    Job Requirements:
+                    {prompt}
+
+                    Resume Content:
+                    {resume_text}"""
+                }
+            ]
+
+            print("Sending request to Groq...")  # Debug log
+            response = self.client.chat.completions.create(
+                messages=messages,
+                model="llama-3.3-70b-versatile",
+                temperature=0.7,
+            )
+            print("Received response from Groq")  # Debug log
+
+            analysis_text = response.choices[0].message.content.strip()
+            
+            # Extract score from the response
+            try:
+                score_match = re.search(r"Match Score.*?(\d{1,3})", analysis_text, re.IGNORECASE)
+                match_score = int(score_match.group(1)) if score_match else 75
+                
+                # Clean up the analysis text
+                analysis_summary = re.sub(
+                    r"(?i)(\*\*Fit\*\*:.*?)(\*\*Match Score\*\*:.*?)(\*\*Analysis\*\*:)", 
+                    "", 
+                    analysis_text
+                ).strip()
+                
+            except Exception as e:
+                print(f"Error extracting match score: {e}")
+                match_score = 75
+                analysis_summary = analysis_text
+
+            return {
+                "score": match_score,
+                "analysis": analysis_summary,
+            }
+
+        except Exception as e:
+            print(f"Groq analysis error: {e}")
+            return {
+                "score": 50,
+                "analysis": f"Analysis failed: {str(e)}"
+            }
+
+# Initialize the analyzer
+try:
+    groq_analyzer = GroqAnalyzer()
+except Exception as e:
+    print(f"Error initializing Groq analyzer: {e}")
+    raise
 
 @router.get("/candidates", response_model=List[CandidateOut])
 def get_all_candidates(db: Session = Depends(get_db)):
-    """
-    Fetch all candidates from the database.
-    """
     return db.query(Candidate).all()
 
-
-@router.post("/filter_candidates", response_model=List[CandidateOut])
-def filter_candidates(request: PromptRequest, db: Session = Depends(get_db)):
+@router.post("/filter_candidates")
+async def filter_candidates(request: PromptRequest, db: Session = Depends(get_db)):
     """
-    Filter candidates based on a prompt using Qdrant.
+    Filter and analyze candidates using Groq LLM.
+    
+    Args:
+        request (PromptRequest): The job requirements/prompt
+        db (Session): Database session
+        
+    Returns:
+        List[Dict]: Sorted list of analyzed candidates
     """
-    # Generate the embedding for the prompt
-    prompt_embedding = embedding_model.encode([request.prompt], convert_to_numpy=True).flatten()
+    try:
+        print("Starting candidate filtering process...")  # Debug log
+        candidates = db.query(Candidate).all()
+        analyzed_candidates = []
 
-    # Search the Qdrant collection for the top 10 closest matches
-    search_results = qdrant_client.search(
-        collection_name=collection_name,
-        query_vector=prompt_embedding.tolist(),
-        limit=10,  # Top 10 results
-        with_payload=True  # Include candidate metadata in the results
-    )
+        for candidate in candidates:
+            try:
+                print(f"Analyzing candidate {candidate.id}...")  # Debug log
+                analysis = groq_analyzer.analyze_resume(
+                    candidate.resume_text, 
+                    request.prompt
+                )
 
-    if not search_results:
-        raise HTTPException(status_code=404, detail="No matching candidates found.")
+                analyzed_candidates.append({
+                    "id": candidate.id,
+                    "name": candidate.name,
+                    "score": analysis["score"],
+                    "analysis": analysis["analysis"]
+                })
+                print(f"Successfully analyzed candidate {candidate.id}")  # Debug log
 
-    # Extract candidate IDs and scores from Qdrant results
-    valid_indices = [
-        (point.id, point.score) for point in search_results
-    ]
+            except Exception as e:
+                print(f"Error processing candidate {candidate.id}: {e}")
+                continue
 
-    # Sort the results by score
-    valid_indices.sort(key=lambda x: x[1], reverse=True)
-    sorted_candidate_ids = [idx for idx, _ in valid_indices]
+        # Sort by score (descending) and return top 10
+        analyzed_candidates.sort(key=lambda x: x["score"], reverse=True)
+        print(f"Returning {len(analyzed_candidates[:10])} candidates")  # Debug log
+        return analyzed_candidates[:10]
 
-    # Retrieve matching candidates from the database
-    matching_candidates = db.query(Candidate).filter(Candidate.id.in_(sorted_candidate_ids)).all()
+    except Exception as e:
+        error_msg = f"Error processing request: {str(e)}"
+        print(error_msg)  # Debug log
+        raise HTTPException(status_code=500, detail=error_msg)
 
-    # Sort candidates by the order of the Qdrant results
-    sorted_candidates = sorted(
-        matching_candidates, key=lambda candidate: sorted_candidate_ids.index(candidate.id)
-    )
 
-    return sorted_candidates
+#

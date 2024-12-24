@@ -1,52 +1,59 @@
+# utils/qdrant_utils.py
 from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams
 from qdrant_client.http.models import Distance
 import numpy as np
+from app.ai_scoring import model  # Relative import for the model
 
-# Initialize Qdrant client for Cloud or Local instance
-QDRANT_URL = "https://4ac18d44-2f06-418f-9f7a-835a33322a7d.us-east4-0.gcp.cloud.qdrant.io"  # Replace with your Qdrant Cloud URL
-API_KEY = "HkR-9_8ZiKRu5PZmu0TyfauP5v81b5UnBXQ4e-8n7flLmRTbHEoHwA"  # Replace with your Qdrant Cloud API key
+QDRANT_URL = "https://4ac18d44-2f06-418f-9f7a-835a33322a7d.us-east4-0.gcp.cloud.qdrant.io"
+API_KEY = "HkR-9_8ZiKRu5PZmu0TyfauP5v81b5UnBXQ4e-8n7flLmRTbHEoHwA"
 
-qdrant_client = QdrantClient(url=QDRANT_URL, api_key=API_KEY)  # Updated variable name
-
-# You can specify a collection to use. If it doesn't exist, you'll create it.
-collection_name = "resumes_embeddings"
+qdrant_client = QdrantClient(url=QDRANT_URL, api_key=API_KEY)
+collection_name = "resume"
 
 def create_qdrant_collection():
-    """Create Qdrant collection if it doesn't already exist."""
+    """Create Qdrant collection if it doesn't exist."""
     try:
-        qdrant_client.get_collection(collection_name)  # Updated to use qdrant_client
+        qdrant_client.get_collection(collection_name)
     except Exception:
-        # Create the collection with a vector size of 384 (for 'paraphrase-MiniLM-L6-v2' model)
-        qdrant_client.create_collection(  # Updated to use qdrant_client
+        # Get vector size from the Nomic model
+        sample_embedding = model.encode("test", convert_to_tensor=True)
+        vector_size = sample_embedding.shape[0]
+        
+        qdrant_client.create_collection(
             collection_name=collection_name,
             vectors_config=VectorParams(
-                size=384,  # The vector size for 'paraphrase-MiniLM-L6-v2'
-                distance=Distance.COSINE  # Using cosine distance metric
+                size=vector_size,
+                distance=Distance.COSINE
             )
         )
 
-def upload_embeddings_to_qdrant(embedding: np.ndarray, candidate_id: int):
-    """Upload embeddings to Qdrant."""
-    qdrant_client.upsert(  # Updated to use qdrant_client
+def store_embeddings(embedding: np.ndarray, candidate_id: int, metadata: dict = None):
+    """Store embeddings in Qdrant with associated metadata."""
+    if metadata is None:
+        metadata = {}
+    
+    metadata["candidate_id"] = candidate_id
+    
+    qdrant_client.upsert(
         collection_name=collection_name,
         points=[{
-            "id": candidate_id,  # Use the candidate ID as the point ID
-            "vector": embedding.tolist(),  # Convert numpy array to list
-            "payload": {"candidate_id": candidate_id}  # Optional metadata
+            "id": candidate_id,
+            "vector": embedding.tolist(),
+            "payload": metadata
         }]
     )
 
-def insert_embedding_into_qdrant(candidate_id: int, embedding: np.ndarray):
-    """Insert the embedding into Qdrant."""
-    qdrant_client.upsert(  # Updated to use qdrant_client
+def get_embedding(candidate_id: int) -> np.ndarray:
+    """Retrieve embeddings for a specific candidate."""
+    result = qdrant_client.retrieve(
         collection_name=collection_name,
-        points=[{
-            "id": candidate_id,  # Use the candidate ID as the point ID
-            "vector": embedding.tolist(),  # Convert numpy array to list
-            "payload": {"candidate_id": candidate_id}  # Optional metadata
-        }]
+        ids=[candidate_id],
+        with_vectors=True
     )
+    if result:
+        return np.array(result[0].vector)
+    return None
 
-# Call this method to ensure the collection is created when the application starts
+# Initialize collection on import
 create_qdrant_collection()
