@@ -7,7 +7,9 @@ const CalendarPopUp = (props) => {
   console.log(props)
 
   const { popUp, setPopUp, events, setEvents } = useAppContext();
-  const [title, setTitle] = useState(props.title);
+  const jobtitle = props.jobtitle;
+  const hiringmanagerid = props.hiringmanagerid;
+  const jobid = props.jobid;
   const [status, setStatus] = useState(props.status);
   // Handle title input change
   const handleChange = (event) => {
@@ -16,23 +18,31 @@ const CalendarPopUp = (props) => {
 
   // Handle Save Button
   const handleSave = () => {
+    console.log( jobtitle,
+       props.startdate,
+       props.starttime,
+       props.enddate,
+       props.endtime,
+      hiringmanagerid
+      ,jobid)
     axios
       .post("http://127.0.0.1:8000/add_data_to_calendar", {
-        title: title,
+        jobtitle: jobtitle,
         startdate: props.startdate,
         starttime: props.starttime,
         enddate: props.enddate,
         endtime: props.endtime,
-        status:'pending'
+        status:'false',
+        hiringmanagerid:hiringmanagerid,
+        jobid:jobid
       })
       .then(() => {
-        console.log("Appointment saved successfully.",title);
-        return axios.get("http://127.0.0.1:8000/get_data_from_calendar",{params:{title:title}});
+        return axios.get("http://127.0.0.1:8000/get_jobdata_from_calendar",{params:{hiringmanagerid:hiringmanagerid,jobid:jobid}});
       })
       .then((response) => {
         console.log(response.data)
         const formattedEvents = response.data.map((event) => ({
-          title: event.title,
+          title: event.jobtitle,
           start: moment(event.startdate + event.starttime).format(
             "YYYY-MM-DDTHH:mm:ss"
           ),
@@ -50,22 +60,47 @@ const CalendarPopUp = (props) => {
         setPopUp(false); // Close popup
       });
   };
+  const statusfunction = () => {
+    axios
+      .get('http://127.0.0.1:8000/get_status',{params:{
+        jobtitle:title ,startdate:startdate,starttime:starttime,enddate:enddate,endtime:endtime
+        ,hiringmanagerid:hiringmanagerid,jobid:jobid
+      }})     
+        .then((response) => {
+          console.log(response.data.status)
+          setStatus(response.data.status)
+        })
+        .catch((error) => {
+          console.error('Error getting status:', error);
+        });
+  }
+  
   // Handle Delete Button
   const handleDelete = () => {
+    console.log( jobtitle,
+      props.startdate,
+      props.starttime,
+      props.enddate,
+      props.endtime,
+     hiringmanagerid
+     ,jobid)
     axios
       .delete("http://127.0.0.1:8000/delete_data_from_calendar", {
         data: {
-          title: title,
-          startdate: props.startdate,
-          starttime: props.starttime,
-          enddate: props.enddate,
-          endtime: props.endtime,
-          status:'pending'
+        jobtitle: jobtitle,
+        startdate: props.startdate,
+        starttime: props.starttime,
+        enddate: props.enddate,
+        endtime: props.endtime,
+        status:'',
+        hiringmanagerid:hiringmanagerid,
+        jobid:jobid
         },
       })
       .then(() => {
         console.log("Appointment deleted successfully.");
-        return axios.get("http://127.0.0.1:8000/get_data_from_calendar",{params:{title:title}});
+        console.log(hiringmanagerid,jobid)
+        return axios.get("http://127.0.0.1:8000/get_jobdata_from_calendar",{params:{hiringmanagerid:hiringmanagerid,jobid:jobid}});
       })
       .then((response) => {
         const formattedEvents = response.data.map((event) => ({
@@ -89,26 +124,27 @@ const CalendarPopUp = (props) => {
   };
   const handleStatus = () => {
       axios.put(
-        `http://127.0.0.1:8000/update_status/`,
+        `http://127.0.0.1:8000/update_status`,
         {
-          title: title,
+          jobtitle: jobtitle,
           startdate: props.startdate,
           starttime: props.starttime,
           enddate: props.enddate,
           endtime: props.endtime,
-          status:'Booked'
+          status:status,
+          hiringmanagerid:hiringmanagerid,
+          jobid:jobid
          } // Query parameters
       )
       .then((response) => {
-        setStatus('Booked')
-        console.log("Appointment Booked successfully.",status);
+        setStatus(!status)
+        console.log("Status.",status);
       })
       .catch((error) => {
         console.error("Error Booking appointment:", error);
       })
       .finally(() => {
-        console.log('booked')
-        // setPopUp(false)
+        setPopUp(false)
         ; // Close popup
       });
   };
@@ -123,8 +159,8 @@ const CalendarPopUp = (props) => {
           <label className="text-lg font-bold mx-4">Title</label>
           <input
             className="border border-gray-300 p-2 mt-2 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-            onChange={handleChange}
-            value={title}
+            // onChange={handleChange}
+            value={jobtitle}
             placeholder="Enter your title here"
           />
         </div>
@@ -142,7 +178,7 @@ const CalendarPopUp = (props) => {
             <strong>End Time :</strong> {props.endtime}
           </p>
           <p className="text-lg font-semibold p-2">
-            <strong>Status :</strong> {status}
+            <strong>Status :</strong> { status=="true" ? "Booked " : "Available" }
           </p>
         </div>
         <div className="flex justify-between mt-8">

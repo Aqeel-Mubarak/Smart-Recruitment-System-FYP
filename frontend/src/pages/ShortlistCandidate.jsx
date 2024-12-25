@@ -3,27 +3,52 @@ import Navbarapp from '../components/Navbarapp';
 import Sidebar from '../components/Sidebar';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Select from "react-select";
 
 const ShortlistCandidate = () => {
   const [candidates, setCandidates] = useState([]);
   const [filteredCandidates, setFilteredCandidates] = useState([]);
   const [prompt, setPrompt] = useState('');
   const navigate = useNavigate();
-
+  const [jobs,setJobs]= useState([])
+  const [selectedOption, setSelectedOption] = useState(null);
+  const hiringmanagerid=3;
   useEffect(() => {
     // Fetch all candidates
-    const fetchCandidates = async () => {
+    const fetchJobs = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/candidates');
-        setCandidates(response.data);
-        setFilteredCandidates(response.data); // Initially, all candidates are shown
+        const response = await axios.get('http://127.0.0.1:8000/get_job_description',{
+          params:{hiringmanagerid:hiringmanagerid}
+        });
+        setJobs(
+          response.data.jobs.map((option) => ({
+            value: option.id,
+            label: option.title.charAt(0).toUpperCase() + option.title.slice(1),
+          }))
+        )
       } catch (error) {
         console.error('Error fetching candidates:', error);
       }
     };
-
-    fetchCandidates();
+    fetchJobs();
   }, []);
+
+  // useEffect(() => {
+  //   // Fetch all candidates
+  //   const fetchCandidates = async () => {
+  //     try {
+  //       const response = await axios.get('http://127.0.0.1:8000/candidates',
+  //         {params:{job_description_id:selectedOption.value}}
+  //       );
+  //       setCandidates(response.data);
+  //       setFilteredCandidates(response.data); // Initially, all candidates are shown
+  //     } catch (error) {
+  //       console.error('Error fetching candidates:', error);
+  //     }
+  //   };
+
+  //   fetchCandidates();
+  // }, []);
 
   // Handle prompt-based search
   const handlePromptSearch = async () => {
@@ -36,8 +61,50 @@ const ShortlistCandidate = () => {
       console.error('Error filtering candidates:', error);
     }
   };
-  const handleSubmit = (e) => {
-    e.preventDefault();
+    const handleEmail = () => {
+        const jobid=selectedOption.value;
+        const linkkk=`http://localhost:5173/Calendar/${hiringmanagerid}/${jobid}`;
+        const recipientEmail = candidates.map((data) => ({ email: data.email }));
+        console.log(recipientEmail)
+        const sendEmail = async () => {
+          try {
+            const response = await axios.post("http://127.0.0.1:8000/send_email", {
+              to_email: recipientEmail,
+              subject: "Job Application Update",
+              body: `Hello, this is to inform you about the status of your application. ${linkkk}`,
+            });
+        
+            console.log("Email sent successfully:", response.data);
+            alert("Email sent successfully!");
+          } catch (error) {
+            console.error("Error sending email:", error.response?.data || error.message);
+            alert("Failed to send email.");
+          }
+        };
+        sendEmail();    
+  }
+  
+
+  
+
+  const handleForward = () => {
+    if (selectedOption) {
+      const fetchCandidates = async () => {
+        try {
+          const response = await axios.get('http://127.0.0.1:8000/candidates',
+            {params:{job_description_id:selectedOption.value}}
+          );
+          setCandidates(response.data);
+          setFilteredCandidates(response.data); // Initially, all candidates are shown
+        } catch (error) {
+          console.error('Error fetching candidates:', error);
+        }
+      };
+  
+      fetchCandidates();
+    } else {
+      alert("Please select an option.");
+    }
   };
 
   return (
@@ -50,6 +117,12 @@ const ShortlistCandidate = () => {
             ShortList Candidates
           </h1>
           <div className="flex flex-col md:flex-row mb-6 md:mb-8 justify-center space-y-4 md:space-y-0 md:space-x-4">
+          <Select
+                options={jobs}
+                onChange={(option) => setSelectedOption(option)}
+                placeholder="Select a job..."
+              />
+              <button onClick={handleForward}> Select </button>
             <input
               type="text"
               placeholder="Enter your specific requirements"
@@ -98,7 +171,7 @@ const ShortlistCandidate = () => {
           <div className="flex justify-center mt-8">
             <button
               className="bg-black text-white px-12 md:px-24 py-3 rounded-lg transition"
-              onClick={handleSubmit}
+              onClick={handleEmail}
             >
               Schedule Interview
             </button>
