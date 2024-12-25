@@ -1,10 +1,45 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import { Link } from 'react-router-dom';
 import Navbarapp from '../components/Navbarapp'; 
 import { FaUpload, FaClipboardList, FaBriefcase, FaCalendarAlt, FaChartBar, FaUserCircle } from 'react-icons/fa'; // Icons from react-icons
 import Sidebar from '../components/Sidebar'; 
 
 const Home = () => {
+
+  const [totalApplications, setTotalApplications] = useState(0);
+  const [name, setname] = useState("");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    // Function to fetch the total applications
+    const fetchTotalApplications = async () => {
+      try {
+        const token = localStorage.getItem("accessToken"); // Assuming the token is stored in localStorage
+        const response = await fetch("http://127.0.0.1:8000/totalApplications", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`, // Send the Bearer token
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.detail || "Failed to fetch total applications");
+        }
+
+        const data = await response.json(); // Parse the JSON response
+        setTotalApplications(data.total_applications); // Store the total applications count
+        setname(data.name)
+      } catch (error) {
+        setError(error.message); // Set error message if the request fails
+      }
+    };
+
+    fetchTotalApplications(); // Call the function when the component mounts
+  }, []); // Empty dependency array ensures the effect runs only once
+
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       {/* Navbar */}
@@ -24,14 +59,14 @@ const Home = () => {
 
           {/* Welcome Message */}
           <div className="mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Welcome Back, Ubaid</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Welcome Back, {name}</h1>
           </div>
 
           {/* Key Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white shadow rounded-lg p-4 text-center">
               <h3 className="text-lg font-semibold text-gray-800">Total Applications</h3>
-              <p className="text-4xl mt-2 text-gray-900">0</p>
+              <p className="text-4xl mt-2 text-gray-900">{totalApplications}</p>
             </div>
             <div className="bg-white shadow rounded-lg p-4 text-center">
               <h3 className="text-lg font-semibold text-gray-800">Interviews Today</h3>

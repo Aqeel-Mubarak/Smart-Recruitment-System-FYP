@@ -19,6 +19,6 @@ class Settings(BaseSettings):
     #Auth
     SECRET_KEY: str = "this is the secret key for fyp" 
     ALGORITHM: str = "HS256"  # Algorithm for hashing JWT
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 100000000
 
 settings = Settings()

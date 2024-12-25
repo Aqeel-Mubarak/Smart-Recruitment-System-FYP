@@ -8,8 +8,11 @@ class JobDescription(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
     description_text = Column(Text)
+    hr_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
+    hr = relationship("User", back_populates="jobs")
     candidates = relationship("Candidate", back_populates="job_description")
+
 
 class Candidate(Base):
     __tablename__ = "candidates"
@@ -18,7 +21,7 @@ class Candidate(Base):
     name = Column(String, index=True)
     resume_text = Column(Text)
     score = Column(Integer, default=0)
-    email = Column(String, index=True, nullable=True)  # New field for email
+    email = Column(String, index=True, nullable=True) 
     job_description_id = Column(Integer, ForeignKey("job_descriptions.id"))
 
     job_description = relationship("JobDescription", back_populates="candidates")
@@ -39,3 +42,5 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)
+
+    jobs = relationship("JobDescription", back_populates="hr")

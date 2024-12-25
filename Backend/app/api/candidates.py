@@ -9,6 +9,7 @@ import os
 from dotenv import load_dotenv
 import re
 from groq import Groq
+from app.api.users import get_current_user
 
 # Load environment variables
 load_dotenv()
@@ -112,11 +113,21 @@ except Exception as e:
     raise
 
 @router.get("/candidates", response_model=List[CandidateOut])
-def get_all_candidates(db: Session = Depends(get_db)):
-    return db.query(Candidate).all()
+def get_all_candidates(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    
+    candidates = (
+        db.query(Candidate)
+        .join(Candidate.job_description)
+        .filter(Candidate.job_description.has(hr_id=current_user.id))
+        .all()
+    )
+    return candidates
 
 @router.post("/filter_candidates")
-async def filter_candidates(request: PromptRequest, db: Session = Depends(get_db)):
+async def filter_candidates(request: PromptRequest, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     """
     Filter and analyze candidates using Groq LLM.
     
@@ -129,7 +140,12 @@ async def filter_candidates(request: PromptRequest, db: Session = Depends(get_db
     """
     try:
         print("Starting candidate filtering process...")  # Debug log
-        candidates = db.query(Candidate).all()
+        candidates = (
+        db.query(Candidate)
+        .join(Candidate.job_description)
+        .filter(Candidate.job_description.has(hr_id=current_user.id))
+        .all()
+        )
         analyzed_candidates = []
 
         for candidate in candidates:
