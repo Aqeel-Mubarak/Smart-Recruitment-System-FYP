@@ -13,14 +13,15 @@ import CurrentOpenJobs from './pages/CurrentOpenJobs';
 import ContactPage from './pages/ContactPage';
 import CandidatesList from './pages/CandidatesList';
 
+
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
-        <Route path="/home" element={<Home />} />
         <Route path="/resetpassword" element={<ForgetPassword />} />
+        <Route path="/home" element={<Home />} />
         <Route path="/application" element={<ApplicationForm />} />
         <Route path="/create-job" element={<CreateJob />} />
         <Route path="/reports" element={<Report />} />

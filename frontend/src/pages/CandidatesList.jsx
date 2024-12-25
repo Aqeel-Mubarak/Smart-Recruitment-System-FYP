@@ -6,14 +6,28 @@ const CandidatesList = () => {
   const [candidates, setCandidates] = useState([]);
 
   useEffect(() => {
-    // Fetch the list of candidates with extracted resume text
-    axios.get('http://127.0.0.1:8000/candidates')
-      .then(response => {
+    const fetchCandidates = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+          console.error('No access token found in local storage');
+          return;
+        }
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        };
+  
+        // Make the API request
+        const response = await axios.get('http://127.0.0.1:8000/candidates', config);
         setCandidates(response.data);
-      })
-      .catch(error => {
+      } catch (error) {
         console.error('Error fetching candidates:', error);
-      });
+      }
+    };
+  
+    fetchCandidates();
   }, []);
 
   return (

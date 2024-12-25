@@ -14,27 +14,53 @@ const ShortlistCandidate = () => {
   useEffect(() => {
     const fetchCandidates = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/candidates');
-        const shortlistedCandidates = response.data.filter(candidate => candidate.score >= 50);
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+          console.error('No access token found in local storage');
+          return;
+        }
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        };  
+        const response = await axios.get('http://127.0.0.1:8000/candidates', config);  
+        const shortlistedCandidates = response.data.filter(candidate => candidate.score >= 0);
         setCandidates(shortlistedCandidates);
         setFilteredCandidates(shortlistedCandidates);
       } catch (error) {
         console.error('Error fetching candidates:', error);
       }
     };
-
+  
     fetchCandidates();
   }, []);
 
   const handlePromptSearch = async () => {
     if (!prompt.trim()) return;
-    
+  
     try {
-      const response = await axios.post('http://127.0.0.1:8000/filter_candidates', {
-        prompt: prompt,
-      });
-      // Filter the response to only include candidates with score >= 50
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        console.error('No access token found in local storage');
+        return;
+      }  
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };  
+      const response = await axios.post(
+        'http://127.0.0.1:8000/filter_candidates',
+        {
+          prompt: prompt,
+        },
+        config
+      );
+  
       const filteredResults = response.data.filter(candidate => candidate.score >= 50);
+  
+      // Update the state
       setFilteredCandidates(filteredResults);
       setActiveFilter(prompt); // Set the active filter
       setPrompt(''); // Clear input field
