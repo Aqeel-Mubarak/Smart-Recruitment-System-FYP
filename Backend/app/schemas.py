@@ -5,6 +5,7 @@ from typing import Optional
 class JobDescriptionCreate(BaseModel):
     title: str
     description_text: str
+    hr_id : int
 
 class JobDescriptionOut(JobDescriptionCreate):
     id: int

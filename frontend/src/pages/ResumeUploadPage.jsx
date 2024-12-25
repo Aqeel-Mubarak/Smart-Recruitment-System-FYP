@@ -4,6 +4,7 @@ import Navbarapp from "../components/Navbarapp";
 import Sidebar from "../components/Sidebar";
 import { FiUploadCloud } from 'react-icons/fi';
 import axios from 'axios';
+import { FaHourglassEnd } from "react-icons/fa";
 
 const ResumeUploadPage = () => {
   const [files, setFiles] = useState([]);
@@ -42,13 +43,24 @@ const ResumeUploadPage = () => {
       return;
     }
 
+    const formData = new FormData();
+    formData.append("title", jobTitle);
+    formData.append("description", jobDescription);
+
     try {
-      const response = await axios.post('http://127.0.0.1:8000/add_job_description', {
-        title: jobTitle,
-        description_text: jobDescription,
-      });
-      setJobId(response.data.id);
-      setJobDescriptionStatus(`Job Description uploaded successfully: ${response.data.title}`);
+      const token = localStorage.getItem("accessToken");
+      const response = await fetch ('http://127.0.0.1:8000/add_job_description', {
+        method : "POST",
+        headers : {
+          Authorization: `Bearer ${token}`
+        },
+        body : formData,
+        });
+
+      const data = await response.json();
+      setJobId(data.id);
+      console.log(data);
+      setJobDescriptionStatus(`Job Description uploaded successfully: ${data.title}`);
     } catch (error) {
       setJobDescriptionStatus(`Job Description upload failed: ${error.response?.data?.detail || error.message}`);
     }
@@ -68,6 +80,7 @@ const ResumeUploadPage = () => {
     Array.from(files).forEach(file => {
       formData.append('files', file);
     });
+    console.log(formData);
 
     setLoading(true); // Start loading indicator
 
