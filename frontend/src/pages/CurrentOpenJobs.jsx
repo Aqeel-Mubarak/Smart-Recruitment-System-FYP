@@ -3,19 +3,24 @@ import React from "react";
 import { FaClipboardList, FaUserFriends, FaBriefcase } from 'react-icons/fa';
 import Navbarapp from "../components/Navbarapp";
 import Sidebar from "../components/Sidebar";
+import { useState,useEffect } from "react";
+import axios from "axios"
+import JobsForCreateOpenJobs from "../components/JobsForCreateOpenJobs";
 
 const CurrentOpenJobs = () => {
-  // Sample data for demonstration (replace with dynamic data as needed)
-  const jobs = [
-    { id: 1, title: "Software Engineer", vacancy: 5, applications: 20 },
-    { id: 2, title: "Project Manager", vacancy: 3, applications: 15 },
-    { id: 3, title: "Graphic Designer", vacancy: 2, applications: 10 },
-    { id: 4, title: "Data Analyst", vacancy: 4, applications: 18 },
-    { id: 5, title: "Web Developer", vacancy: 6, applications: 25 },
-    { id: 6, title: "HR Specialist", vacancy: 2, applications: 8 },
-    { id: 7, title: "Marketing Executive", vacancy: 3, applications: 12 },
-    // Add more entries here to test scrolling
-  ];
+  
+  const [jobs,setJobs]=useState([])
+  const hiringmanagerid=3;
+  useEffect (()=> {
+    axios.get('http://127.0.0.1:8000/get_job_description',{params:{hiringmanagerid:hiringmanagerid}})
+    .then((response)=> {
+        setJobs(response.data.jobs)
+  })
+    .catch((error)=>{
+      console.log(error)
+    })
+  },[])
+
 
   return (
     <div className="h-screen flex flex-col">
@@ -48,16 +53,12 @@ const CurrentOpenJobs = () => {
                       <FaUserFriends className="inline mr-1" /> Vacancy
                     </th>
                     <th className="p-3 border border-purple-900 rounded-tr-lg text-left">No of Applications</th>
+                    <th className="p-3 border border-purple-900 rounded-tr-lg text-left">Add Available Slots</th>
                   </tr>
                 </thead>
                 <tbody className="text-center text-gray-700">
                   {jobs.map((job, index) => (
-                    <tr key={job.id} className="hover:bg-purple-50 transition-colors duration-200">
-                      <td className="p-3 border border-purple-200 text-left">{index + 1}</td>
-                      <td className="p-3 border border-purple-200 text-left">{job.title}</td>
-                      <td className="p-3 border border-purple-200 text-left">{job.vacancy}</td>
-                      <td className="p-3 border border-purple-200 text-left">{job.applications}</td>
-                    </tr>
+                    <JobsForCreateOpenJobs key={index} {...job} index={index} />
                   ))}
                 </tbody>
               </table>

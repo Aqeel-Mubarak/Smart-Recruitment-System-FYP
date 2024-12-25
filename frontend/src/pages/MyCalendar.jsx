@@ -13,14 +13,16 @@ import { useParams } from "react-router-dom";
 
 
 
+
 const MyCalendar = () => {
   const [events, setEvents] = useState([]);
-  const [status, setStatus] = useState('pending');
-  // const location = useLocation();
-  // const propsFromNavigate = location.state || {};
-  const { title } = useParams(); 
+  const [status, setStatus] = useState('false');
+  const location = useLocation();
+  const title = location.state?.title;
+  const {hiringmanagerid,jobid } = useParams(); 
   const [time, setTime] = useState({
-    title:'',startdate:'00',starttime:'00',enddate:'00',endtime:'00',status:status
+    hiringmanagerid:hiringmanagerid,jobid:jobid,jobtitle:title,
+    startdate:'00',starttime:'00',enddate:'00',endtime:'00',status:status
   });
   const {popUp,setPopUp} = useAppContext()
   
@@ -31,7 +33,7 @@ const MyCalendar = () => {
     const enddate = moment(selectionInfo.end).format(' YYYY-MM-DD');// Correctly get start time
     const endtime = moment(selectionInfo.end).format(' HH:mm:ss'); // Correctly get end time
     setTime({
-      title:title,
+      hiringmanagerid:hiringmanagerid,jobid:jobid,jobtitle:title ,
       startdate:startdate,starttime:starttime,enddate:enddate,endtime:endtime,status:status
     })
     console.log(time) // Update end state
@@ -43,10 +45,10 @@ const MyCalendar = () => {
     }
     useEffect ( () => {
       axios
-        .get('http://127.0.0.1:8000/get_data_from_calendar',{params:{title:title}})     
+        .get('http://127.0.0.1:8000/get_jobdata_from_calendar',{params:{hiringmanagerid:hiringmanagerid,jobid:jobid}})     
           .then((response) => {
             const formattedEvents = response.data.map((event) => ({
-              title: event.title,
+              title: event.jobtitle,
               start: moment(event.startdate+event.starttime).format('YYYY-MM-DDTHH:mm:ss'), // Ensure ISO 8601 format
               end:  moment(event.enddate+event.endtime).format('YYYY-MM-DDTHH:mm:ss'),
               // status:event.status
@@ -65,7 +67,6 @@ const MyCalendar = () => {
   
   // Handle event clicks for deleting events
   const handleEventClick = (selectionInfo) => {
-    console.log('jfksk')
     const title= (selectionInfo.event.title)
     const startdate = moment(selectionInfo.event.start).format('YYYY-MM-DD');
     const starttime = moment(selectionInfo.event.start).format(' HH:mm:ss');
@@ -74,12 +75,14 @@ const MyCalendar = () => {
     const statusfunction = () => {
       axios
         .get('http://127.0.0.1:8000/get_status',{params:{
-          title:title ,startdate:startdate,starttime:starttime,enddate:enddate,endtime:endtime
+          jobtitle:title ,startdate:startdate,starttime:starttime,enddate:enddate,endtime:endtime
+          ,hiringmanagerid:hiringmanagerid,jobid:jobid
         }})     
           .then((response) => {
             console.log(response.data.status)
             setTime({
-              title:title ,startdate:startdate,starttime:starttime,enddate:enddate,endtime:endtime,status:response.data.status
+              hiringmanagerid:hiringmanagerid,jobid:jobid,
+              jobtitle:title ,startdate:startdate,starttime:starttime,enddate:enddate,endtime:endtime,status:response.data.status
             });
           })
           .catch((error) => {
@@ -116,7 +119,7 @@ const MyCalendar = () => {
           height="auto"
         />
       </div>
-      {popUp &&   <CalendarPopUp title={time.title} startdate={time.startdate} starttime={time.starttime} enddate={time.enddate} endtime={time.endtime} status={time.status}  />
+      {popUp &&   <CalendarPopUp jobtitle={time.jobtitle} startdate={time.startdate} starttime={time.starttime} enddate={time.enddate} endtime={time.endtime} status={time.status} hiringmanagerid={time.hiringmanagerid} jobid={time.jobid} />
   }
     </div>
   );}

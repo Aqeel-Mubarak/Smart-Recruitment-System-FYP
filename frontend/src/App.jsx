@@ -30,7 +30,7 @@ function App() {
         <Route path='/open-jobs' element={<CurrentOpenJobs/>} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/candidates" element={<CandidatesList />} />
-        <Route path="/Calendar/:title" element={<MyCalendar/>} />
+        <Route path="/Calendar/:hiringmanagerid/:jobid" element={<MyCalendar />} />
       </Routes>
     </Router>
   );
