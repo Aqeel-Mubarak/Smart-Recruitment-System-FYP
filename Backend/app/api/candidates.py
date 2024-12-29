@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import Candidate
 from app.schemas import CandidateOut
+from sqlalchemy import and_
 from pydantic import BaseModel
 from typing import List, Dict
 import os
@@ -113,7 +114,7 @@ except Exception as e:
     raise
 
 @router.get("/candidates", response_model=List[CandidateOut])
-def get_all_candidates(
+def get_all_candidates(job_description_id:int,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
@@ -121,10 +122,21 @@ def get_all_candidates(
     candidates = (
         db.query(Candidate)
         .join(Candidate.job_description)
-        .filter(Candidate.job_description.has(hr_id=current_user.id))
+        .filter(and_(Candidate.job_description.has(hr_id=current_user.id),
+                    Candidate.job_description_id==job_description_id))
         .all()
     )
     return candidates
+
+
+# @router.get("/candidates", response_model=List[CandidateOut])
+# def get_all_candidates(job_description_id:int,db: Session = Depends(get_db)):
+#     """
+#     Fetch all candidates from the database.
+#     """
+#     return db.query(Candidate).filter(Candidate.job_description_id==job_description_id).all()
+
+
 
 @router.post("/filter_candidates")
 async def filter_candidates(request: PromptRequest, db: Session = Depends(get_db), current_user = Depends(get_current_user)):

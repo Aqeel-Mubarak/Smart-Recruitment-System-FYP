@@ -38,3 +38,39 @@ class UserLogin(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+
+      
+class Calendar(BaseModel):
+    jobtitle: str
+    startdate: str
+    starttime: str
+    enddate: str
+    endtime: str
+    status:str
+    # email:str
+    # hiringmanagerid: int 
+    jobid: int
+    
+    class Config:
+        from_attributes = True  # Updated for Pydantic v2
+        
+     
+class Calendar2(BaseModel):
+    jobtitle: str
+    startdate: str
+    starttime: str
+    enddate: str
+    endtime: str
+    status:str
+    jobid: int
+    candidate_id : int
+    class Config:
+        from_attributes = True  # Updated for Pydantic v2
+
+class CalendarOut(Calendar):
+    id:int
+
+    class Config:
+        from_attributes = True

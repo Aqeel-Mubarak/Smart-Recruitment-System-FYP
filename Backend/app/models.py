@@ -12,6 +12,7 @@ class JobDescription(Base):
 
     hr = relationship("User", back_populates="jobs")
     candidates = relationship("Candidate", back_populates="job_description")
+    calendars = relationship("Calendar", back_populates="job")
 
 
 class Candidate(Base):
@@ -44,3 +45,28 @@ class User(Base):
     is_superuser = Column(Boolean, default=False)
 
     jobs = relationship("JobDescription", back_populates="hr")
+    
+    
+    
+    
+class Calendar(Base):
+    __tablename__ = "calendar"
+
+    id = Column(Integer, primary_key=True, index=True)
+    jobtitle = Column(String, index=True)
+    startdate = Column(String)
+    starttime = Column(String)
+    enddate = Column(String)
+    endtime = Column(String)
+    status = Column(String)
+    # email = Column(String, index=True,unique=True, nullable=True)
+    jobid = Column(Integer, ForeignKey("job_descriptions.id"))
+    candidate_id=Column(Integer)
+
+    job = relationship("JobDescription", back_populates="calendars")
+    
+    def __repr__(self):
+        return (f"<Calendar(title='{self.jobtitle}', startdate='{self.startdate}', "
+                f"starttime='{self.starttime}', enddate='{self.enddate}', endtime='{self.endtime},status='{self.status}')>")
+
+    

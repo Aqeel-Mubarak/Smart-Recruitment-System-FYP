@@ -12,6 +12,7 @@ import ResumeUploadPage from './pages/ResumeUploadPage';
 import CurrentOpenJobs from './pages/CurrentOpenJobs';
 import ContactPage from './pages/ContactPage';
 import CandidatesList from './pages/CandidatesList';
+import MyCalendar from './pages/MyCalendar';
 
 
 function App() {
@@ -30,6 +31,8 @@ function App() {
         <Route path='/open-jobs' element={<CurrentOpenJobs/>} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/candidates" element={<CandidatesList />} />
+        <Route path="/Calendar/:hiringmanagerid1/:jobid1/:candidateid1?" element={<MyCalendar />} />
+
       </Routes>
     </Router>
   );
