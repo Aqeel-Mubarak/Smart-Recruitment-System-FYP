@@ -49,7 +49,7 @@ const ResumeUploadPage = () => {
 
     try {
       const token = localStorage.getItem("accessToken");
-      const response = await fetch ('http://127.0.0.1:8000/add_job_description', {
+      const response = await fetch ('http://127.0.0.1:8000/resume/add_job_description', {
         method : "POST",
         headers : {
           Authorization: `Bearer ${token}`
