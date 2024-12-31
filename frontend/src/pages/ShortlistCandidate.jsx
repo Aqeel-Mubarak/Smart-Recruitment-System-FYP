@@ -70,18 +70,22 @@ const ShortlistCandidate = () => {
         console.error('No access token found in local storage');
         return;
       }  
+      
+
       const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };  
-      const response = await axios.post(
-        'http://127.0.0.1:8000/filter_candidates',
-        {
-          prompt: prompt,
-        },
-        config
-      );
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const response = await axios.post(
+      'http://127.0.0.1:8000/filter_candidates',
+      {
+        prompt: prompt,
+        job_description_id: selectedOption.value,
+      },
+      config
+    );
   
       const filteredResults = response.data.filter(candidate => candidate.score >= 50);
   
