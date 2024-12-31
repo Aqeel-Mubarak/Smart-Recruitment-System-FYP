@@ -24,11 +24,7 @@ def create_app():
 
     # Include API router
     app.include_router(api_router)
-    print("Registered Routes:")
-    for route in app.routes:
-        print(f"Path: {route.path}, Name: {route.name}, Methods: {route.methods}")
-
-
+    
     # Setup CORS middleware
     setup_cors_middleware(app)
 
