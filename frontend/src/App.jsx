@@ -22,6 +22,7 @@ function App() {
         <Route path="/" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/resetpassword" element={<ForgetPassword />} />
+        <Route path="/Calendar/:hiringmanagerid1/:jobid1/:candidateid1?" element={<MyCalendar />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/home" element={<Home />} />
           <Route path="/application" element={<ApplicationForm />} />
@@ -32,7 +33,6 @@ function App() {
           <Route path='/open-jobs' element={<CurrentOpenJobs/>} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/candidates" element={<CandidatesList />} />
-          <Route path="/Calendar/:hiringmanagerid1/:jobid1/:candidateid1?" element={<MyCalendar />} />
         </Route>
       </Routes>
     </Router>
