@@ -19,6 +19,7 @@ router = APIRouter()
 
 class PromptRequest(BaseModel):
     prompt: str
+    job_description_id: int
 
 class GroqAnalyzer:
     """Handler for Groq LLM-based resume analysis."""
@@ -150,12 +151,15 @@ async def filter_candidates(request: PromptRequest, db: Session = Depends(get_db
     Returns:
         List[Dict]: Sorted list of analyzed candidates
     """
+    print(request)
     try:
         print("Starting candidate filtering process...")  # Debug log
+        job_description_id = request.job_description_id
         candidates = (
         db.query(Candidate)
         .join(Candidate.job_description)
-        .filter(Candidate.job_description.has(hr_id=current_user.id))
+        .filter(Candidate.job_description.has(hr_id=current_user.id),
+                Candidate.job_description_id==job_description_id)
         .all()
         )
         analyzed_candidates = []
