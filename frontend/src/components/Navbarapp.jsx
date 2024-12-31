@@ -9,6 +9,11 @@ const Navbarapp = () => {
   const isHomePage = location.pathname === '/home';
   const isAboutPage = location.pathname === '/about';
   const isContactPage = location.pathname === '/contact';
+  
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    window.location.href = '/';  
+  }
 
   return (
     <nav className="p-4 fixed top-0 left-0 w-full z-50" style={{ backgroundColor: '#800080' }}>
@@ -39,7 +44,7 @@ const Navbarapp = () => {
             Contact
           </Link>
           <span>|</span>
-          <Link to="/" className="hover:text-gray-300">Logout</Link>
+          <button onClick={handleLogout} className="hover:text-gray-300">Logout</button>
         </div>
       </div>
     </nav>
