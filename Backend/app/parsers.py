@@ -1,13 +1,10 @@
 from fastapi import UploadFile
 from docx import Document
 from io import BytesIO
-from PyPDF2 import PdfReader
+import pdfplumber
 import textract
 import re
-
-
 from typing import Optional
-
 
 def extract_email(text: str) -> Optional[str]:
     """
@@ -15,31 +12,31 @@ def extract_email(text: str) -> Optional[str]:
     Returns None if no email is found.
     """
     cleaned_text = re.sub(r'\s+', ' ', text)  # Replace any whitespace characters with a single space
-
+    
     email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}'
-
+    
     # Find all matches (in case there are multiple emails)
     matches = re.findall(email_pattern, cleaned_text)
-
+    
     # Return the first match if available
     return matches[0] if matches else None
 
-
 def parse_pdf(file: UploadFile):
     """
-    Parse the text content from a PDF file using PyPDF2.
+    Parse the text content from a PDF file using pdfplumber.
     """
     try:
         file_content = file.file.read()
-        reader = PdfReader(BytesIO(file_content))
         pdf_text = ""
-
-        # Extract text from each page in the PDF
-        for page in reader.pages:
-            page_text = page.extract_text()
-            if page_text:  # Ensure text is not None
-                pdf_text += page_text + "\n"
-
+        
+        # Use pdfplumber to extract text
+        with pdfplumber.open(BytesIO(file_content)) as pdf:
+            # Extract text from each page
+            for page in pdf.pages:
+                page_text = page.extract_text()
+                if page_text:  # Ensure text is not None
+                    pdf_text += page_text + "\n"
+        
         return pdf_text
     except Exception as e:
         raise ValueError(f"Error parsing PDF file: {str(e)}")

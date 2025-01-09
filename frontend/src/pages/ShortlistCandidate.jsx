@@ -13,6 +13,7 @@ const ShortlistCandidate = () => {
   const [jobs, setJobs] = useState([]);
   const [selectedOption, setSelectedOption] = useState(null);
   const [hiringmanagerid, setHiringmanagerid] = useState();
+  const [checkedCandidates, setCheckedCandidates] = useState(new Set());
 
   const navigate = useNavigate();
 
@@ -52,6 +53,19 @@ const ShortlistCandidate = () => {
     fetchJobs();
   }, [hiringmanagerid]);
 
+  // Handle checkbox changes
+  const handleCheckboxChange = (candidateId) => {
+    setCheckedCandidates(prev => {
+      const newChecked = new Set(prev);
+      if (newChecked.has(candidateId)) {
+        newChecked.delete(candidateId);
+      } else {
+        newChecked.add(candidateId);
+      }
+      return newChecked;
+    });
+  };
+
   // Fetch candidates for the selected job description
   const handleForward = async () => {
     try {
@@ -75,6 +89,7 @@ const ShortlistCandidate = () => {
 
       setCandidates(shortlistedCandidates);
       setFilteredCandidates(shortlistedCandidates);
+      setCheckedCandidates(new Set()); // Reset checked candidates when loading new ones
     } catch (error) {
       console.error('Error fetching candidates:', error);
     }
@@ -159,10 +174,15 @@ const ShortlistCandidate = () => {
     setFilteredCandidates(candidates);
   };
 
-  // New function for handling interview scheduling
+  // Modified email function to only send to checked candidates
   const handleEmail = async () => {
     if (!selectedOption || !selectedOption.value) {
       alert("Please select a job first");
+      return;
+    }
+
+    if (checkedCandidates.size === 0) {
+      alert("Please select at least one candidate");
       return;
     }
 
@@ -178,15 +198,17 @@ const ShortlistCandidate = () => {
       const linkkk = `http://localhost:5173/Calendar`;
       const linkkk1 = `http://localhost:5173/Calendar/${encodedhiringmanagerid}/${encodedjobid}`;
 
-      // Map candidates to get their IDs and emails
-      const recipientEmail = candidates.map((data) => ({
-        id: data.id,
-        email: data.email
+      // Filter candidates to only include checked ones
+      const selectedCandidates = candidates.filter(candidate => 
+        checkedCandidates.has(candidate.id)
+      ).map(candidate => ({
+        id: candidate.id,
+        email: candidate.email
       }));
 
       // Send the email
       const emailResponse = await axios.post("http://127.0.0.1:8000/send_email", {
-        to_email: recipientEmail,
+        to_email: selectedCandidates,
         subject: "Job Application Update",
         body: `${linkkk1} Hello, this is to inform you about the status of your application.`,
         linkkk: linkkk,
@@ -242,23 +264,24 @@ const ShortlistCandidate = () => {
               Filter Candidates
             </button>
           </div>
-{/* Active Filter Display */}
-{activeFilter && (
-  <div className="mb-6">
-    <h3 className="text-lg font-semibold mb-2">Active Filter:</h3>
-    <div className="flex items-center gap-2">
-      <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
-        {activeFilter}
-        <button
-          onClick={removeFilter}
-          className="hover:bg-purple-200 rounded-full w-5 h-5 flex items-center justify-center ml-1"
-        >
-          ×
-        </button>
-      </span>
-    </div>
-  </div>
-)}
+
+          {/* Active Filter Display */}
+          {activeFilter && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-2">Active Filter:</h3>
+              <div className="flex items-center gap-2">
+                <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                  {activeFilter}
+                  <button
+                    onClick={removeFilter}
+                    className="hover:bg-purple-200 rounded-full w-5 h-5 flex items-center justify-center ml-1"
+                  >
+                    ×
+                  </button>
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Candidates Table */}
           <div className="overflow-x-auto">
@@ -283,7 +306,12 @@ const ShortlistCandidate = () => {
                   filteredCandidates.map((candidate) => (
                     <tr key={candidate.id} className="bg-gray-700 text-white hover:bg-gray-600 transition-colors">
                       <td className="p-3 text-center">
-                        <input type="checkbox" className="form-checkbox h-5 w-5 text-green-600" />
+                        <input 
+                          type="checkbox" 
+                          className="form-checkbox h-5 w-5 text-green-600"
+                          checked={checkedCandidates.has(candidate.id)}
+                          onChange={() => handleCheckboxChange(candidate.id)}
+                        />
                       </td>
                       <td className="border p-3">{candidate.name}</td>
                       <td className="border p-3">{candidate.score || 'N/A'}%</td>
@@ -308,8 +336,6 @@ const ShortlistCandidate = () => {
               </tbody>
             </table>
           </div>
-
-         
 
           {/* Schedule Interview Button */}
           <div className="flex justify-center mt-8">
