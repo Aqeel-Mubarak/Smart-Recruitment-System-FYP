@@ -210,7 +210,7 @@ const ShortlistCandidate = () => {
       const emailResponse = await axios.post("http://127.0.0.1:8000/send_email", {
         to_email: selectedCandidates,
         subject: "Job Application Update",
-        body: `${linkkk1} Hello, this is to inform you about the status of your application.`,
+        body: ` Hello, this is to inform you about the status of your application.`,
         linkkk: linkkk,
         encodedhiringmanagerid: encodedhiringmanagerid,
         encodedjobid: encodedjobid
