@@ -1,0 +1,40 @@
+# Virtual environment
+venv/
+.env/
+.venv/
+
+# Python compiled files
+*.pyc
+__pycache__/
+
+# Node.js dependencies
+node_modules/
+
+# Temporary files and logs
+*.log
+*.tmp
+
+# Vite temporary files (specific to your setup)
+frontend/node_modules/.vite/
+
+
+# Node.js dependencies
+node_modules/
+
+# Virtual environment
+venv/
+.env/
+.venv/
+
+# Python compiled files
+*.pyc
+__pycache__/
+
+# IDE or editor specific
+.vscode/
+.idea/
+
+# Logs and temporary files
+*.log
+*.tmp
+.DS_Store
