@@ -21,7 +21,6 @@ def add_job_description(
     deadline: date = Form(...),
     current_user : User = Depends(get_current_user)
 ):
-    print("nhekekjfkj")
     new_job = JobDescription(
         title = title,
         description_text = description,
