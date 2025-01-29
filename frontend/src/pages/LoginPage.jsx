@@ -11,33 +11,28 @@ const LoginPage = () => {
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleLogin = async (e) => {
-    e.preventDefault(); // Prevent the form from refreshing the page
+    e.preventDefault();
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     const formData = new FormData();
     formData.append('email', email);
     formData.append('password', password);
-
+  
     try {
-      // API call to FastAPI login endpoint
       const response = await axios.post(`${API_BASE_URL}/login`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data', // For sending form data
+          'Content-Type': 'multipart/form-data',
         },
       });
-
-      // On successful login
+  
       if (response.status === 200) {
         const { access_token, token_type } = response.data;
-
-        // Save the token to localStorage
+  
         localStorage.setItem('accessToken', access_token);
         localStorage.setItem('tokenType', token_type);
-
-        // Redirect to dashboard or any other secure page
+  
         window.location.href = '/home';
       }
     } catch (error) {
-      // Handle errors
       if (error.response) {
         setErrorMessage(error.response.data.detail || 'Login failed. Please try again.');
       } else {
