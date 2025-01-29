@@ -16,6 +16,7 @@ import MyCalendar from './pages/MyCalendar';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
+  console.log("API URL in Build:", import.meta.env.VITE_API_BASE_URL);
   return (
     <Router>
       <Routes>
