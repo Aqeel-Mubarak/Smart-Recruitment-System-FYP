@@ -12,14 +12,14 @@ const LoginPage = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault(); // Prevent the form from refreshing the page
-
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     const formData = new FormData();
     formData.append('email', email);
     formData.append('password', password);
 
     try {
       // API call to FastAPI login endpoint
-      const response = await axios.post('http://localhost:8000/login', formData, {
+      const response = await axios.post(`${API_BASE_URL}/login`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data', // For sending form data
         },
