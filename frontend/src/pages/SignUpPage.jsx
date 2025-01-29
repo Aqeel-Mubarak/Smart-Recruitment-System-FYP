@@ -33,13 +33,13 @@ const SignupPage = () => {
 
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
    // Handle form submission
    const handleSubmit = async (e) => {
     e.preventDefault();
     console.log(formData);
     try {
-      const response = await axios.post("http://localhost:8000/signup", formData, {
+      const response = await axios.post(`${API_BASE_URL}/signup`, formData, {
         headers: {
           "Content-Type": "multipart/form-data", // Required for FormData
         },

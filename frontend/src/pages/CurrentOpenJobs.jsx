@@ -14,8 +14,9 @@ const CurrentOpenJobs = () => {
   const {user,setUser} = useAppContext()
 
   useEffect (()=> {
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     const token = localStorage.getItem('accessToken');
-    axios.get('http://127.0.0.1:8000/me', {
+    axios.get(`${API_BASE_URL}/me`, {
         headers: {
             Authorization: `Bearer ${token}`
         }})

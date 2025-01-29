@@ -9,13 +9,14 @@ const Home = () => {
   const [totalApplications, setTotalApplications] = useState(0);
   const [name, setname] = useState("");
   const [error, setError] = useState("");
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     // Function to fetch the total applications
     const fetchTotalApplications = async () => {
       try {
         const token = localStorage.getItem("accessToken"); // Assuming the token is stored in localStorage
-        const response = await fetch("http://127.0.0.1:8000/totalApplications", {
+        const response = await fetch(`${API_BASE_URL}/totalApplications`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`, // Send the Bearer token

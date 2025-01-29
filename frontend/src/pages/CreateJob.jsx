@@ -11,6 +11,7 @@ function CreateJob(){
     const [description,setDescription] = useState('')
     
     const handleCreateJob = (e) => {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
             e.preventDefault();
             const token = localStorage.getItem('accessToken');
             if (!token) {
@@ -22,7 +23,7 @@ function CreateJob(){
 
             // Convert FormData to JSON (optional, depending on backend expectations)
             const data = Object.fromEntries(formData.entries());
-                axios.post("http://127.0.0.1:8000/create/add_job_description", formData, {
+                axios.post(`${API_BASE_URL}/create/add_job_description`, formData, {
             headers: {
               "Authorization": `Bearer ${token}`
             },

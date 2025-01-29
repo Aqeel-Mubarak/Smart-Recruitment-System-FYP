@@ -23,6 +23,7 @@ const MyCalendar =  () => {
   const [hiringmanagerid,setHiringmanagerid]=useState()
   const [jobid,setJobid]=useState()
   const {candidateid,setCandidateid,user,setUser,booked,setBooked}=useAppContext()
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   // setCandidateid(undefined)
   useEffect (() => {
     setCandidateid(candidateid1)
@@ -33,7 +34,7 @@ const MyCalendar =  () => {
   console.log(user,candidateid,booked,candidateid1)
   const decode = async () => {
     try {
-      const response = await  axios.post('http://127.0.0.1:8000/decryptid',
+      const response = await  axios.post(`${API_BASE_URL}/decryptid`,
         {
           value:[hiringmanagerid1,jobid1]
         }
@@ -73,7 +74,7 @@ const MyCalendar =  () => {
     }
     useEffect ( () => {
       axios
-        .get('http://127.0.0.1:8000/get_jobdata_from_calendar',{params:{hiringmanagerid:hiringmanagerid,jobid:jobid}})     
+        .get(`${API_BASE_URL}/get_jobdata_from_calendar`,{params:{hiringmanagerid:hiringmanagerid,jobid:jobid}})     
           .then((response) => {
             const formattedEvents = response.data.map((event) => ({
               title: event.jobtitle,
@@ -102,7 +103,7 @@ const MyCalendar =  () => {
     const endtime = moment(selectionInfo.event.end).format(' HH:mm:ss'); // Correctly get end time
     const statusfunction = () => {
       axios
-        .get('http://127.0.0.1:8000/get_status',{params:{
+        .get(`${API_BASE_URL}/get_status`,{params:{
           jobtitle:title ,startdate:startdate,starttime:starttime,enddate:enddate,endtime:endtime
           ,hiringmanagerid:hiringmanagerid,jobid:jobid
         }})     

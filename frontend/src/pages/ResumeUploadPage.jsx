@@ -15,6 +15,7 @@ const ResumeUploadPage = () => {
   const [selectedFileNames, setSelectedFileNames] = useState(null);
   const [jobDescriptionStatus, setJobDescriptionStatus] = useState('');
   const [loading, setLoading] = useState(false);  // Loading state for the resume upload
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const navigate = useNavigate();
 
@@ -49,7 +50,7 @@ const ResumeUploadPage = () => {
 
     try {
       const token = localStorage.getItem("accessToken");
-      const response = await fetch ('http://127.0.0.1:8000/resume/add_job_description', {
+      const response = await fetch (`${API_BASE_URL}/resume/add_job_description`, {
         method : "POST",
         headers : {
           Authorization: `Bearer ${token}`
@@ -85,7 +86,7 @@ const ResumeUploadPage = () => {
     setLoading(true); // Start loading indicator
 
     try {
-      const response = await axios.post(`http://127.0.0.1:8000/upload_resume?job_description_id=${jobId}`, formData, {
+      const response = await axios.post(`${API_BASE_URL}/upload_resume?job_description_id=${jobId}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

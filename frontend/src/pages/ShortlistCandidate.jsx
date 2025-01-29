@@ -14,13 +14,13 @@ const ShortlistCandidate = () => {
   const [selectedOption, setSelectedOption] = useState(null);
   const [hiringmanagerid, setHiringmanagerid] = useState();
   const [checkedCandidates, setCheckedCandidates] = useState(new Set());
-
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const navigate = useNavigate();
 
   // Fetch hiring manager ID
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
-    axios.get('http://127.0.0.1:8000/me', {
+    axios.get(`${API_BASE_URL}/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -35,7 +35,7 @@ const ShortlistCandidate = () => {
 
     const fetchJobs = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/get_job_description', {
+        const response = await axios.get(`${API_BASE_URL}/get_job_description`, {
           params: { hiringmanagerid },
         });
 
@@ -75,7 +75,7 @@ const ShortlistCandidate = () => {
         return;
       }
 
-      const response = await axios.get('http://127.0.0.1:8000/candidates', {
+      const response = await axios.get(`${API_BASE_URL}/candidates`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { job_description_id: selectedOption.value },
       });
@@ -107,7 +107,7 @@ const ShortlistCandidate = () => {
       }
 
       const response = await axios.post(
-        'http://127.0.0.1:8000/filter_candidates',
+        `${API_BASE_URL}/filter_candidates`,
         { prompt, job_description_id: selectedOption.value },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -144,7 +144,7 @@ const ShortlistCandidate = () => {
       }
 
       const response = await axios.post(
-        'http://127.0.0.1:8000/analyze_candidate',
+        `${API_BASE_URL}/analyze_candidate`,
         { candidate_id: candidateId, resume_text: resumeText, prompt: activeFilter },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -189,7 +189,7 @@ const ShortlistCandidate = () => {
     const jobid = selectedOption.value;
     try {
       // First encrypt the IDs
-      const response = await axios.post('http://127.0.0.1:8000/encryptid', {
+      const response = await axios.post(`${API_BASE_URL}/encryptid`, {
         value: [hiringmanagerid, jobid]
       });
 
@@ -207,7 +207,7 @@ const ShortlistCandidate = () => {
       }));
 
       // Send the email
-      const emailResponse = await axios.post("http://127.0.0.1:8000/send_email", {
+      const emailResponse = await axios.post(`${API_BASE_URL}/send_email`, {
         to_email: selectedCandidates,
         subject: "Job Application Update",
         body: ` Hello, this is to inform you about the status of your application.`,
