@@ -12,6 +12,7 @@ const CurrentOpenJobs = () => {
   const [jobs,setJobs]=useState([])
   const [hiringmanagerid,setHiringmanagerid]=useState()
   const {user,setUser} = useAppContext()
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect (()=> {
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -30,7 +31,7 @@ const CurrentOpenJobs = () => {
     })
   },[])
   useEffect (()=> {
-    axios.get('http://127.0.0.1:8000/get_job_description',{params:{hiringmanagerid:hiringmanagerid}})
+    axios.get(`${API_BASE_URL}/get_job_description`,{params:{hiringmanagerid:hiringmanagerid}})
     .then((response)=> {
         setJobs(response.data.jobs)
   })
