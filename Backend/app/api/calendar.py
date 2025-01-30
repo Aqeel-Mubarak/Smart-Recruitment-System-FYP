@@ -130,7 +130,7 @@ def send_email(request: EmailRequest):
         message["From"] = sender_email
         message["To"] = recipient.email
         message["Subject"] = request.subject
-        linkkk = f"http://localhost:5173/Calendar/{encodedhiringmanagerid[0]}/{encodedjobid}/{recipient.id}"
+        linkkk = f"http://207.180.240.67/Calendar/{encodedhiringmanagerid[0]}/{encodedjobid}/{recipient.id}"
         message.attach(MIMEText(request.body+linkkk, "plain"))
 
         try:

@@ -195,8 +195,8 @@ const ShortlistCandidate = () => {
 
       const encodedhiringmanagerid = response.data.encodedlst[0];
       const encodedjobid = response.data.encodedlst[1];
-      const linkkk = `http://localhost:5173/Calendar`;
-      const linkkk1 = `http://localhost:5173/Calendar/${encodedhiringmanagerid}/${encodedjobid}`;
+      const linkkk = `http://207.180.240.67/Calendar`;
+      const linkkk1 = `http://207.180.240.67/Calendar/${encodedhiringmanagerid}/${encodedjobid}`;
 
       // Filter candidates to only include checked ones
       const selectedCandidates = candidates.filter(candidate => 
