@@ -5,13 +5,14 @@ import axios from "axios";
 
 
 const JobsForCreateOpenJobs = (props) => {
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     console.log(props)
     const applications=10;
     const navigate = useNavigate();
       const handleSlots = async () => {
           console.log(props.id,props.hr_id,props.title)
           try {
-              const response = await  axios.post('http://127.0.0.1:8000/encryptid',
+              const response = await  axios.post(`${API_BASE_URL}/encryptid`,
                 {
                   value:[props.hr_id,props.id]
                 }

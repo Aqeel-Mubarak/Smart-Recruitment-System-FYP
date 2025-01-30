@@ -21,6 +21,7 @@ const CalendarPopUp = (props) => {
 
   // Handle Save Button
   const handleSave = () => {
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     console.log(jobtitle,
       props.startdate,
       props.starttime,
@@ -29,7 +30,7 @@ const CalendarPopUp = (props) => {
       hiringmanagerid
       , jobid)
     axios
-      .post("http://127.0.0.1:8000/add_data_to_calendar", {
+      .post(`${API_BASE_URL}/add_data_to_calendar`, {
         jobtitle: jobtitle,
         startdate: props.startdate,
         starttime: props.starttime,
@@ -40,7 +41,7 @@ const CalendarPopUp = (props) => {
         jobid: jobid
       })
       .then(() => {
-        return axios.get("http://127.0.0.1:8000/get_jobdata_from_calendar", { params: { hiringmanagerid: hiringmanagerid, jobid: jobid } });
+        return axios.get(`${API_BASE_URL}/get_jobdata_from_calendar`, { params: { hiringmanagerid: hiringmanagerid, jobid: jobid } });
       })
       .then((response) => {
         console.log(response.data)
@@ -64,8 +65,9 @@ const CalendarPopUp = (props) => {
       });
   };
   const statusfunction = () => {
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     axios
-      .get('http://127.0.0.1:8000/get_status', {
+      .get(`${API_BASE_URL}/get_status`, {
         params: {
           jobtitle: title, startdate: startdate, starttime: starttime, enddate: enddate, endtime: endtime
           , hiringmanagerid: hiringmanagerid, jobid: jobid
@@ -82,6 +84,7 @@ const CalendarPopUp = (props) => {
 
   // Handle Delete Button
   const handleDelete = () => {
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     console.log(jobtitle,
       props.startdate,
       props.starttime,
@@ -90,7 +93,7 @@ const CalendarPopUp = (props) => {
       hiringmanagerid
       , jobid)
     axios
-      .delete("http://127.0.0.1:8000/delete_data_from_calendar", {
+      .delete(`${API_BASE_URL}/delete_data_from_calendar`, {
         data: {
           jobtitle: jobtitle,
           startdate: props.startdate,
@@ -105,7 +108,7 @@ const CalendarPopUp = (props) => {
       .then(() => {
         console.log("Appointment deleted successfully.");
         console.log(hiringmanagerid, jobid)
-        return axios.get("http://127.0.0.1:8000/get_jobdata_from_calendar", { params: { hiringmanagerid: hiringmanagerid, jobid: jobid } });
+        return axios.get(`${API_BASE_URL}/get_jobdata_from_calendar`, { params: { hiringmanagerid: hiringmanagerid, jobid: jobid } });
       })
       .then((response) => {
         const formattedEvents = response.data.map((event) => ({
@@ -133,7 +136,7 @@ const CalendarPopUp = (props) => {
     console.log(booked)
 
     axios.put(
-      `http://127.0.0.1:8000/update_status`,
+      `/update_status`,
       {
         jobtitle: jobtitle,
         startdate: props.startdate,
