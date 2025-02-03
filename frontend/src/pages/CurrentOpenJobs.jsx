@@ -23,24 +23,23 @@ const CurrentOpenJobs = () => {
         }})
     .then((response)=> {
       setHiringmanagerid(response.data.id)
-      // setUser('HR')
-      console.log(response.data.id)
   })
     .catch((error)=>{
       console.log(error)
     })
   },[])
   useEffect (()=> {
-    axios.get(`${API_BASE_URL}/get_job_description`,{params:{hiringmanagerid:hiringmanagerid}})
-    .then((response)=> {
-        setJobs(response.data.jobs)
-  })
-    .catch((error)=>{
-      console.log(error)
+    if (hiringmanagerid){
+      axios.get(`${API_BASE_URL}/get_job_description`,{params:{hiringmanagerid:hiringmanagerid}})
+      .then((response)=> {
+          setJobs(response.data.jobs)
     })
+      .catch((error)=>{
+        console.log(error)
+      })}
+    
   },[hiringmanagerid])
 
-  console.log(jobs)
   return (
     <div className="h-screen flex flex-col">
       {/* Navbar */}
