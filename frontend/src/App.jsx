@@ -14,6 +14,7 @@ import ContactPage from './pages/ContactPage';
 import CandidatesList from './pages/CandidatesList';
 import MyCalendar from './pages/MyCalendar';
 import ProtectedRoute from './components/ProtectedRoute';
+import Verification from './pages/verification';
 
 function App() {
   console.log("API URL in Build:", import.meta.env.VITE_API_BASE_URL);
@@ -24,6 +25,7 @@ function App() {
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/resetpassword" element={<ForgetPassword />} />
         <Route path="/Calendar/:hiringmanagerid1/:jobid1/:candidateid1?" element={<MyCalendar />} />
+        <Route path="/verify/:token" element={<Verification />}/>
         <Route element={<ProtectedRoute />}>
           <Route path="/home" element={<Home />} />
           <Route path="/application" element={<ApplicationForm />} />

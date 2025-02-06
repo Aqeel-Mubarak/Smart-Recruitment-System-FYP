@@ -29,35 +29,10 @@ def add_data_to_calendar(data:Calendar_schema, db: Session = Depends(get_db)):
     db.refresh(appointment)
     return  data
 
-# @router.get("/get_data_from_calendar")
-# def add_data_to_calendar(title: Optional[str] = None, db: Session = Depends(get_db)):
-#     data=db.query(Calendar_table).filter(Calendar_table.title==title).all()
-#     return  data
-
-# @router.get("/get_userdata_from_calendar")
-# def get_data_to_calendar(hiringmanagerid: Optional[str] = None, db: Session = Depends(get_db)):
-#     data=db.query(Calendar_table).filter(and_(Calendar_table.hiringmanagerid==hiringmanagerid,Calendar_table.jobid==jobid)).all()
-#     return  data
-
 @router.get("/get_jobdata_from_calendar")
 def get_data_to_calendar(jobid: Optional[str] = None, db: Session = Depends(get_db)):
     data=db.query(Calendar_table).filter(and_(Calendar_table.jobid==jobid)).all()
     return  data
-
-# @router.delete("/delete_data_from_calendar")
-# def delete_data_from_calendar(data:Calendar_schema, db: Session = Depends(get_db)):
-#     print("Deleting Record:", data.model_dump())
-#     ans= db.query(Calendar_table).filter(and_(
-#         Calendar_table.title == data.title,
-#         Calendar_table.startdate == data.startdate,
-#         Calendar_table.starttime == data.starttime,
-#         Calendar_table.enddate == data.enddate,
-#         Calendar_table.endtime == data.endtime)
-#     ).all()
-#     print(ans)    
-#     db.commit()
-#     return 
-
 
 from sqlalchemy import func, and_
 
