@@ -108,9 +108,11 @@ const ResumeUploadPage = () => {
   return (
     <div className="h-screen flex flex-col">
       <Navbarapp />
-      <div className="flex flex-1 h-full">
-        <Sidebar className="min-h-full h-full" />
-        <div className="flex-1 bg-gray-100 p-8 mt-12">
+      <div className="flex flex-1 overflow-hidden mt-16"> {/* Added mt-16 to create one-inch space below navbar */}
+        <div className="fixed top-16 left-0 bottom-0 z-10">
+          <Sidebar />
+        </div>
+        <div className="flex-1 ml-64 bg-gray-100 p-8">
           <div className="flex space-x-10">
             <div className="w-1/3 bg-white rounded-lg shadow-md p-5">
               <h2 className="text-xl font-bold mb-4">Job Description</h2>

@@ -17,6 +17,24 @@ const ShortlistCandidate = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const navigate = useNavigate();
 
+  // Helper function to render analysis text with bold headings on separate lines
+  const renderAnalysisText = (analysis) => {
+    return analysis.split('\n').map((line, index) => {
+      if (line.startsWith('**') && line.indexOf('**', 2) !== -1) {
+        const closingIndex = line.indexOf('**', 2);
+        const heading = line.substring(2, closingIndex);
+        const rest = line.substring(closingIndex + 2);
+        return (
+          <p key={index} className="m-0">
+            <strong>{heading}</strong>{rest}
+          </p>
+        );
+      } else {
+        return <p key={index} className="m-0">{line}</p>;
+      }
+    });
+  };
+
   // Fetch hiring manager ID
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -29,27 +47,26 @@ const ShortlistCandidate = () => {
     .catch((error) => console.error(error));
   }, []);
 
-  // Fetch job descriptions
+  // Fetch job descriptions including the full job description (description_text)
   useEffect(() => {
     if (!hiringmanagerid) return;
-
     const fetchJobs = async () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/get_job_description`, {
           params: { hiringmanagerid },
         });
-
+        // Assume API returns jobs with: id, title, description_text
         setJobs(
           response.data.jobs.map((job) => ({
             value: job.id,
             label: job.title.charAt(0).toUpperCase() + job.title.slice(1),
+            description: job.description_text,
           }))
         );
       } catch (error) {
         console.error('Error fetching jobs:', error);
       }
     };
-
     fetchJobs();
   }, [hiringmanagerid]);
 
@@ -74,22 +91,22 @@ const ShortlistCandidate = () => {
         console.error('No access token found in local storage');
         return;
       }
-
       const response = await axios.get(`${API_BASE_URL}/candidates`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { job_description_id: selectedOption.value },
       });
-
       const shortlistedCandidates = response.data.map((candidate) => ({
         ...candidate,
-        prompt_score: 'Give your req to show prompt score',
-        analysis: null,
-        loadingAnalysis: false,
+        rank: 'Give your req to show rank',
+        // Initialize analysis fields and separate loading flags
+        promptAnalysis: null,
+        jobAnalysis: null,
+        loadingPrompt: false,
+        loadingJob: false,
       }));
-
       setCandidates(shortlistedCandidates);
       setFilteredCandidates(shortlistedCandidates);
-      setCheckedCandidates(new Set()); // Reset checked candidates when loading new ones
+      setCheckedCandidates(new Set());
     } catch (error) {
       console.error('Error fetching candidates:', error);
     }
@@ -98,26 +115,24 @@ const ShortlistCandidate = () => {
   // Filter candidates by prompt
   const handlePromptSearch = async () => {
     if (!prompt.trim() || !selectedOption) return;
-
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) {
         console.error('No access token found in local storage');
         return;
       }
-
       const response = await axios.post(
         `${API_BASE_URL}/filter_candidates`,
         { prompt, job_description_id: selectedOption.value },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       const filteredResults = response.data.map((candidate) => ({
         ...candidate,
-        analysis: null,
-        loadingAnalysis: false,
+        promptAnalysis: null,
+        jobAnalysis: null,
+        loadingPrompt: false,
+        loadingJob: false,
       }));
-
       setFilteredCandidates(filteredResults);
       setActiveFilter(prompt);
       setPrompt('');
@@ -126,43 +141,62 @@ const ShortlistCandidate = () => {
     }
   };
 
-  // Generate analysis for a specific candidate
-  const handleViewAnalysis = async (candidateId, resumeText) => {
+  // Generate analysis for a specific candidate.
+  // analysisType ("prompt" or "job") is passed.
+  const handleViewAnalysis = async (candidateId, resumeText, analysisType) => {
+    // Set the appropriate loading flag
+    setFilteredCandidates(prev =>
+      prev.map(candidate => {
+        if (candidate.id === candidateId) {
+          if (analysisType === "prompt") {
+            return { ...candidate, loadingPrompt: true };
+          } else {
+            return { ...candidate, loadingJob: true };
+          }
+        }
+        return candidate;
+      })
+    );
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      console.error('No access token found in local storage');
+      return;
+    }
+    const payload = {
+      candidate_id: candidateId,
+      resume_text: resumeText,
+      analysis_type: analysisType,
+      prompt: analysisType === "prompt" ? activeFilter : "",
+      // For job-based analysis, send the job_description_id
+      job_description_id: analysisType === "job" && selectedOption ? selectedOption.value : null,
+    };
     try {
-      setFilteredCandidates((prev) =>
-        prev.map((candidate) =>
-          candidate.id === candidateId
-            ? { ...candidate, loadingAnalysis: true }
-            : candidate
-        )
-      );
-
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        console.error('No access token found in local storage');
-        return;
-      }
-
       const response = await axios.post(
         `${API_BASE_URL}/analyze_candidate`,
-        { candidate_id: candidateId, resume_text: resumeText, prompt: activeFilter },
+        payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      setFilteredCandidates((prev) =>
-        prev.map((candidate) =>
-          candidate.id === candidateId
-            ? { ...candidate, analysis: response.data.analysis, loadingAnalysis: false }
-            : candidate
-        )
+      // Update candidate with the corresponding analysis and clear its loading flag
+      setFilteredCandidates(prev =>
+        prev.map(candidate => {
+          if (candidate.id === candidateId) {
+            if (analysisType === "prompt") {
+              return { ...candidate, promptAnalysis: response.data.analysis, loadingPrompt: false };
+            } else {
+              return { ...candidate, jobAnalysis: response.data.analysis, loadingJob: false };
+            }
+          }
+          return candidate;
+        })
       );
     } catch (error) {
       console.error('Error generating analysis:', error);
-
-      setFilteredCandidates((prev) =>
-        prev.map((candidate) =>
+      setFilteredCandidates(prev =>
+        prev.map(candidate =>
           candidate.id === candidateId
-            ? { ...candidate, loadingAnalysis: false }
+            ? analysisType === "prompt"
+              ? { ...candidate, loadingPrompt: false }
+              : { ...candidate, loadingJob: false }
             : candidate
         )
       );
@@ -180,42 +214,32 @@ const ShortlistCandidate = () => {
       alert("Please select a job first");
       return;
     }
-
     if (checkedCandidates.size === 0) {
       alert("Please select at least one candidate");
       return;
     }
-
     const jobid = selectedOption.value;
     try {
-      // First encrypt the IDs
       const response = await axios.post(`${API_BASE_URL}/encryptid`, {
-        value: [hiringmanagerid, jobid]
+        value: [hiringmanagerid, jobid],
       });
-
       const encodedhiringmanagerid = response.data.encodedlst[0];
       const encodedjobid = response.data.encodedlst[1];
       const linkkk = `http://207.180.240.67/Calendar`;
-      const linkkk1 = `http://207.180.240.67/Calendar/${encodedhiringmanagerid}/${encodedjobid}`;
-
-      // Filter candidates to only include checked ones
-      const selectedCandidates = candidates.filter(candidate => 
-        checkedCandidates.has(candidate.id)
-      ).map(candidate => ({
-        id: candidate.id,
-        email: candidate.email
-      }));
-
-      // Send the email
+      const selectedCandidates = candidates
+        .filter(candidate => checkedCandidates.has(candidate.id))
+        .map(candidate => ({
+          id: candidate.id,
+          email: candidate.email,
+        }));
       const emailResponse = await axios.post(`${API_BASE_URL}/send_email`, {
         to_email: selectedCandidates,
         subject: "Job Application Update",
-        body: ` Hello, this is to inform you about the status of your application.`,
+        body: `Hello, this is to inform you about the status of your application.`,
         linkkk: linkkk,
         encodedhiringmanagerid: encodedhiringmanagerid,
-        encodedjobid: encodedjobid
+        encodedjobid: encodedjobid,
       });
-
       console.log("Email sent successfully:", emailResponse.data);
       alert("Email sent successfully!");
     } catch (error) {
@@ -230,10 +254,12 @@ const ShortlistCandidate = () => {
       <div className="flex" style={{ marginTop: '4rem', minHeight: '100vh' }}>
         <Sidebar className="h-full" />
         <div className="md:ml-8 p-4 md:p-8 flex-grow bg-gray-100">
-          <h1 className="text-3xl md:text-4xl text-center mb-6 md:mb-8 font-bold" style={{ color: '#800080' }}>
+          <h1
+            className="text-3xl md:text-4xl text-center mb-6 md:mb-8 font-bold"
+            style={{ color: '#800080' }}
+          >
             ShortList Candidates
           </h1>
-
           <div className="flex items-center w-full my-4">
             <Select
               className="w-[75%] border-2 mx-10 text-3xl border-black rounded-lg"
@@ -248,7 +274,6 @@ const ShortlistCandidate = () => {
               Select
             </button>
           </div>
-
           <div className="flex flex-col md:flex-row mb-6 md:mb-8 justify-center space-y-4 md:space-y-0 md:space-x-4">
             <input
               type="text"
@@ -261,13 +286,11 @@ const ShortlistCandidate = () => {
               className="bg-black text-white px-12 md:px-24 py-3 rounded-lg transition hover:bg-indigo-700"
               onClick={handlePromptSearch}
             >
-              Filter Candidates
+              Analyze Candidates
             </button>
           </div>
-
-          {/* Active Filter Display */}
           {activeFilter && (
-            <div className="mb-6">
+            <div className="mb-6 ml-10">
               <h3 className="text-lg font-semibold mb-2">Active Filter:</h3>
               <div className="flex items-center gap-2">
                 <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
@@ -282,16 +305,15 @@ const ShortlistCandidate = () => {
               </div>
             </div>
           )}
-
-          {/* Candidates Table */}
           <div className="overflow-x-auto">
             <table className="min-w-full border-collapse">
               <thead>
                 <tr className="bg-purp text-white" style={{ backgroundColor: '#800080' }}>
                   <th className="border p-3 text-left"></th>
-                  <th className="border p-3 text-left">Name</th>
-                  <th className="border p-3 text-left">Job Score</th>
-                  <th className="border p-3 text-left">Prompt Score</th>
+                  {/* Reduced width for Name column */}
+                  <th className="border p-3 text-left w-1/4">Name</th>
+                  <th className="border p-3 text-left">Job  Relevancy Score</th>
+                  <th className="border p-3 text-left">Prompt Relevancy Rank</th>
                   <th className="border p-3 text-left">Analysis</th>
                 </tr>
               </thead>
@@ -304,10 +326,13 @@ const ShortlistCandidate = () => {
                   </tr>
                 ) : (
                   filteredCandidates.map((candidate) => (
-                    <tr key={candidate.id} className="bg-gray-700 text-white hover:bg-gray-600 transition-colors">
+                    <tr
+                      key={candidate.id}
+                      className="bg-gray-700 text-white hover:bg-gray-600 transition-colors"
+                    >
                       <td className="p-3 text-center">
-                        <input 
-                          type="checkbox" 
+                        <input
+                          type="checkbox"
                           className="form-checkbox h-5 w-5 text-green-600"
                           checked={checkedCandidates.has(candidate.id)}
                           onChange={() => handleCheckboxChange(candidate.id)}
@@ -315,19 +340,47 @@ const ShortlistCandidate = () => {
                       </td>
                       <td className="border p-3">{candidate.name}</td>
                       <td className="border p-3">{candidate.score || 'N/A'}%</td>
-                      <td className="border p-3">{candidate.prompt_score ? Math.round(candidate.prompt_score) + '%' : 'N/A'}</td>
+                      <td className="border p-3">{candidate.rank || 'N/A'}</td>
                       <td className="border p-3 text-sm">
-                        {candidate.loadingAnalysis ? (
-                          <span>Loading...</span>
-                        ) : candidate.analysis ? (
-                          <span>{candidate.analysis}</span>
-                        ) : (
-                          <button
-                            className="bg-blue-500 text-white px-4 py-2 rounded-lg transition hover:bg-blue-700"
-                            onClick={() => handleViewAnalysis(candidate.id, candidate.resume_text)}
-                          >
-                            View Analysis
-                          </button>
+                        <div className="flex flex-col gap-2">
+                          {(!candidate.promptAnalysis) && (
+                            <button
+                              className="bg-blue-500 text-white px-2 py-1 text-sm rounded transition hover:bg-blue-700 inline-block w-auto"
+                              onClick={() =>
+                                handleViewAnalysis(candidate.id, candidate.resume_text, "prompt")
+                              }
+                            >
+                              View Prompt Analysis
+                            </button>
+                          )}
+                          {(!candidate.jobAnalysis) && (
+                            <button
+                              className="bg-blue-500 text-white px-2 py-1 text-sm rounded transition hover:bg-blue-700 inline-block w-auto"
+                              onClick={() =>
+                                handleViewAnalysis(candidate.id, candidate.resume_text, "job")
+                              }
+                            >
+                              View Job Analysis
+                            </button>
+                          )}
+                        </div>
+                        {candidate.loadingPrompt && (
+                          <p className="mt-2 text-sm">Loading Prompt Analysis...</p>
+                        )}
+                        {candidate.loadingJob && (
+                          <p className="mt-2 text-sm">Loading Job Analysis...</p>
+                        )}
+                        {candidate.promptAnalysis && (
+                          <div className="mt-2">
+                            <p className="font-bold text-sm">Prompt Analysis:</p>
+                            {renderAnalysisText(candidate.promptAnalysis)}
+                          </div>
+                        )}
+                        {candidate.jobAnalysis && (
+                          <div className="mt-2">
+                            <p className="font-bold text-sm">Job Analysis:</p>
+                            {renderAnalysisText(candidate.jobAnalysis)}
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -336,8 +389,6 @@ const ShortlistCandidate = () => {
               </tbody>
             </table>
           </div>
-
-          {/* Schedule Interview Button */}
           <div className="flex justify-center mt-8">
             <button
               className="bg-black text-white px-12 md:px-24 py-3 rounded-lg transition hover:bg-gray-800"
