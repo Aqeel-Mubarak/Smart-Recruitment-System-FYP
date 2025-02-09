@@ -76,3 +76,31 @@ def get_job_description(hiringmanagerid:int,db: Session = Depends(get_db)):
 
     # Return the serialized data
     return {"job_titles": serialized_jobs}
+
+@router.get("/get_job_by_id/{job_id}")
+def get_job_by_id(job_id: int, db: Session = Depends(get_db)):
+    job = db.query(JobDescription).filter(JobDescription.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return jsonable_encoder(job)
+@router.put("/update_job_description/{job_id}")
+def update_job_description(
+    job_id: int,
+    title: str = Form(...),
+    description: str = Form(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    job = db.query(JobDescription).filter(
+        JobDescription.id == job_id,
+        JobDescription.hr_id == current_user.id
+    ).first()
+    
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    job.title = title
+    job.description_text = description
+    db.commit()
+    db.refresh(job)
+    return job
