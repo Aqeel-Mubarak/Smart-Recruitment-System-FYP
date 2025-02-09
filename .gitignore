@@ -33,10 +33,10 @@ venv/
 __pycache__/
 
 # IDE or editor specific
-.vscode/
 .idea/
 
 # Logs and temporary files
 *.log
 *.tmp
 .DS_Store
+config.bat
