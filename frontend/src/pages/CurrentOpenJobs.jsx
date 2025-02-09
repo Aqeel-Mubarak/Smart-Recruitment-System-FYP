@@ -95,7 +95,7 @@ export default CurrentOpenJobs;
 
 
 // const CurrentOpenJobs = () => {
-//   // Sample data for demonstration (replace with dynamic data as needed)
+//   // Sample data for demonstration (lysreplace with dynamic data as needed)
 //   const jobs = [
 //     { id: 1, title: "Software Engineer", vacancy: 5, applications: 20 },
 //     { id: 2, title: "Project Manager", vacancy: 3, applications: 15 },
