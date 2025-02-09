@@ -43,27 +43,20 @@ const Home = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
-      {/* Navbar */}
       <Navbarapp />
 
-      {/* Main Content Section */}
-      <div className="flex flex-1" style={{ marginTop: '4rem' }}>
-        {/* Sidebar */}
-        <Sidebar />
+      <div className="flex flex-grow min-h-screen">
+        <Sidebar className="w-64 fixed inset-y-0" />
 
-        {/* Dashboard Content */}
-        <main className="flex-1 p-6 md:p-4 relative">
-          {/* Profile Icon under the logout */}
+        <main className="flex-1 pl-64 p-6 md:p-4">
           <div className="absolute top-0 right-0 p-4">
-            <FaUserCircle  className="text-[#800080] text-3xl cursor-pointer" />
+            <FaUserCircle className="text-[#800080] text-3xl cursor-pointer" />
           </div>
 
-          {/* Welcome Message */}
           <div className="mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Welcome Back, {name}</h1>
           </div>
 
-          {/* Key Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white shadow rounded-lg p-4 text-center">
               <h3 className="text-lg font-semibold text-gray-800">Total Applications</h3>
@@ -79,9 +72,7 @@ const Home = () => {
             </div>
           </div>
 
-          {/* Charts Section */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Candidate Interview Performance (Bar Chart Placeholder) */}
             <div className="col-span-1 md:col-span-2 bg-white shadow rounded-lg p-6">
               <h3 className="text-xl font-semibold mb-4 text-gray-800">Candidate Interview Performance</h3>
               <div className="h-64 bg-gray-200 flex items-center justify-center">
@@ -89,7 +80,6 @@ const Home = () => {
               </div>
             </div>
 
-            {/* Successful Candidates (Pie Chart Placeholder) */}
             <div className="bg-white shadow rounded-lg p-6">
               <h3 className="text-xl font-semibold mb-4 text-gray-800">Successful Candidates</h3>
               <div className="h-64 bg-gray-200 flex items-center justify-center">
@@ -98,7 +88,6 @@ const Home = () => {
             </div>
           </div>
 
-          {/* Small Bar Chart */}
           <div className="mt-8 bg-white shadow rounded-lg p-6">
             <h3 className="text-xl font-semibold mb-4 text-gray-800">Candidate Status Distribution</h3>
             <div className="h-32 bg-gray-200 flex items-center justify-center">

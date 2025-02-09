@@ -14,11 +14,11 @@ class Settings(BaseSettings):
     FRONTEND_URL: AnyHttpUrl = "http://localhost:5173/"
     BACKEND_CORS_ORIGINS: Union[str, List[AnyHttpUrl]] = ["http://localhost:5173", "http://localhost:8000"]
 
-    DATABASE_URL: PostgresDsn = "postgresql://postgres:bsdsf21m019@localhost/jj"
+    DATABASE_URL: PostgresDsn = "postgresql://postgres:Najam363@localhost/fyp2"
 
     #Auth
     SECRET_KEY: str = "this is the secret key for fyp" 
-    ALGORITHM: str = "HS256"  # Algorithm for hashing JWT
+    ALGORITHM: str = "HS256"  # Algorithm for hashing JWTy
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 100000000
 
 settings = Settings()

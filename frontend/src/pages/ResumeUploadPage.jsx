@@ -1,79 +1,155 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbarapp from "../components/Navbarapp";
-import Sidebar from "../components/Sidebar";
-import { FiUploadCloud } from 'react-icons/fi';
-import axios from 'axios';
-import { FaHourglassEnd } from "react-icons/fa";
+import Navbarapp from "../components/Navbarapp"; // Your existing Navbar component
+import Sidebar from "../components/Sidebar";     // Your existing Sidebar component
+import axios from "axios";
+import Select from "react-select";
 
 const ResumeUploadPage = () => {
   const [files, setFiles] = useState([]);
-  const [jobTitle, setJobTitle] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [jobId, setJobId] = useState(null);
   const [uploadStatus, setUploadStatus] = useState('');
-  const [selectedFileNames, setSelectedFileNames] = useState(null);
   const [jobDescriptionStatus, setJobDescriptionStatus] = useState('');
-  const [loading, setLoading] = useState(false);  // Loading state for the resume upload
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const [loading, setLoading] = useState(false);
+  const [jobs, setJobs] = useState([]);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [hiringManagerId, setHiringManagerId] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [updateLoading, setUpdateLoading] = useState(false);
 
   const navigate = useNavigate();
 
+  // Set document title so the Navbar displays the correct page title.
+  useEffect(() => {
+    document.title = "Resume Upload";
+  }, []);
+
+  // Fetch the logged-in hiring manager's id.
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    axios.get('http://127.0.0.1:8000/me', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((response) => setHiringManagerId(response.data.id))
+    .catch((error) => console.error(error));
+  }, []);
+
+  // Fetch jobs for the hiring manager and populate the Select options.
+  useEffect(() => {
+    if (!hiringManagerId) return;
+
+    const fetchJobs = async () => {
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/get_job_description', {
+          params: { hiringmanagerid: hiringManagerId },
+        });
+        setJobs(
+          response.data.jobs.map((job) => ({
+            value: job.id,
+            label: job.title,
+            description: job.description_text, // load description from DB
+          }))
+        );
+      } catch (error) {
+        console.error('Error fetching jobs:', error);
+      }
+    };
+
+    fetchJobs();
+  }, [hiringManagerId]);
+
+  // Handle file selection from file input.
   const handleFileChange = (event) => {
     const selectedFiles = event.target.files;
     if (selectedFiles.length > 0) {
       setFiles(selectedFiles);
-      setSelectedFileNames(`Selected Files: ${Array.from(selectedFiles).map(file => `${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`).join(', ')}`);
-    } else {
-      setFiles([]);
-      setSelectedFileNames(null);
     }
   };
 
-  const handleDescriptionChange = (event) => {
-    setJobDescription(event.target.value);
+  // Drag & drop event handlers.
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
   };
 
-  const handleJobTitleChange = (event) => {
-    setJobTitle(event.target.value);
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
   };
 
-  const handleJobDescriptionUpload = async () => {
-    if (!jobTitle || !jobDescription) {
-      setJobDescriptionStatus('Please provide both job title and description.');
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const droppedFiles = e.dataTransfer.files;
+    if (droppedFiles.length > 0) {
+      setFiles(droppedFiles);
+    }
+  };
+
+  // When a job is selected, load its description and id.
+  const handleJobSelect = (option) => {
+    setSelectedOption(option);
+    if (option) {
+      setJobDescription(option.description); // auto-load description from DB
+      setJobId(option.value);
+    } else {
+      setJobDescription('');
+      setJobId(null);
+    }
+  };
+
+  // Update job description for the selected job (using HTTP PUT).
+  const handleJobDescriptionUpdate = async () => {
+    if (!selectedOption || !jobDescription) {
+      setJobDescriptionStatus('Please select a job and provide a description.');
       return;
     }
 
+    setUpdateLoading(true);
     const formData = new FormData();
-    formData.append("title", jobTitle);
+    formData.append("title", selectedOption.label); // existing job title
     formData.append("description", jobDescription);
 
     try {
       const token = localStorage.getItem("accessToken");
-      const response = await fetch (`${API_BASE_URL}/resume/add_job_description`, {
-        method : "POST",
-        headers : {
-          Authorization: `Bearer ${token}`
-        },
-        body : formData,
-        });
 
-      const data = await response.json();
-      setJobId(data.id);
-      console.log(data);
-      setJobDescriptionStatus(`Job Description uploaded successfully: ${data.title}`);
+      // Use the update endpoint instead of creating a new job description.
+      await axios.put(`http://127.0.0.1:8000/update_job_description/${jobId}`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      
+      setJobDescriptionStatus('Job description updated successfully');
+
+      // Refresh the jobs list to reflect updated description.
+      const updatedJobsResponse = await axios.get('http://127.0.0.1:8000/get_job_description', {
+        params: { hiringmanagerid: hiringManagerId },
+      });
+      setJobs(updatedJobsResponse.data.jobs.map((job) => ({
+        value: job.id,
+        label: job.title,
+        description: job.description_text,
+      })));
     } catch (error) {
-      setJobDescriptionStatus(`Job Description upload failed: ${error.response?.data?.detail || error.message}`);
+      setJobDescriptionStatus(`Update failed: ${error.response?.data?.detail || error.message}`);
+    } finally {
+      setUpdateLoading(false);
     }
   };
 
+  // Upload resume files to the backend.
   const handleResumeUpload = async () => {
     if (files.length === 0) {
       setUploadStatus('Please select at least one file.');
       return;
     }
     if (!jobId) {
-      setUploadStatus('Please upload a job description first.');
+      setUploadStatus('Please select a job description first.');
       return;
     }
 
@@ -81,98 +157,169 @@ const ResumeUploadPage = () => {
     Array.from(files).forEach(file => {
       formData.append('files', file);
     });
-    console.log(formData);
 
-    setLoading(true); // Start loading indicator
+    setLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/upload_resume?job_description_id=${jobId}`, formData, {
+      await axios.post(`http://127.0.0.1:8000/upload_resume?job_description_id=${jobId}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      setUploadStatus(`Resumes uploaded successfully. Processed ${response.data.length} files.`);
-      setFiles([]);  // Reset selected files after successful upload
-      setSelectedFileNames(null);
+      setUploadStatus(`Resumes uploaded successfully.`);
+      setFiles([]);
     } catch (error) {
       setUploadStatus(`Upload failed: ${error.response?.data?.detail || error.message}`);
     } finally {
-      setLoading(false); // Stop loading indicator
+      setLoading(false);
     }
   };
 
-  const handleShortlistRedirect = () => {
-    navigate('/shortlist-candidate');
+  // Custom styles for react-select.
+  const customSelectStyles = {
+    control: (base) => ({
+      ...base,
+      height: '45px',
+      borderRadius: '8px',
+      borderColor: '#E2E8F0',
+      '&:hover': {
+        borderColor: '#CBD5E0',
+      },
+    }),
+    placeholder: (base) => ({
+      ...base,
+      color: '#718096',
+    }),
   };
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="min-h-screen bg-gray-50">
+      {/* Static Navbar */}
       <Navbarapp />
-      <div className="flex flex-1 overflow-hidden mt-16"> {/* Added mt-16 to create one-inch space below navbar */}
-        <div className="fixed top-16 left-0 bottom-0 z-10">
+
+      {/* Main Layout */}
+      <div className="flex">
+        {/* Fixed Static Sidebar */}
+        <aside className="fixed left-0 top-16 w-[20%] h-screen overflow-y-auto overflow-x-hidden bg-white shadow-lg">
           <Sidebar />
-        </div>
-        <div className="flex-1 ml-64 bg-gray-100 p-8">
-          <div className="flex space-x-10">
-            <div className="w-1/3 bg-white rounded-lg shadow-md p-5">
-              <h2 className="text-xl font-bold mb-4">Job Description</h2>
-              <input
-                type="text"
-                placeholder="Job Title"
-                value={jobTitle}
-                onChange={handleJobTitleChange}
-                className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
+        </aside>
+
+        {/* Main Content Area (offset by sidebar width) */}
+        <div className="ml-[20%] flex-1 p-8 mt-16">
+          <div className="max-w-6xl mx-auto grid grid-cols-2 gap-8">
+            {/* Job Description Section */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-2xl font-semibold mb-6">Job Description</h2>
+              {/* Label for Job Title */}
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Job Title
+              </label>
+              <Select
+                styles={customSelectStyles}
+                options={jobs}
+                value={selectedOption}
+                onChange={handleJobSelect}
+                placeholder="Select Job Title"
+                className="mb-4"
+                isClearable
               />
+              {/* Label for Job Description */}
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Job Description
+              </label>
               <textarea
                 value={jobDescription}
-                onChange={handleDescriptionChange}
-                className="w-full h-80 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 resize-none"
-                placeholder="Enter the job description here..."
-                style={{ minHeight: '200px' }}
-              ></textarea>
+                onChange={(e) => setJobDescription(e.target.value)}
+                className="w-full h-64 p-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                placeholder="Select a job to view and edit its description"
+                disabled={!selectedOption}
+              />
               <button 
-                onClick={handleJobDescriptionUpload} 
-                className="mt-4 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
-                Upload Job Description
+                onClick={handleJobDescriptionUpdate}
+                disabled={!selectedOption || updateLoading}
+                className={`mt-4 w-full py-3 px-6 rounded-lg transition-colors ${
+                  !selectedOption 
+                    ? "bg-gray-300 cursor-not-allowed" 
+                    : "bg-black text-white hover:bg-gray-800"
+                }`}
+              >
+                {updateLoading ? "Updating..." : "Update Job Description"}
               </button>
-              {jobDescriptionStatus && <p className="text-green-600 mt-2">{jobDescriptionStatus}</p>}
+              {jobDescriptionStatus && (
+                <p className="mt-2 text-sm text-green-600">
+                  {jobDescriptionStatus}
+                </p>
+              )}
+              {/* Create New Job Button */}
+              <button 
+                onClick={() => navigate("/create-job")}
+                className="mt-4 w-full py-3 px-6 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+              >
+                Create New Job
+              </button>
             </div>
-            <div className="w-2/3 bg-white rounded-lg shadow-md p-8">
-              <label className="block font-bold text-xl mb-2">
-                Upload your Resume(s)
-              </label>
-              <div className="flex flex-col items-center justify-center gap-3 cursor-pointer bg-gray-100 border-2 border-dashed border-indigo-600 p-10 rounded-lg">
-                <FiUploadCloud size={80} className="text-indigo-600" />
-                <label htmlFor="resume-upload" className="font-bold text-indigo-600 cursor-pointer">
-                  Drag and drop to upload or <span className="text-indigo-700">Browse</span>
-                </label>
-                <input
-                  type="file"
-                  id="resume-upload"
-                  name="resume"
-                  onChange={handleFileChange}
-                  className="hidden"
-                  accept=".pdf,.doc,.docx"
-                  multiple
-                  required
-                />
+
+            {/* Resume Upload Section */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-2xl font-semibold mb-6">Upload your resume(s)</h2>
+              <div 
+                className={`border-2 border-dashed border-purple-300 rounded-lg p-10 text-center ${
+                  isDragging ? "bg-purple-50" : "bg-gray-50"
+                }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                <div className="flex flex-col items-center">
+                  <svg className="w-16 h-16 text-purple-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  <p className="text-gray-600 mb-2">Drag and drop to upload</p>
+                  <p className="text-gray-500">or</p>
+                  <label className="mt-2 cursor-pointer text-purple-600 hover:text-purple-700">
+                    Browse
+                    <input
+                      type="file"
+                      className="hidden"
+                      onChange={handleFileChange}
+                      multiple
+                      accept=".pdf,.doc,.docx"
+                    />
+                  </label>
+                </div>
               </div>
-              {selectedFileNames && <p className="text-gray-600 mt-2">{selectedFileNames}</p>}
-              <div className="flex justify-center mt-6">
+              
+              {files.length > 0 && (
+                <div className="mt-4 text-sm text-gray-600">
+                  {Array.from(files).map((file, index) => (
+                    <div key={index} className="mb-1">
+                      {file.name} ({(file.size / (1024 * 1024)).toFixed(2)} MB)
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-6 space-y-4">
                 <button 
-                  onClick={handleResumeUpload} 
-                  className="bg-black text-white py-4 px-8 rounded-full">
-                  {loading ? 'Uploading...' : 'Upload Resume'}
+                  onClick={handleResumeUpload}
+                  className="w-full bg-black text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors"
+                  disabled={loading}
+                >
+                  {loading ? "Uploading..." : "Upload Resume"}
                 </button>
-              </div>
-              <div className="flex justify-center mt-6">
                 <button 
-                  onClick={handleShortlistRedirect} 
-                  className="bg-black text-white py-4 px-8 rounded-full">
+                  onClick={() => navigate("/shortlist-candidate")}
+                  className="w-full bg-black text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors"
+                >
                   Shortlist Candidates
                 </button>
               </div>
-              {uploadStatus && <p className="text-green-600 mt-2">{uploadStatus}</p>}
+
+              {uploadStatus && (
+                <p className="mt-4 text-sm text-center text-green-600">
+                  {uploadStatus}
+                </p>
+              )}
             </div>
           </div>
         </div>
