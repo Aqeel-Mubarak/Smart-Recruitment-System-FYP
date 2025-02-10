@@ -45,9 +45,9 @@ const Home = () => {
     <div className="min-h-screen flex flex-col bg-gray-100">
       <Navbarapp />
 
-      <div className="flex flex-grow min-h-screen">
-        <Sidebar className="w-64 fixed inset-y-0" />
-
+      <aside className="fixed left-0 top-16 w-[20%] h-screen overflow-y-auto overflow-x-hidden bg-white shadow-lg">
+          <Sidebar />
+        </aside>
         <main className="flex-1 pl-64 p-6 md:p-4">
           <div className="absolute top-0 right-0 p-4">
             <FaUserCircle className="text-[#800080] text-3xl cursor-pointer" />

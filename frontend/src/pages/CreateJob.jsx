@@ -51,7 +51,7 @@ function CreateJob() {
       {/* Main Layout */}
       <div className="flex h-[calc(100vh-4rem)] pt-16">
         {/* Fixed Sidebar (remains static on the left) */}
-        <aside className="fixed left-0 top-16 w-[20%] h-full overflow-y-auto bg-white shadow-lg">
+        <aside className="fixed left-0 top-16 w-[20%] h-screen overflow-y-auto overflow-x-hidden bg-white shadow-lg">
           <Sidebar />
         </aside>
 

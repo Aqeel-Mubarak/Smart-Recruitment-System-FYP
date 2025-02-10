@@ -355,7 +355,7 @@ const ShortlistCandidate = () => {
       {/* Working Window: Only this area scrolls */}
       <div className="flex flex-1 pt-20 overflow-auto">
         {/* Fixed Sidebar */}
-        <aside className="fixed left-0 top-20 w-[20%] h-screen overflow-y-auto overflow-x-hidden bg-white shadow-lg">
+        <aside className="fixed left-0 top-16 w-[20%] h-screen overflow-y-auto overflow-x-hidden bg-white shadow-lg">
           <Sidebar />
         </aside>
 
@@ -537,10 +537,10 @@ const ShortlistCandidate = () => {
           </div>
 
           {/* Schedule Interview Button */}
-          <div>
+          <div class="flex justify-center ">
             <button
               onClick={handleEmail}
-              className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition"
+              className="w-1/5 bg-black  justify-center text-white py-3 rounded-lg hover:bg-gray-800 transition"
             >
               Schedule Interview
             </button>
