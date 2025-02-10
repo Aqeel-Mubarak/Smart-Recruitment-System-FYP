@@ -54,7 +54,7 @@ function CreateJob() {
       </aside>
 
       {/* Main Content Area (offset by sidebar width) */}
-      <div className="ml-[19%] w-[81%] p-8 flex items-center justify-center">
+      <div className="ml-[20%] w-[80%] p-8 flex items-center justify-center">
         <div className="w-full max-w-4xl bg-white shadow-lg rounded-lg p-8">
           <h1 className="text-3xl font-bold mb-8 text-center">Create New Job Posting</h1>
           <form onSubmit={handleCreateJob} className="space-y-6">
