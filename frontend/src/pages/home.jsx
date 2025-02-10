@@ -45,12 +45,12 @@ const Home = () => {
       <Navbarapp />
 
       {/* Sidebar */}
-      <aside className="fixed left-0 top-16 w-[20%] h-screen overflow-y-auto overflow-x-hidden bg-white shadow-lg z-40">
+      <aside className="fixed left-0 top-16 w-[19%] h-screen overflow-y-auto overflow-x-hidden bg-white shadow-lg z-40">
         <Sidebar />
       </aside>
 
       {/* Main Content */}
-      <main className="ml-[20%] mt-16 p-6 md:p-4 relative">
+      <main className="ml-[19%] mt-16 p-6 md:p-4 relative">
         <div className="absolute top-0 right-0 p-4">
           <FaUserCircle className="text-[#800080] text-3xl cursor-pointer" />
         </div>

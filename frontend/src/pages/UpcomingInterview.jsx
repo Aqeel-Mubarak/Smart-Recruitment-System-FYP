@@ -29,7 +29,7 @@ const interviews = [
 const UpcomingInterviews = () => {
   return (
     <div className="flex h-screen bg-white">
-      <aside className="fixed left-0 top-16 w-[20%] h-screen overflow-y-auto overflow-x-hidden bg-white shadow-lg">
+      <aside className="fixed left-0 top-16 w-[19%] h-screen overflow-y-auto overflow-x-hidden bg-white shadow-lg z-40">
         <Sidebar />
       </aside>
 
