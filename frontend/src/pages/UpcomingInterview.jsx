@@ -1,11 +1,11 @@
-import React from "react"; 
-import NavbarApp from "../components/NavbarApp"; 
-import Sidebar from "../Components/Sidebar"; 
+import React from "react";
+import NavbarApp from "../components/NavbarApp";
+import Sidebar from "../Components/Sidebar";
 
 const interviews = [
   {
     jobTitle: "Software Engineer",
-    name: "Khadija Shahzad",
+    name: "Najam ul Hassan",
     email: "name.example@gmail.com",
     date: "12 Sep 2020",
     time: "12:00 P.M"
@@ -28,11 +28,11 @@ const interviews = [
 
 const UpcomingInterviews = () => {
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-white">
       <aside className="fixed left-0 top-16 w-[20%] h-screen overflow-y-auto overflow-x-hidden bg-white shadow-lg">
-          <Sidebar />
-        </aside>
-      
+        <Sidebar />
+      </aside>
+
       {/* Main Content */}
       <div className="w-4/5 ml-[20%]">
         <NavbarApp />
@@ -42,36 +42,72 @@ const UpcomingInterviews = () => {
             {interviews.map((interview, index) => (
               <div
                 key={index}
-                className="bg-white p-6 rounded-lg shadow-md mb-6 transition-all duration-300 hover:shadow-xl border-t-4 border-purple-600"
+                className="bg-purple-200 border border-purple-500 rounded-lg shadow-md p-6 transition-all duration-300 hover:shadow-xl"
               >
-                <div className="space-y-4">
-                  {/* Job Title */}
-                  <div className="flex items-center space-x-4">
-                    <label className="font-medium w-1/4 text-gray-600">Job Title:</label>
-                    <span className="text-gray-700">{interview.jobTitle}</span>
+                {/* Job Title */}
+                <div className="flex items-center mb-4">
+                  <div className="w-1/7 bg-purple-200 p-2  ">
+                    <label className="font-bold text-Black">Job Title:</label>
                   </div>
+                  <div className="flex-grow bg-white p-2 rounded-r-md rounded-r-md border border-purple-500 border-l-0">
+                    <span className="font-semibold text-black text-left">
+                      {interview.jobTitle}
+                    </span>
+                  </div>
+                </div>
 
-                  {/* Name and Email */}
-                  <div className="flex justify-between space-x-6">
-                    <div className="w-1/2">
-                      <label className="font-medium text-gray-600">Name:</label>
-                      <span className="text-gray-700">{interview.name}</span>
-                    </div>
-                    <div className="w-1/2">
-                      <label className="font-medium text-gray-600">Email:</label>
-                      <span className="text-gray-700">{interview.email}</span>
+                {/* Name and Email */}
+                <div className="flex space-x-6 mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center">
+                      <div className="w-1/6 bg-purple-200 p-2 rounded-l-md">
+                        <label className="font-bold text-Black">Name:</label>
+                      </div>
+                      <div className="flex-grow bg-white p-2 rounded-r-md border border-purple-200 border-l-0">
+                        <span className="font-semibold text-black">
+                          {interview.name}
+                        </span>
+                      </div>
                     </div>
                   </div>
-
-                  {/* Date and Time */}
-                  <div className="flex justify-between space-x-6">
-                    <div className="w-1/2">
-                      <label className="font-medium text-gray-600">Date:</label>
-                      <span className="text-gray-700">{interview.date}</span>
+                  <div className="flex-1">
+                    <div className="flex items-center">
+                      <div className="w-1/6 bg-purple-200 p-2 rounded-l-md">
+                        <label className="font-bold text-Black">Email:</label>
+                      </div>
+                      <div className="flex-grow bg-white p-2 rounded-r-md border border-purple-200 border-l-0">
+                        <span className="font-semibold text-black">
+                          {interview.email}
+                        </span>
+                      </div>
                     </div>
-                    <div className="w-1/2">
-                      <label className="font-medium text-gray-600">Time:</label>
-                      <span className="text-gray-700">{interview.time}</span>
+                  </div>
+                </div>
+
+                {/* Date and Time */}
+                <div className="flex space-x-6">
+                  <div className="flex-1">
+                    <div className="flex items-center">
+                      <div className="w-1/6 bg-purple-200 p-2 rounded-l-md">
+                        <label className="font-bold text-Black">Date:</label>
+                      </div>
+                      <div className="flex-grow bg-white p-2 rounded-r-md border border-purple-200 border-l-0">
+                        <span className="font-semibold text-black">
+                          {interview.date}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center">
+                      <div className="w-1/6 bg-purple-200 p-2 rounded-l-md">
+                        <label className="font-bold text-Black">Time:</label>
+                      </div>
+                      <div className="flex-grow bg-white p-2 rounded-r-md border border-purple-200 border-l-0">
+                        <span className="font-semibold text-black">
+                          {interview.time}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
