@@ -49,8 +49,6 @@ class Calendar(BaseModel):
     enddate: str
     endtime: str
     status:str
-    # email:str
-    # hiringmanagerid: int 
     jobid: int
     
     class Config:

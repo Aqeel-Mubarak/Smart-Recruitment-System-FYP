@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import Navbarapp from '../components/Navbarapp';       // Your existing Navbar component
 import Sidebar from '../components/Sidebar';     // Your existing Sidebar component
 import axios from 'axios';
@@ -88,13 +88,19 @@ const ShortlistCandidate = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const navigate = useNavigate();
   const location = useLocation();
-
+  const [searchParams] = useSearchParams();
+  const jobId = searchParams.get("jobId"); 
   // Preselect default job if passed via location.state.
   useEffect(() => {
     if (location.state && location.state.selectedJob) {
       setSelectedOption(location.state.selectedJob);
+    } else if (jobId && jobs.length>0){
+      const job = jobs.find(job=> job.value ==jobId);
+      if (job){
+        setSelectedOption(job);
+      }
     }
-  }, [location.state]);
+  }, [location.state, jobId, jobs]);
 
   // Fetch hiring manager ID.
   useEffect(() => {
@@ -479,7 +485,7 @@ const ShortlistCandidate = () => {
                         </td>
                         <td className="border p-3">{candidate.name}</td>
                         <td className="border p-3">{candidate.score || 'N/A'}%</td>
-                        <td className="border p-3">{candidate.rank || 'N/A'}%</td>
+                        <td className="border p-3">{candidate.rank || 'N/A'}</td>
                         <td className="border p-3 text-sm">
                           <div className="flex flex-col gap-2">
                             {!candidate.promptAnalysis && (
