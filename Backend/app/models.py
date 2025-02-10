@@ -10,6 +10,7 @@ class JobDescription(Base):
     description_text = Column(Text)
     hr_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     deadline = Column(String)
+    status = Column(String, nullable=False, default="open")
     hr = relationship("User", back_populates="jobs")
     candidates = relationship("Candidate", back_populates="job_description")
     calendars = relationship("Calendar", back_populates="job")
