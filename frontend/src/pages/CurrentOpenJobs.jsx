@@ -72,7 +72,6 @@ const CurrentOpenJobs = () => {
   };
 
   const handleFilterOptionClick = async (option) => {
-    console.log(option);
     setJobType(option); // Update jobType state
     setFilterDropdownVisible(false);
   };
@@ -102,7 +101,6 @@ const CurrentOpenJobs = () => {
       }
 
       const data = await response.json();
-      console.log(data);
       fetchJobs();
     } catch (error) {
       console.error('Error closing job:', error);
@@ -124,7 +122,6 @@ const CurrentOpenJobs = () => {
     e.preventDefault();
     setIsModalOpen(false);
     setDropdownVisible(false);
-    console.log('Updated Job Data:', typeof(selectedJob));
     const formData = new FormData();
     formData.append('id', selectedJob.id);
     formData.append('title', selectedJob.title);
@@ -146,7 +143,6 @@ const CurrentOpenJobs = () => {
       }
 
       const data = await response.json();
-      console.log(data);
       fetchJobs();
     } catch (error) {
       console.error('Error editing job:', error);
