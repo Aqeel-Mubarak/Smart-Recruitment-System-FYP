@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Navbarapp from '../components/Navbarapp'; // Adjust the path based on your project structure
+import Navbar from '../components/Navbar'; // Adjust the path based on your project structure
 import { FiUploadCloud } from 'react-icons/fi'; // Import react-icons
 
 const ApplicationForm = () => {
@@ -31,7 +31,7 @@ const ApplicationForm = () => {
 
   return (
     <div className="flex bg-sky-10 flex-col min-h-screen">
-      <Navbarapp /> {/* Navbar component */}
+      <Navbar /> {/* Navbar component */}
 
       <div className="flex justify-between p-12 bg-[#f0f4f8">
         {/* Left Section: Application Form */}

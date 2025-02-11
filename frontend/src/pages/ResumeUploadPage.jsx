@@ -200,12 +200,12 @@ const ResumeUploadPage = () => {
       {/* Main Layout */}
       <div className="flex">
         {/* Fixed Static Sidebar */}
-        <aside className="fixed left-0 top-16 w-[20%] h-screen overflow-y-auto overflow-x-hidden bg-white shadow-lg">
+        <aside className="fixed left-0 top-16 w-[19%] h-screen overflow-y-auto overflow-x-hidden bg-white shadow-lg">
           <Sidebar />
         </aside>
 
         {/* Main Content Area (offset by sidebar width) */}
-        <div className="ml-[20%] flex-1 p-8 mt-16">
+        <div className="ml-[20%] flex-1 p-8 mt-10">
           <div className="max-w-6xl mx-auto grid grid-cols-2 gap-8">
             {/* Job Description Section */}
             <div className="bg-white rounded-lg shadow-sm p-6">
