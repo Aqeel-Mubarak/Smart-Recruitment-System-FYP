@@ -385,7 +385,7 @@ const ShortlistCandidate = () => {
       {/* Working Window: Only this area scrolls */}
       <div className="flex flex-1 pt-20 overflow-auto">
         {/* Fixed Sidebar */}
-        <aside className="fixed left-0 top-20 w-[20%] h-screen overflow-y-auto overflow-x-hidden bg-white shadow-lg">
+        <aside className="fixed left-0 top-16 w-[19%] h-screen overflow-y-auto overflow-x-hidden bg-white shadow-lg">
           <Sidebar />
         </aside>
 
@@ -397,7 +397,7 @@ const ShortlistCandidate = () => {
             <div className="w-full md:w-3/4 space-y-4">
               {/* Job Title Label and Dropdown */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
+                <label className="block text-large font-bold text-gray-700 mb-1">Job Title</label>
                 <Select
                   styles={customSelectStyles}
                   options={jobs}
@@ -410,7 +410,7 @@ const ShortlistCandidate = () => {
               </div>
               {/* Job Description Label and Field */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Job Description</label>
+                <label className="block text-large font-bold text-gray-700 mb-1">Job Description</label>
                 <textarea
                   readOnly
                   value={selectedOption ? selectedOption.description : ''}
@@ -576,10 +576,10 @@ const ShortlistCandidate = () => {
           </div>
 
           {/* Schedule Interview Button */}
-          <div>
+          <div class="flex justify-center ">
             <button
               onClick={handleEmail}
-              className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition"
+              className="w-1/5 bg-black  justify-center text-white py-3 rounded-lg hover:bg-gray-800 transition"
             >
               Schedule Interview
             </button>
