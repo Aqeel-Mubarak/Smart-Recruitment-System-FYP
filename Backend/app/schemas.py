@@ -22,6 +22,7 @@ class CandidateCreate(BaseModel):
 class CandidateOut(CandidateCreate):
     id: int
     score: int
+    resume_url: str
 
     class Config:
         from_attributes = True  
