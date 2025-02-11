@@ -84,13 +84,16 @@ const ShortlistCandidate = () => {
   const [selectedOption, setSelectedOption] = useState(null);
   const [hiringmanagerid, setHiringmanagerid] = useState(null);
   const [checkedCandidates, setCheckedCandidates] = useState(new Set());
+  const [URL, setURL] = useState(null);
+  const [Type, setType] = useState(null);
+  const [downloaded, setDownloaded] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const jobId = searchParams.get("jobId");
-
   // Preselect default job if passed via location.state.
   useEffect(() => {
     if (location.state && location.state.selectedJob) {
@@ -344,6 +347,32 @@ const ShortlistCandidate = () => {
     count,
   }));
 
+  const handleViewResume = async (candidate) => {
+    const token = localStorage.getItem('accessToken');
+    try {
+      const response = await fetch(`${API_BASE_URL}/signed-url?id=${candidate.id}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`, // Assuming you use Bearer token for authentication
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to sign URL');
+      }
+
+      const data = await response.json();
+      console.log(data.url);
+      setURL(data.url);
+      setType(data.type);
+      setShowPopup(true);
+
+    } catch (error) {
+      console.error('Error signing jobs:', error);
+      throw error;
+    }
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       {/* Static Navbar */}
@@ -457,6 +486,7 @@ const ShortlistCandidate = () => {
                     <th className="border p-3 text-left">Job Relevancy Score</th>
                     <th className="border p-3 text-left">Prompt Relevancy Rank</th>
                     <th className="border p-3 text-left">Analysis</th>
+                    <th className="border p-3 text-left">Resume</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -526,6 +556,14 @@ const ShortlistCandidate = () => {
                             </div>
                           )}
                         </td>
+                        <td className="border p-3 text-sm">
+                          <button
+                            className="bg-blue-500 text-white px-2 py-1 text-sm rounded hover:bg-blue-700 transition"
+                            onClick={() => handleViewResume(candidate)}
+                          >
+                            View Resume
+                          </button>
+                        </td>
                       </tr>
                     ))
                   )}
@@ -545,6 +583,68 @@ const ShortlistCandidate = () => {
           </div>
         </main>
       </div>
+      {(showPopup && URL && Type === "pdf") && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-4 rounded-lg shadow-lg w-[80%] h-[80%]">
+            <button className="bg-red-500 text-white px-2 py-1 rounded mb-2" onClick={() => setShowPopup(false)}>Close</button>
+            <iframe src={URL} allow="fullscreen" className="w-full h-full" title="Resume" />
+          </div>
+        </div>
+      )}
+      {showPopup && URL && (Type === "doc/docx") && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[80%] max-w-md text-center">
+            {!downloaded ? (
+              <>
+                <h1 className="text-lg font-semibold mb-4">
+                  Preview of this resume is not available. Click the button below to download the resume.
+                </h1>
+
+                {/* Buttons in a row */}
+                <div className="flex justify-center gap-4 mt-4">
+                  <a
+                    href={URL}
+                    download
+                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                    onClick={() => setDownloaded(true)}
+                  >
+                    Download Resume
+                  </a>
+
+                  <button
+                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                    onClick={() => {
+                      setShowPopup(false);
+                      setDownloaded(false);
+                    }}
+                  >
+                    Close
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h1 className="text-lg font-semibold text-green-600 mb-4">
+                  The resume is downloaded. Check your downloads folder to view it.
+                </h1>
+
+                {/* Show only the Close button */}
+                <button
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                  onClick={() => {
+                    setShowPopup(false);
+                    setDownloaded(false);
+                  }}
+                >
+                  Close
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+
     </div>
   );
 };
