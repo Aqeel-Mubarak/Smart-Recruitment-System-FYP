@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import Navbarapp from '../components/Navbarapp';       // Your existing Navbar component
-import Sidebar from '../components/Sidebar';     // Your existing Sidebar component
+import Navbarapp from '../components/Navbarapp';
+import Sidebar from '../components/Sidebar';
 import axios from 'axios';
 import Select from "react-select";
 
@@ -70,7 +70,7 @@ const barColors = {
 
 // Transformation function for range labels: Replace "Below 40" with ">40" and "Above 80" with "80<"
 const transformRangeLabel = (label) => {
-  if (label === "Below 40") return ">40";
+  if (label === "Below 40") return "<40";
   if (label === "Above 80") return "80<";
   return label;
 };
@@ -89,14 +89,15 @@ const ShortlistCandidate = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const jobId = searchParams.get("jobId"); 
+  const jobId = searchParams.get("jobId");
+
   // Preselect default job if passed via location.state.
   useEffect(() => {
     if (location.state && location.state.selectedJob) {
       setSelectedOption(location.state.selectedJob);
-    } else if (jobId && jobs.length>0){
-      const job = jobs.find(job=> job.value ==jobId);
-      if (job){
+    } else if (jobId && jobs.length > 0) {
+      const job = jobs.find(job => job.value == jobId);
+      if (job) {
         setSelectedOption(job);
       }
     }
@@ -158,9 +159,6 @@ const ShortlistCandidate = () => {
       });
       const shortlistedCandidates = response.data.map((candidate) => ({
         ...candidate,
-        // Assume candidate.score is the Job Description Score,
-        // candidate.rank is always used for the table's Rank column,
-        // and candidate.prompt_score (with underscore) holds the Requirement Score (when filtered).
         rank: candidate.rank || 'N/A',
         prompt_score: candidate.prompt_score,
         promptAnalysis: null,
@@ -336,10 +334,9 @@ const ShortlistCandidate = () => {
   };
 
   // Compute candidate score distribution.
-  // When activeFilter is applied, use candidate.prompt_score; otherwise, use candidate.score.
-  const distribution = computeDistribution(filteredCandidates, activeFilter ? 'prompt_score' : 'score');
+  const distribution = computeDistribution(filteredCandidates, 'score');
   const maxCountValue = Math.max(...Object.values(distribution), 1);
-  const graphTitle = activeFilter ? "Job Requirement Score" : "JOB Discription Score";
+  const graphTitle = "Job Relevancy Score";
 
   // Transform distribution for the Recharts vertical bar chart.
   const chartData = Object.entries(distribution).map(([range, count]) => ({
@@ -401,7 +398,7 @@ const ShortlistCandidate = () => {
                   onClick={handlePromptSearch}
                   className="bg-black text-white px-4 py-2 rounded"
                 >
-                  Filter Candidates
+                  Analyze Candidates
                 </button>
               </div>
             </div>
@@ -413,11 +410,11 @@ const ShortlistCandidate = () => {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="range" 
-                      label={{ value: "Score Range", position: "insideBottom", offset: -3, fill: "#000", fontWeight: "bold", fontSize: 14 }} 
+                    <XAxis
+                      dataKey="range"
+                      label={{ value: "Score Range", position: "insideBottom", offset: -3, fill: "#000", fontWeight: "bold", fontSize: 14 }}
                     />
-                    <YAxis 
+                    <YAxis
                       allowDecimals={false}
                       label={{ value: "Candidates", angle: -90, position: "insideLeft", fill: "#000", fontWeight: "bold", fontSize: 14 }}
                     />
@@ -456,9 +453,9 @@ const ShortlistCandidate = () => {
                 <thead>
                   <tr className="bg-purple-800 text-white">
                     <th className="border p-3 w-12"></th>
-                    <th className="border p-3 text-left">Name</th>
-                    <th className="border p-3 text-left">Job Description Score</th>
-                    <th className="border p-3 text-left">Rank</th>
+                    <th className="border p-3 text-left">Candidate Name</th>
+                    <th className="border p-3 text-left">Job Relevancy Score</th>
+                    <th className="border p-3 text-left">Prompt Relevancy Rank</th>
                     <th className="border p-3 text-left">Analysis</th>
                   </tr>
                 </thead>
@@ -483,14 +480,15 @@ const ShortlistCandidate = () => {
                             onChange={() => handleCheckboxChange(candidate.id)}
                           />
                         </td>
-                        <td className="border p-3">{candidate.name}</td>
-                        <td className="border p-3">{candidate.score || 'N/A'}%</td>
-                        <td className="border p-3">{candidate.rank || 'N/A'}</td>
+                        <td className="border justify-center p-3">{candidate.name}</td>
+                        <td className="border text-center p-3">{candidate.score || 'N/A'}%</td>
+                        <td className="border text-center p-3">{candidate.rank || 'N/A'}</td>
                         <td className="border p-3 text-sm">
                           <div className="flex flex-col gap-2">
                             {!candidate.promptAnalysis && (
                               <button
                                 className="bg-blue-500 text-white px-2 py-1 text-sm rounded hover:bg-blue-700 transition"
+        
                                 onClick={() =>
                                   handleViewAnalysis(candidate.id, candidate.resume_text, "prompt")
                                 }
@@ -537,10 +535,10 @@ const ShortlistCandidate = () => {
           </div>
 
           {/* Schedule Interview Button */}
-          <div class="flex justify-center ">
+          <div className="flex justify-center mt-4">
             <button
               onClick={handleEmail}
-              className="w-1/5 bg-black  justify-center text-white py-3 rounded-lg hover:bg-gray-800 transition"
+              className="w-1/5 bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition"
             >
               Schedule Interview
             </button>
@@ -552,3 +550,4 @@ const ShortlistCandidate = () => {
 };
 
 export default ShortlistCandidate;
+
