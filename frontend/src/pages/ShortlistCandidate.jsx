@@ -90,6 +90,7 @@ const ShortlistCandidate = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const jobId = searchParams.get("jobId"); 
+  console.log(jobId)
   // Preselect default job if passed via location.state.
   useEffect(() => {
     if (location.state && location.state.selectedJob) {
@@ -289,6 +290,7 @@ const ShortlistCandidate = () => {
       return;
     }
     const jobid = selectedOption.value;
+    console.log(jobid)
     try {
       const token = localStorage.getItem('accessToken');
       const encryptResponse = await axios.post(`${API_BASE_URL}/encryptid`, {
@@ -296,7 +298,9 @@ const ShortlistCandidate = () => {
       });
       const encodedhiringmanagerid = encryptResponse.data.encodedlst[0];
       const encodedjobid = encryptResponse.data.encodedlst[1];
-      const linkkk = `http://207.180.240.67/Calendar`;
+      const isManagement = false
+      // const linkkk = `http://207.180.240.67/Calendar/${isManagement}/${jobid}`;
+      const linkkk = `http://localhost:5173/Calendar/${isManagement}/${jobid}`;
       const selectedCandidates = candidates
         .filter(candidate => checkedCandidates.has(candidate.id))
         .map(candidate => ({

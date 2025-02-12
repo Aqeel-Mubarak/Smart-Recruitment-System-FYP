@@ -175,6 +175,15 @@ const CurrentOpenJobs = () => {
     navigate('/create-job');
   };
 
+  const handleSlots = (e) => {
+      // navigate('/Calendar',{jobid:{e},hiringmanagerid:{hiringmanagerid}})
+      console.log({ jobid: e, hiringmanagerid: hiringmanagerid })
+      const isManagement = true;
+      navigate(`/Calendar/${isManagement}/${e}`, { state: { jobid: e, hiringmanagerid: hiringmanagerid } });
+
+      // navigate("/Calendar")
+  }
+
   return (
     <div className="h-screen flex flex-col">
       {/* Navbar */}
@@ -256,7 +265,7 @@ const CurrentOpenJobs = () => {
                       <td className="p-3 border border-purple-200 text-left">{job.vacancy}</td>
                       <td className="p-3 border border-purple-200 text-left">{job.applications}</td>
                       <td className="p-3 border border-purple-200 text-left">{job.status}</td>
-                      <td className="p-3 border border-purple-200 text-left">Add Slots</td>
+                      <td> <button className="p-3 border border-purple-600 text-left" onClick={() => handleSlots(job.id)}> Add Slots </button></td>
                     </tr>
                   ))}
                 </tbody>

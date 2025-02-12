@@ -1,10 +1,11 @@
 from fastapi import Depends,APIRouter,Request
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session,load_only
 from app.database import get_db
 from app.models import Calendar as Calendar_table
 from sqlalchemy import and_
 from app.schemas import Calendar as  Calendar_schema
 from app.schemas import Calendar2 as  Calendar_schema2
+from app.schemas import Slot1,Slot2
 from typing import Optional
 from cryptography.fernet import Fernet
 
@@ -117,11 +118,11 @@ def send_email(request: EmailRequest):
 
     # Initialize results
     results = {"success": [], "failed": []}
-    linkkk=request.linkkk,
-    encodedhiringmanagerid=request.encodedhiringmanagerid,
-    encodedjobid=request.encodedjobid
-    print(linkkk,encodedhiringmanagerid,encodedjobid)
-    
+    linkkk=request.linkkk
+    # encodedhiringmanagerid=request.encodedhiringmanagerid,
+    # encodedjobid=request.encodedjobid
+    # print(linkkk,encodedhiringmanagerid,encodedjobid)
+    print(request.body)
     print(linkkk)
     for recipient in request.to_email:
         # Email content
@@ -130,7 +131,8 @@ def send_email(request: EmailRequest):
         message["From"] = sender_email
         message["To"] = recipient.email
         message["Subject"] = request.subject
-        linkkk = f"http://207.180.240.67/Calendar/{encodedhiringmanagerid[0]}/{encodedjobid}/{recipient.id}"
+        linkkk=f'{linkkk}/{recipient.email}'
+        # linkkk = f"http://207.180.240.67/Calendar/{encodedhiringmanagerid[0]}/{encodedjobid}/{recipient.id}"
         message.attach(MIMEText(request.body+linkkk, "plain"))
 
         try:
@@ -258,3 +260,85 @@ def get_id(candidate_id:int, db: Session = Depends(get_db)):
     if calendar_entry:
         raise HTTPException(status_code=404, detail="Calendar entry not found")
     return 
+
+# # FastAPI Route to Get Time Slots by jobid
+# @router.get("/getSlots")
+# async def get_slots(jobid: int, db: Session = Depends(get_db)):
+#     # Query the database to get slots by jobid
+#     slots = db.query(Calendar_table).filter(Calendar_table.jobid == jobid).all()
+#     return slots
+
+@router.get("/getSlots")
+async def get_slots(jobid: int, db: Session = Depends(get_db)):
+    # Query the database to get slots by jobid, loading only the required columns
+    slots = db.query(Calendar_table).filter(Calendar_table.jobid == jobid).options(load_only(
+        Calendar_table.id,
+        Calendar_table.starttime,
+        Calendar_table.endtime,
+        Calendar_table.isselected,
+        Calendar_table.jobid
+    )).all()
+    # print(slots)
+    # Map the results directly into a list of dict-like objects that can be serialized by FastAPI
+    return slots
+
+
+# Create a new calendar slot
+@router.post("/addSlot")
+async def add_slot(slot: Slot1, db: Session = Depends(get_db)):
+    # print(slot)
+    db_slot = Calendar_table(
+        id=slot.id,
+        starttime=slot.startTime,
+        endtime=slot.endTime,
+        isselected=slot.isSelected,
+        jobid=slot.jobId,
+        selectedby=None
+    )
+    db.add(db_slot)
+    db.commit()
+    db.refresh(db_slot)
+    return db_slot
+
+# Remove a calendar slot by ID
+@router.delete("/removeSlot/{slotId}")
+async def remove_slot(slotId: str, db: Session = Depends(get_db)):
+    # print(slotId)
+    db_slot = db.query(Calendar_table).filter(Calendar_table.id == slotId).first()
+    if db_slot is None:
+        raise HTTPException(status_code=404, detail="Slot not found")
+    db.delete(db_slot)
+    db.commit()
+    return {"message": "Slot removed successfully"}
+
+# Select or unselect a calendar slot
+@router.post("/selectSlot")
+async def select_slot(request:Request, db: Session = Depends(get_db)):
+    print("herhikjr")
+    request_data = await request.json()
+    # print(request_data)
+    id = request_data.get("id")
+    user_id = request_data.get("email")
+    print(user_id)
+    db_slot = db.query(Calendar_table).filter(Calendar_table.id == id).first()
+    if db_slot is None:
+        raise HTTPException(status_code=404, detail="Slot not found")
+    if db_slot.selectedby!=None and db_slot.selectedby!=user_id:
+        raise HTTPException(status_code=404, detail="Slot already booked")
+    
+    # Toggle selection
+    if db_slot.selectedby == user_id:
+        db_slot.isselected = False
+        db_slot.selectedby = None
+    else:
+        if db_slot:
+            db_slot2 = db.query(Calendar_table).filter(Calendar_table.selectedby == user_id,Calendar_table.jobid == db_slot.jobid).first()
+            if db_slot2:
+                raise HTTPException(status_code=404, detail="User already booked")
+        db_slot.isselected = True
+        db_slot.selectedby = user_id
+    
+    db.commit()
+    db.refresh(db_slot)
+    return db_slot
+

@@ -72,3 +72,20 @@ class CalendarOut(Calendar):
 
     class Config:
         from_attributes = True
+        
+        
+class Slot1(BaseModel):
+    id:str 
+    startTime: str
+    endTime: str
+    isSelected: bool
+    jobId: int
+    
+class Slot2(BaseModel):
+    id:str 
+    starttime: str
+    endtime: str
+    isselected: bool
+    jobid: int
+    selectedby: int
+    
