@@ -185,19 +185,20 @@ const CurrentOpenJobs = () => {
   }
 
   return (
-    <div className="h-screen flex flex-col">
-      {/* Navbar */}
+    <div className="min-h-screen flex flex-col bg-gray-100">
+      {/* Static Navbar */}
       <Navbarapp />
 
-      {/* Main Content Section */}
-      <div className="flex flex-1">
-        {/* Sidebar with same top margin */}
-        <div className="mt-14">
+      {/* Working Window: Only this area scrolls */}
+      <div className="flex flex-1 pt-20 overflow-auto">
+        {/* Fixed Sidebar */}
+        <aside className="fixed left-0 top-16 w-[19%] h-screen overflow-y-auto overflow-x-hidden bg-white shadow-lg">
           <Sidebar />
-        </div>
+        </aside>
+      
 
         {/* Main Content Area */}
-        <div className="flex-1 bg-gray-100 p-8 mt-12">
+        <div className="ml-[20%] w-[80%] p-6 space-y-6">
           {/* Table Section for Open Jobs */}
           <div className="bg-[#F0CBf0] rounded-lg shadow-lg p-6 h-full"> {/* Updated background color */}
             <div className="flex justify-between items-center mb-4">

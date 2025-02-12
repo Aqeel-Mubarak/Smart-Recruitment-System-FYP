@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import Navbarapp from '../components/Navbarapp';       // Your existing Navbar component
-import Sidebar from '../components/Sidebar';     // Your existing Sidebar component
+import Navbarapp from '../components/Navbarapp';
+import Sidebar from '../components/Sidebar';
 import axios from 'axios';
 import Select from "react-select";
 
@@ -70,7 +70,7 @@ const barColors = {
 
 // Transformation function for range labels: Replace "Below 40" with ">40" and "Above 80" with "80<"
 const transformRangeLabel = (label) => {
-  if (label === "Below 40") return ">40";
+  if (label === "Below 40") return "<40";
   if (label === "Above 80") return "80<";
   return label;
 };
@@ -84,20 +84,25 @@ const ShortlistCandidate = () => {
   const [selectedOption, setSelectedOption] = useState(null);
   const [hiringmanagerid, setHiringmanagerid] = useState(null);
   const [checkedCandidates, setCheckedCandidates] = useState(new Set());
+  const [URL, setURL] = useState(null);
+  const [Type, setType] = useState(null);
+  const [downloaded, setDownloaded] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const jobId = searchParams.get("jobId"); 
-  console.log(jobId)
+  console.log(jobId);
+  
   // Preselect default job if passed via location.state.
   useEffect(() => {
     if (location.state && location.state.selectedJob) {
       setSelectedOption(location.state.selectedJob);
-    } else if (jobId && jobs.length>0){
-      const job = jobs.find(job=> job.value ==jobId);
-      if (job){
+    } else if (jobId && jobs.length > 0) {
+      const job = jobs.find(job => job.value == jobId);
+      if (job) {
         setSelectedOption(job);
       }
     }
@@ -159,9 +164,6 @@ const ShortlistCandidate = () => {
       });
       const shortlistedCandidates = response.data.map((candidate) => ({
         ...candidate,
-        // Assume candidate.score is the Job Description Score,
-        // candidate.rank is always used for the table's Rank column,
-        // and candidate.prompt_score (with underscore) holds the Requirement Score (when filtered).
         rank: candidate.rank || 'N/A',
         prompt_score: candidate.prompt_score,
         promptAnalysis: null,
@@ -340,16 +342,41 @@ const ShortlistCandidate = () => {
   };
 
   // Compute candidate score distribution.
-  // When activeFilter is applied, use candidate.prompt_score; otherwise, use candidate.score.
-  const distribution = computeDistribution(filteredCandidates, activeFilter ? 'prompt_score' : 'score');
+  const distribution = computeDistribution(filteredCandidates, 'score');
   const maxCountValue = Math.max(...Object.values(distribution), 1);
-  const graphTitle = activeFilter ? "Job Requirement Score" : "JOB Discription Score";
+  const graphTitle = "Job Relevancy Score";
 
   // Transform distribution for the Recharts vertical bar chart.
   const chartData = Object.entries(distribution).map(([range, count]) => ({
     range: transformRangeLabel(range),
     count,
   }));
+
+  const handleViewResume = async (candidate) => {
+    const token = localStorage.getItem('accessToken');
+    try {
+      const response = await fetch(`${API_BASE_URL}/signed-url?id=${candidate.id}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`, // Assuming you use Bearer token for authentication
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to sign URL');
+      }
+
+      const data = await response.json();
+      console.log(data.url);
+      setURL(data.url);
+      setType(data.type);
+      setShowPopup(true);
+
+    } catch (error) {
+      console.error('Error signing jobs:', error);
+      throw error;
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
@@ -359,7 +386,7 @@ const ShortlistCandidate = () => {
       {/* Working Window: Only this area scrolls */}
       <div className="flex flex-1 pt-20 overflow-auto">
         {/* Fixed Sidebar */}
-        <aside className="fixed left-0 top-20 w-[20%] h-screen overflow-y-auto overflow-x-hidden bg-white shadow-lg">
+        <aside className="fixed left-0 top-16 w-[19%] h-screen overflow-y-auto overflow-x-hidden bg-white shadow-lg">
           <Sidebar />
         </aside>
 
@@ -371,7 +398,7 @@ const ShortlistCandidate = () => {
             <div className="w-full md:w-3/4 space-y-4">
               {/* Job Title Label and Dropdown */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
+                <label className="block text-large font-bold text-gray-700 mb-1">Job Title</label>
                 <Select
                   styles={customSelectStyles}
                   options={jobs}
@@ -384,7 +411,7 @@ const ShortlistCandidate = () => {
               </div>
               {/* Job Description Label and Field */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Job Description</label>
+                <label className="block text-large font-bold text-gray-700 mb-1">Job Description</label>
                 <textarea
                   readOnly
                   value={selectedOption ? selectedOption.description : ''}
@@ -405,7 +432,7 @@ const ShortlistCandidate = () => {
                   onClick={handlePromptSearch}
                   className="bg-black text-white px-4 py-2 rounded"
                 >
-                  Filter Candidates
+                  Analyze Candidates
                 </button>
               </div>
             </div>
@@ -417,11 +444,11 @@ const ShortlistCandidate = () => {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="range" 
-                      label={{ value: "Score Range", position: "insideBottom", offset: -3, fill: "#000", fontWeight: "bold", fontSize: 14 }} 
+                    <XAxis
+                      dataKey="range"
+                      label={{ value: "Score Range", position: "insideBottom", offset: -3, fill: "#000", fontWeight: "bold", fontSize: 14 }}
                     />
-                    <YAxis 
+                    <YAxis
                       allowDecimals={false}
                       label={{ value: "Candidates", angle: -90, position: "insideLeft", fill: "#000", fontWeight: "bold", fontSize: 14 }}
                     />
@@ -460,10 +487,11 @@ const ShortlistCandidate = () => {
                 <thead>
                   <tr className="bg-purple-800 text-white">
                     <th className="border p-3 w-12"></th>
-                    <th className="border p-3 text-left">Name</th>
-                    <th className="border p-3 text-left">Job Description Score</th>
-                    <th className="border p-3 text-left">Rank</th>
+                    <th className="border p-3 text-left">Candidate Name</th>
+                    <th className="border p-3 text-left">Job Relevancy Score</th>
+                    <th className="border p-3 text-left">Prompt Relevancy Rank</th>
                     <th className="border p-3 text-left">Analysis</th>
+                    <th className="border p-3 text-left">Resume</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -487,14 +515,15 @@ const ShortlistCandidate = () => {
                             onChange={() => handleCheckboxChange(candidate.id)}
                           />
                         </td>
-                        <td className="border p-3">{candidate.name}</td>
-                        <td className="border p-3">{candidate.score || 'N/A'}%</td>
-                        <td className="border p-3">{candidate.rank || 'N/A'}</td>
+                        <td className="border justify-center p-3">{candidate.name}</td>
+                        <td className="border text-center p-3">{candidate.score || 'N/A'}%</td>
+                        <td className="border text-center p-3">{candidate.rank || 'N/A'}</td>
                         <td className="border p-3 text-sm">
                           <div className="flex flex-col gap-2">
                             {!candidate.promptAnalysis && (
                               <button
                                 className="bg-blue-500 text-white px-2 py-1 text-sm rounded hover:bg-blue-700 transition"
+        
                                 onClick={() =>
                                   handleViewAnalysis(candidate.id, candidate.resume_text, "prompt")
                                 }
@@ -532,6 +561,14 @@ const ShortlistCandidate = () => {
                             </div>
                           )}
                         </td>
+                        <td className="border p-3 text-sm">
+                          <button
+                            className="bg-blue-500 text-white px-2 py-1 text-sm rounded hover:bg-blue-700 transition"
+                            onClick={() => handleViewResume(candidate)}
+                          >
+                            View Resume
+                          </button>
+                        </td>
                       </tr>
                     ))
                   )}
@@ -541,18 +578,81 @@ const ShortlistCandidate = () => {
           </div>
 
           {/* Schedule Interview Button */}
-          <div>
+          <div className="flex justify-center mt-4">
             <button
               onClick={handleEmail}
-              className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition"
+              className="w-1/5 bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition"
             >
               Schedule Interview
             </button>
           </div>
         </main>
       </div>
+      {(showPopup && URL && Type === "pdf") && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-4 rounded-lg shadow-lg w-[80%] h-[80%]">
+            <button className="bg-red-500 text-white px-2 py-1 rounded mb-2" onClick={() => setShowPopup(false)}>Close</button>
+            <iframe src={URL} allow="fullscreen" className="w-full h-full" title="Resume" />
+          </div>
+        </div>
+      )}
+      {showPopup && URL && (Type === "doc/docx") && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[80%] max-w-md text-center">
+            {!downloaded ? (
+              <>
+                <h1 className="text-lg font-semibold mb-4">
+                  Preview of this resume is not available. Click the button below to download the resume.
+                </h1>
+
+                {/* Buttons in a row */}
+                <div className="flex justify-center gap-4 mt-4">
+                  <a
+                    href={URL}
+                    download
+                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                    onClick={() => setDownloaded(true)}
+                  >
+                    Download Resume
+                  </a>
+
+                  <button
+                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                    onClick={() => {
+                      setShowPopup(false);
+                      setDownloaded(false);
+                    }}
+                  >
+                    Close
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h1 className="text-lg font-semibold text-green-600 mb-4">
+                  The resume is downloaded. Check your downloads folder to view it.
+                </h1>
+
+                {/* Show only the Close button */}
+                <button
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                  onClick={() => {
+                    setShowPopup(false);
+                    setDownloaded(false);
+                  }}
+                >
+                  Close
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+
     </div>
   );
 };
 
 export default ShortlistCandidate;
+
