@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { useCalendarStore } from '../store';
+import { useNavigate } from 'react-router-dom';
+
 
 function TimeSlots() {
   const {
@@ -15,7 +17,7 @@ function TimeSlots() {
     fetchTimeSlots,
     userEmail,
   } = useCalendarStore();
-
+  const navigate = useNavigate();
   const [isDragging, setIsDragging] = useState(false);
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [filteredSlots, setFilteredSlots] = useState([]);
@@ -47,6 +49,13 @@ function TimeSlots() {
     };
     fetchAndUpdateSlots();
   }, [selectedJob, fetchTimeSlots]);
+
+      const handleReturn = () => {
+        if (isManagement){
+          navigate("/open-jobs")
+        }
+    }
+
 
   const generateTimeSlots = () => {
     const slots = [];
@@ -113,11 +122,17 @@ function TimeSlots() {
 
   return (
     <div className="flex-1 p-4">
-      <div className="flex items-center space-x-2 mb-4">
-        <div className="w-6 h-6 rounded bg-green-500"></div>
+      <div className="flex items-center space-x-2 justify-between mb-4">
+        <div className='flex flex-row '>
+        <div>
+        <div className="w-6 h-6 rounded bg-green-500 mx-4"></div>
         <span className="text-sm">Available</span>
+        </div><div>
         <div className="w-6 h-6 rounded bg-red-500 ml-4"></div>
-        <span className="text-sm">Booked</span>
+        <span className="text-sm mx-4">Booked</span>
+        </div></div>
+      {isManagement && <button className="mx-96 my-4 px-6 py-2 rounded-lg bg-blue-500 text-white w-48 ml-auto"  onClick={handleReturn}>Finalize SLots</button>}
+
       </div>
 
       <div className="flex items-center mb-6">
@@ -168,6 +183,7 @@ function TimeSlots() {
           );
         })}
       </div>
+
     </div>
   );
 }
