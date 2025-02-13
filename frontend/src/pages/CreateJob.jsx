@@ -31,9 +31,10 @@ function CreateJob() {
     formData.append("title", jobTitle);
     formData.append("description", jobDescription);
     formData.append("deadline", deadline);
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
     try {
-      await axios.post("http://127.0.0.1:8000/create/add_job_description", formData, {
+      await axios.post(`${API_BASE_URL}/create/add_job_description`, formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setStatus("Job created successfully!");
