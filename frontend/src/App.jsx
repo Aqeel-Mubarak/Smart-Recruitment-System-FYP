@@ -13,7 +13,7 @@ import CurrentOpenJobs from './pages/CurrentOpenJobs';
 import ContactPage from './pages/ContactPage';
 import CandidatesList from './pages/CandidatesList';
 import ProtectedRoute from './components/ProtectedRoute';
-import Verification from './pages/verification';
+import Verification from './pages/Verification';
 import CalendarPage from './pages/CalendarPage';
 import UpcomingInterviews from './pages/UpcomingInterview';
 
