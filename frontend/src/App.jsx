@@ -15,6 +15,7 @@ import CandidatesList from './pages/CandidatesList';
 import MyCalendar from './pages/MyCalendar';
 import ProtectedRoute from './components/ProtectedRoute';
 import CalendarPage from './pages/CalendarPage';
+import UpcomingInterviews from './pages/UpcomingInterview';
 
 function App() {
   console.log("API URL in Build:", import.meta.env.VITE_API_BASE_URL);
@@ -37,6 +38,7 @@ function App() {
           <Route path='/open-jobs' element={<CurrentOpenJobs/>} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/candidates" element={<CandidatesList />} />
+          <Route path="/upcoming-interviews" element={< UpcomingInterviews/>} />
         </Route>
       </Routes>
     </Router>
