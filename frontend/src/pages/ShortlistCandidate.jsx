@@ -301,8 +301,8 @@ const ShortlistCandidate = () => {
       const encodedhiringmanagerid = encryptResponse.data.encodedlst[0];
       const encodedjobid = encryptResponse.data.encodedlst[1];
       const isManagement = false
-      // const linkkk = `http://207.180.240.67/Calendar/${isManagement}/${jobid}`;
-      const linkkk = `http://localhost:5173/Calendar/${isManagement}/${jobid}`;
+      const linkkk = `http://207.180.240.67/Calendar/${isManagement}/${jobid}`;
+      // const linkkk = `http://localhost:5173/Calendar/${isManagement}/${jobid}`;
       const selectedCandidates = candidates
         .filter(candidate => checkedCandidates.has(candidate.id))
         .map(candidate => ({
