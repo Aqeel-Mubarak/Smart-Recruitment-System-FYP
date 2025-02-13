@@ -1,6 +1,7 @@
 import React from "react";
 import NavbarApp from "../components/Navbarapp";
-import Sidebar from "../Components/Sidebar";
+import Sidebar from "../components/Sidebar";
+
 
 const interviews = [
   {
