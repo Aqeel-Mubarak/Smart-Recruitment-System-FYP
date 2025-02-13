@@ -1,5 +1,5 @@
 import React from "react";
-import NavbarApp from "../components/NavbarApp";
+import NavbarApp from "../components/Navbarapp";
 import Sidebar from "../Components/Sidebar";
 
 const interviews = [

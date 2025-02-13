@@ -15,7 +15,7 @@ import CandidatesList from './pages/CandidatesList';
 import ProtectedRoute from './components/ProtectedRoute';
 import Verification from './pages/Verification';
 import CalendarPage from './pages/CalendarPage';
-import UpcomingInterviews from './pages/UpcomingInterview';
+import UpcomingInterviews from './pages/UpcomingInterviews';
 
 function App() {
   return (
