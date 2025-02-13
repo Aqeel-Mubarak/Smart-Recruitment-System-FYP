@@ -28,6 +28,7 @@ class Candidate(Base):
     job_description_id = Column(Integer, ForeignKey("job_descriptions.id"))
 
     job_description = relationship("JobDescription", back_populates="candidates")
+    # calendars= relationship("Calendar", back_populates="candidates")
 
 
 class User(Base):
@@ -49,26 +50,27 @@ class User(Base):
     jobs = relationship("JobDescription", back_populates="hr")
     
     
-    
-    
+#Define the Calendar table (model)
 class Calendar(Base):
     __tablename__ = "calendar"
-
-    id = Column(Integer, primary_key=True, index=True)
-    jobtitle = Column(String, index=True)
-    startdate = Column(String)
+    
+    id = Column(String, primary_key=True, index=True)
     starttime = Column(String)
-    enddate = Column(String)
     endtime = Column(String)
-    status = Column(String)
-    # email = Column(String, index=True,unique=True, nullable=True)
+    isselected = Column(Boolean)
     jobid = Column(Integer, ForeignKey("job_descriptions.id"))
-    candidate_id=Column(Integer)
-
+    selectedby = Column(String, nullable=True)
+    
+    # Relationships (optional, useful for fetching related data)
     job = relationship("JobDescription", back_populates="calendars")
-    
-    def __repr__(self):
-        return (f"<Calendar(title='{self.jobtitle}', startdate='{self.startdate}', "
-                f"starttime='{self.starttime}', enddate='{self.enddate}', endtime='{self.endtime},status='{self.status}')>")
+    # candidates = relationship("Candidate", back_populates="calendars")
 
-    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "starttime": self.starttime,
+            "endtime": self.endtime,
+            "isselected": self.isselected,
+            "jobid": self.jobid,
+            # Add other fields as needed
+        }
