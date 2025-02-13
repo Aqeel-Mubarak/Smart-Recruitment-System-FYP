@@ -12,22 +12,20 @@ import ResumeUploadPage from './pages/ResumeUploadPage';
 import CurrentOpenJobs from './pages/CurrentOpenJobs';
 import ContactPage from './pages/ContactPage';
 import CandidatesList from './pages/CandidatesList';
-import MyCalendar from './pages/MyCalendar';
 import ProtectedRoute from './components/ProtectedRoute';
+import Verification from './pages/verification';
 import CalendarPage from './pages/CalendarPage';
 import UpcomingInterviews from './pages/UpcomingInterview';
 
 function App() {
-  console.log("API URL in Build:", import.meta.env.VITE_API_BASE_URL);
   return (
     <Router>
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/resetpassword" element={<ForgetPassword />} />
-        {/* <Route path="/Calendar/:hiringmanagerid1/:jobid1/:candidateid1?" element={<MyCalendar />} /> */}
-        {/* <Route path="/Calendar/:isManagement1?" element={<CalendarPage />} /> */}
         <Route path="/Calendar/:isManagement1/:jobid/:useremail?" element={<CalendarPage />} />
+        <Route path="/verify/:token" element={<Verification />}/>
         <Route element={<ProtectedRoute />}>
           <Route path="/home" element={<Home />} />
           <Route path="/application" element={<ApplicationForm />} />

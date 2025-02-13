@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { format } from 'date-fns';
 
 export const useCalendarStore = create((set) => ({
   selectedDate: new Date(),
@@ -20,11 +19,12 @@ export const useCalendarStore = create((set) => ({
   
 
 fetchTimeSlots: async (jobid) => {
-    const API_URL = 'http://localhost:8000';
+    // const API_URL = 'http://localhost:8000';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     
     try {
       // Fetch the slots for the specified jobid
-      const response = await fetch(`${API_URL}/getSlots?jobid=${jobid}`);
+      const response = await fetch(`${API_BASE_URL}/getSlots?jobid=${jobid}`);
       if (response.ok) {
         const data = await response.json();
         
@@ -71,7 +71,8 @@ fetchTimeSlots: async (jobid) => {
 
 
 addTimeSlot: (date, slot) => set(async (state) => {
-    const API_URL = 'http://localhost:8000';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+    // const API_URL = 'http://localhost:8000';
     // First update the state synchronously
     const newTimeSlots = {
       ...state.timeSlots,
@@ -85,7 +86,7 @@ addTimeSlot: (date, slot) => set(async (state) => {
     set({ timeSlots: newTimeSlots });
     console.log(newTimeSlots)
     try {
-       fetch(`${API_URL}/addSlot`, {
+       fetch(`${API_BASE_URL}/addSlot`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(slot),
@@ -96,7 +97,8 @@ addTimeSlot: (date, slot) => set(async (state) => {
   }),
   
 removeTimeSlot: (date, slotId) => set(async (state) => {
-    const API_URL = 'http://localhost:8000';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+    // const API_URL = 'http://localhost:8000';
   
     // First update the state synchronously, filter out the slot locally
     const newTimeSlots = {
@@ -112,7 +114,7 @@ removeTimeSlot: (date, slotId) => set(async (state) => {
   
     // Now, make the API call to remove the slot from the backend
     try {
-      await fetch(`${API_URL}/removeSlot/${slotId}`, {
+      await fetch(`${API_BASE_URL}/removeSlot/${slotId}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         // body: JSON.stringify({ id: slotId }),  // Send the slot ID for removal
@@ -155,8 +157,9 @@ removeTimeSlot: (date, slotId) => set(async (state) => {
   
     // Call the API to update the slot selection in the database
     try {
-      const API_URL = 'http://localhost:8000'; // Your FastAPI URL
-      const response = await fetch(`${API_URL}/selectSlot`, {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+      // const API_URL = 'http://localhost:8000'; // Your FastAPI URL
+      const response = await fetch(`${API_BASE_URL}/selectSlot`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
