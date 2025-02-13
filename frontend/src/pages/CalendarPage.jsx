@@ -1,14 +1,19 @@
 import { Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import React from 'react';
 import Calendar from '../components/Calendar';
 import TimeSlots from '../components/TimeSlots';
 import { useCalendarStore } from '../store';
 import { useLocation,useParams } from 'react-router-dom';
 import axios from 'axios';
+import { IoIosArrowBack } from "react-icons/io";
+
 
 function CalendarPage(props) {
     const location = useLocation();
+    const navigate = useNavigate();
+    
     // const { jobid, hiringmanagerid } = location.state || {};
     const { isManagement1, jobid, useremail } = useParams();
     // const [selectedJob,setSelectedJob]=useState()
@@ -68,12 +73,19 @@ function CalendarPage(props) {
       }, []);
     console.log(isManagement)
 
+    const handleReturn = () => {
+        if (isManagement){
+          navigate("/open-jobs")
+        }
+    }
+
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center space-x-2">
+               <buton className='px-6 py-2 rounded-lg bg-blue-500 text-white w-16' onClick={handleReturn}><IoIosArrowBack/></buton>
               <CalendarIcon className="w-8 h-8 text-blue-500" />
               <h1 className="text-2xl font-bold">Meeting Scheduler</h1>
             </div>
