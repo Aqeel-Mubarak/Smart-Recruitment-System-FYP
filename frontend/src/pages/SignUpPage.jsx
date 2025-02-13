@@ -33,9 +33,11 @@ const SignupPage = () => {
 
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [showPopup, setShowPopup] = useState(false);
+
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-   // Handle form submission
-   const handleSubmit = async (e) => {
+  // Handle form submission
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log(formData);
     try {
@@ -46,9 +48,9 @@ const SignupPage = () => {
       });
 
       setSuccessMessage("Signup successful!");
-      setErrorMessage(""); // Clear any previous error
+      setErrorMessage("");
       console.log("Response:", response.data);
-      navigate('/');
+      setShowPopup(true);
     } catch (error) {
       if (error.response && error.response.status === 409) {
         setErrorMessage("Email is already registered.");
@@ -66,10 +68,10 @@ const SignupPage = () => {
 
   return (
     <div className="h-screen flex flex-col overflow-y-auto">
-      <Navbar/>
+      <Navbar />
 
       {/* Main Content */}
-      <div className="flex flex-1  relative items-start justify-start">
+      <div className={`h-screen flex flex-col overflow-y-auto ${showPopup ? 'blur-sm' : ''}`}>
         {/* Full-Width Background Image */}
         <div
           className="absolute inset-0 bg-cover bg-center"
@@ -84,7 +86,8 @@ const SignupPage = () => {
 
         {/* Signup Form */}
         <div className="relative z-10 w-full md:w-[calc(25%+.7in)] bg-white p-4 pl-4 pr-8 shadow-lg rounded-lg max-w-lg ml-[.8in] mt-24 mb-8">
-        <h1 className="text-3xl font-bold mb-2 text-left" style={{ color: '#000000' }}>Sign up</h1>
+          <p className='text-red-500 font-bold'>{errorMessage}</p>
+          <h1 className="text-3xl font-bold mb-2 text-left" style={{ color: '#000000' }}>Sign up</h1>
           <form onSubmit={handleSubmit}>
             {/* First Name */}
             <div className="mb-2">
@@ -126,7 +129,7 @@ const SignupPage = () => {
                 Cell Phone
               </label>
               <input
-                name= "cell_phone"
+                name="cell_phone"
                 className="shadow border rounded w-full py-1 px-2 text-gray-700 focus:outline-none focus:shadow-outline text-xs"
                 id="cellPhone"
                 type="text"
@@ -143,7 +146,7 @@ const SignupPage = () => {
                 Company Name
               </label>
               <input
-                name = "company_name"
+                name="company_name"
                 className="shadow border rounded w-full py-1 px-2 text-gray-700 focus:outline-none focus:shadow-outline text-xs"
                 id="companyName"
                 type="text"
@@ -195,11 +198,11 @@ const SignupPage = () => {
               </label>
               <div className="flex space-x-2">
                 <label className="inline-flex items-center">
-                  <input type="radio" name="gender" value="male" checked={formData.gender === "male"} onChange={handleChange}className="form-radio" required/>
+                  <input type="radio" name="gender" value="male" checked={formData.gender === "male"} onChange={handleChange} className="form-radio" required />
                   <span className="ml-1 text-xs">Male</span>
                 </label>
                 <label className="inline-flex items-center">
-                  <input type="radio" name="gender" value="female" checked={formData.gender === "female"} onChange={handleChange} className="form-radio" required/>
+                  <input type="radio" name="gender" value="female" checked={formData.gender === "female"} onChange={handleChange} className="form-radio" required />
                   <span className="ml-1 text-xs">Female</span>
                 </label>
               </div>
@@ -250,22 +253,43 @@ const SignupPage = () => {
 
             {/* Sign In Link */}
             {/* Already have an account and Sign In Button */}
-<div className="text-left mb-2">
-  <p className="text-gray-700 text-xs font-bold mb-1">Already have an account?</p>
-  <button
-    onClick={handleSignIn}
-    className="bg-black text-white font-bold py-2 px-4 w-full rounded focus:outline-none focus:shadow-outline hover:bg-gray-800 text-xs"
-  >
-    Sign In
-  </button>
-</div>
-
+            <div className="text-left mb-2">
+              <p className="text-gray-700 text-xs font-bold mb-1">Already have an account?</p>
+              <button
+                onClick={handleSignIn}
+                className="bg-black text-white font-bold py-2 px-4 w-full rounded focus:outline-none focus:shadow-outline hover:bg-gray-800 text-xs"
+              >
+                Sign In
+              </button>
+            </div>
           </form>
         </div>
       </div>
+      {showPopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[80%] max-w-md text-center">
+            <h1 className="text-lg font-semibold mb-4">Account verification email sent</h1>
+            <div className="flex justify-center gap-4 mt-4">
+              <a
+                href="https://mail.google.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              >
+                Go to Gmail
+              </a>
+              <button
+                className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
+                onClick={() => navigate('/')}
+              >
+                Go to Login page
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default SignupPage;
-
