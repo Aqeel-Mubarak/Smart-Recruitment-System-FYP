@@ -5,18 +5,20 @@ from app.models import Calendar as Calendar_table
 from sqlalchemy import and_
 from app.schemas import Calendar as  Calendar_schema
 from app.schemas import Calendar2 as  Calendar_schema2
-from app.schemas import Slot1,Slot2
+from app.schemas import Slot1
 from typing import Optional
 from cryptography.fernet import Fernet
-
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from fastapi import HTTPException
+from pydantic import BaseModel
 
 router = APIRouter()
 
 # Endpoint to add appointment
 @router.post("/add_data_to_calendar")
 def add_data_to_calendar(data:Calendar_schema, db: Session = Depends(get_db)):
-    print(data)
-    # print("Incoming Data:", data.model_dump())
     
     # Filter valid fields for the Calendar model
     appointment_data = data.model_dump(include={"jobtitle", "startdate", "starttime", "enddate", "endtime","status","jobid"})
@@ -30,35 +32,10 @@ def add_data_to_calendar(data:Calendar_schema, db: Session = Depends(get_db)):
     db.refresh(appointment)
     return  data
 
-# @router.get("/get_data_from_calendar")
-# def add_data_to_calendar(title: Optional[str] = None, db: Session = Depends(get_db)):
-#     data=db.query(Calendar_table).filter(Calendar_table.title==title).all()
-#     return  data
-
-# @router.get("/get_userdata_from_calendar")
-# def get_data_to_calendar(hiringmanagerid: Optional[str] = None, db: Session = Depends(get_db)):
-#     data=db.query(Calendar_table).filter(and_(Calendar_table.hiringmanagerid==hiringmanagerid,Calendar_table.jobid==jobid)).all()
-#     return  data
-
 @router.get("/get_jobdata_from_calendar")
 def get_data_to_calendar(jobid: Optional[str] = None, db: Session = Depends(get_db)):
     data=db.query(Calendar_table).filter(and_(Calendar_table.jobid==jobid)).all()
     return  data
-
-# @router.delete("/delete_data_from_calendar")
-# def delete_data_from_calendar(data:Calendar_schema, db: Session = Depends(get_db)):
-#     print("Deleting Record:", data.model_dump())
-#     ans= db.query(Calendar_table).filter(and_(
-#         Calendar_table.title == data.title,
-#         Calendar_table.startdate == data.startdate,
-#         Calendar_table.starttime == data.starttime,
-#         Calendar_table.enddate == data.enddate,
-#         Calendar_table.endtime == data.endtime)
-#     ).all()
-#     print(ans)    
-#     db.commit()
-#     return 
-
 
 from sqlalchemy import func, and_
 
@@ -94,11 +71,7 @@ def delete_data_from_calendar(data: Calendar_schema, db: Session = Depends(get_d
         return {"message": "No matching record found."}
 
 
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, EmailStr
+
 class Email(BaseModel):
     id:int
     email:str
@@ -119,11 +92,6 @@ def send_email(request: EmailRequest):
     # Initialize results
     results = {"success": [], "failed": []}
     linkkk=request.linkkk
-    # encodedhiringmanagerid=request.encodedhiringmanagerid,
-    # encodedjobid=request.encodedjobid
-    # print(linkkk,encodedhiringmanagerid,encodedjobid)
-    print(request.body)
-    print(linkkk)
     for recipient in request.to_email:
         # Email content
         print(recipient)
@@ -260,13 +228,6 @@ def get_id(candidate_id:int, db: Session = Depends(get_db)):
     if calendar_entry:
         raise HTTPException(status_code=404, detail="Calendar entry not found")
     return 
-
-# # FastAPI Route to Get Time Slots by jobid
-# @router.get("/getSlots")
-# async def get_slots(jobid: int, db: Session = Depends(get_db)):
-#     # Query the database to get slots by jobid
-#     slots = db.query(Calendar_table).filter(Calendar_table.jobid == jobid).all()
-#     return slots
 
 @router.get("/getSlots")
 async def get_slots(jobid: int, db: Session = Depends(get_db)):

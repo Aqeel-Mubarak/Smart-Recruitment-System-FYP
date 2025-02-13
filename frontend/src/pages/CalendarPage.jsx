@@ -7,7 +7,6 @@ import TimeSlots from '../components/TimeSlots';
 import { useCalendarStore } from '../store';
 import { useLocation,useParams } from 'react-router-dom';
 import axios from 'axios';
-import { IoIosArrowBack } from "react-icons/io";
 
 
 function CalendarPage(props) {
