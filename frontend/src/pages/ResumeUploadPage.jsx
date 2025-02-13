@@ -27,8 +27,9 @@ const ResumeUploadPage = () => {
 
   // Fetch the logged-in hiring manager's id.
   useEffect(() => {
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     const token = localStorage.getItem('accessToken');
-    axios.get('http://127.0.0.1:8000/me', {
+    axios.get(`${API_BASE_URL}/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -43,7 +44,8 @@ const ResumeUploadPage = () => {
 
     const fetchJobs = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/get_job_description', {
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+        const response = await axios.get(`${API_BASE_URL}/get_job_description`, {
           params: { hiringmanagerid: hiringManagerId },
         });
         setJobs(
@@ -115,9 +117,9 @@ const ResumeUploadPage = () => {
 
     try {
       const token = localStorage.getItem("accessToken");
-
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
       // Use the update endpoint instead of creating a new job description.
-      await axios.put(`http://127.0.0.1:8000/update_job_description/${jobId}`, formData, {
+      await axios.put(`${API_BASE_URL}/update_job_description/${jobId}`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
@@ -125,9 +127,8 @@ const ResumeUploadPage = () => {
       });
       
       setJobDescriptionStatus('Job description updated successfully');
-
       // Refresh the jobs list to reflect updated description.
-      const updatedJobsResponse = await axios.get('http://127.0.0.1:8000/get_job_description', {
+      const updatedJobsResponse = await axios.get( `${API_BASE_URL}/get_job_description`, {
         params: { hiringmanagerid: hiringManagerId },
       });
       setJobs(updatedJobsResponse.data.jobs.map((job) => ({
@@ -161,7 +162,8 @@ const ResumeUploadPage = () => {
     setLoading(true);
 
     try {
-      await axios.post(`http://127.0.0.1:8000/upload_resume?job_description_id=${jobId}`, formData, {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+      await axios.post(`${API_BASE_URL}/upload_resume?job_description_id=${jobId}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
