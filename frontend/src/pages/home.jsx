@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Navbarapp from '../components/Navbarapp'; 
+import Navbarapp from '../components/Navbarapp';
+import TourGuide from '../components/TourGuide'; // Import the tour component
 import { FaUpload, FaClipboardList, FaBriefcase, FaCalendarAlt, FaChartBar, FaUserCircle } from 'react-icons/fa';
-import Sidebar from '../components/Sidebar'; 
+import Sidebar from '../components/Sidebar';
 
 const Home = () => {
   const [totalApplications, setTotalApplications] = useState(0);
@@ -11,14 +12,14 @@ const Home = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
-    // Function to fetch the total applications
+    // Function to fetch total applications
     const fetchTotalApplications = async () => {
       try {
-        const token = localStorage.getItem("accessToken"); // Assuming the token is stored in localStorage
+        const token = localStorage.getItem("accessToken");
         const response = await fetch(`${API_BASE_URL}/totalApplications`, {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`, // Send the Bearer token
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         });
@@ -28,19 +29,22 @@ const Home = () => {
           throw new Error(errorData.detail || "Failed to fetch total applications");
         }
 
-        const data = await response.json(); // Parse the JSON response
-        setTotalApplications(data.total_applications); // Store the total applications count
+        const data = await response.json();
+        setTotalApplications(data.total_applications);
         setName(data.name);
       } catch (error) {
-        setError(error.message); // Set error message if the request fails
+        setError(error.message);
       }
     };
 
-    fetchTotalApplications(); // Call the function when the component mounts
-  }, []);
+    fetchTotalApplications();
+  }, [API_BASE_URL]);
 
   return (
     <div className="min-h-screen bg-gray-100 relative">
+      {/* TourGuide runs only on the first visit */}
+      <TourGuide />
+
       {/* Navbar */}
       <Navbarapp />
 
@@ -56,7 +60,10 @@ const Home = () => {
         </div>
 
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Welcome Back, {name}</h1>
+          {/* Adding "header" class for the tour step */}
+          <h1 className="header text-3xl md:text-4xl font-bold text-gray-900">
+            Welcome Back, {name}
+          </h1>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -76,8 +83,11 @@ const Home = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="col-span-1 md:col-span-2 bg-white shadow rounded-lg p-6">
-            <h3 className="text-xl font-semibold mb-4 text-gray-800">Candidate Interview Performance</h3>
-            <div className="h-64 bg-gray-200 flex items-center justify-center">
+            <h3 className="text-xl font-semibold mb-4 text-gray-800">
+              Candidate Interview Performance
+            </h3>
+            {/* Adding "feature-section" class for the tour step */}
+            <div className="feature-section h-64 bg-gray-200 flex items-center justify-center">
               <p className="text-gray-500">Bar Chart Here (All values 0)</p>
             </div>
           </div>
@@ -91,7 +101,9 @@ const Home = () => {
         </div>
 
         <div className="mt-8 bg-white shadow rounded-lg p-6">
-          <h3 className="text-xl font-semibold mb-4 text-gray-800">Candidate Status Distribution</h3>
+          <h3 className="text-xl font-semibold mb-4 text-gray-800">
+            Candidate Status Distribution
+          </h3>
           <div className="h-32 bg-gray-200 flex items-center justify-center">
             <p className="text-gray-500">Bar Chart Here (All values 0)</p>
           </div>

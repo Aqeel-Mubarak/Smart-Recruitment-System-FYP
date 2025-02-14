@@ -67,7 +67,13 @@ function CreateJob() {
       {/* Main Content Area (offset by sidebar width) */}
       <div className="ml-[20%] w-[80%] p-8 flex items-center justify-center">
         <div className="w-full max-w-4xl bg-white shadow-lg rounded-lg p-8 h-full">
-          <h1 className="text-3xl font-bold mb-8 text-center text-purple-700">Create New Job Posting</h1>
+        <h1
+  className="text-3xl font-bold mb-8 text-center text-black"
+  style={{ marginTop: "0.2in" }}
+>
+  Create New Job Posting
+</h1>
+
           
           {/* Job creation form */}
           <form onSubmit={handleCreateJob} className="space-y-6">
