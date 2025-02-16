@@ -68,7 +68,7 @@ const barColors = {
   'Above 80': '#9f7aea'      // purple-500
 };
 
-// Transformation function for range labels: Replace "Below 40" with ">40" and "Above 80" with "80<"
+// Transformation function for range labels: Replace "Below 40" with "<40" and "Above 80" with "80<"
 const transformRangeLabel = (label) => {
   if (label === "Below 40") return "<40";
   if (label === "Above 80") return "80<";
@@ -88,6 +88,7 @@ const ShortlistCandidate = () => {
   const [Type, setType] = useState(null);
   const [downloaded, setDownloaded] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false); // New state for analyzing
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const navigate = useNavigate();
@@ -182,6 +183,7 @@ const ShortlistCandidate = () => {
   // Filter candidates based on specific requirements.
   const handlePromptSearch = async () => {
     if (!prompt.trim() || !selectedOption) return;
+    setAnalyzing(true); // Set analyzing to true on click
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) {
@@ -205,6 +207,8 @@ const ShortlistCandidate = () => {
       setPrompt('');
     } catch (error) {
       console.error('Error filtering candidates:', error);
+    } finally {
+      setAnalyzing(false); // Reset analyzing state after completion
     }
   };
 
@@ -300,7 +304,7 @@ const ShortlistCandidate = () => {
       });
       const encodedhiringmanagerid = encryptResponse.data.encodedlst[0];
       const encodedjobid = encryptResponse.data.encodedlst[1];
-      const isManagement = false
+      const isManagement = false;
       const linkkk = `http://207.180.240.67/Calendar/${isManagement}/${jobid}`;
       // const linkkk = `http://localhost:5173/Calendar/${isManagement}/${jobid}`;
       const selectedCandidates = candidates
@@ -358,7 +362,7 @@ const ShortlistCandidate = () => {
       const response = await fetch(`${API_BASE_URL}/signed-url?id=${candidate.id}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`, // Assuming you use Bearer token for authentication
+          'Authorization': `Bearer ${token}`,
         },
       });
 
@@ -376,7 +380,7 @@ const ShortlistCandidate = () => {
       console.error('Error signing jobs:', error);
       throw error;
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
@@ -430,9 +434,10 @@ const ShortlistCandidate = () => {
                 />
                 <button
                   onClick={handlePromptSearch}
+                  disabled={analyzing}
                   className="bg-black text-white px-4 py-2 rounded"
                 >
-                  Analyze Candidates
+                  {analyzing ? "Analyzing Candidates" : "Analyze Candidates"}
                 </button>
               </div>
             </div>
@@ -523,7 +528,6 @@ const ShortlistCandidate = () => {
                             {!candidate.promptAnalysis && (
                               <button
                                 className="bg-blue-500 text-white px-2 py-1 text-sm rounded hover:bg-blue-700 transition"
-        
                                 onClick={() =>
                                   handleViewAnalysis(candidate.id, candidate.resume_text, "prompt")
                                 }
@@ -604,7 +608,6 @@ const ShortlistCandidate = () => {
                 <h1 className="text-lg font-semibold mb-4">
                   Preview of this resume is not available. Click the button below to download the resume.
                 </h1>
-
                 {/* Buttons in a row */}
                 <div className="flex justify-center gap-4 mt-4">
                   <a
@@ -615,7 +618,6 @@ const ShortlistCandidate = () => {
                   >
                     Download Resume
                   </a>
-
                   <button
                     className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
                     onClick={() => {
@@ -632,7 +634,6 @@ const ShortlistCandidate = () => {
                 <h1 className="text-lg font-semibold text-green-600 mb-4">
                   The resume is downloaded. Check your downloads folder to view it.
                 </h1>
-
                 {/* Show only the Close button */}
                 <button
                   className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
@@ -648,11 +649,8 @@ const ShortlistCandidate = () => {
           </div>
         </div>
       )}
-
-
     </div>
   );
 };
 
 export default ShortlistCandidate;
-
