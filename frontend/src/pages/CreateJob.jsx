@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Navbarapp from "../components/Navbarapp"; // Static Navbar component
 import Sidebar from "../components/Sidebar";     // Fixed Sidebar component
-import { FaShareAlt } from 'react-icons/fa';    // Share icon
 
 function CreateJob() {
   const navigate = useNavigate();
@@ -67,7 +66,7 @@ function CreateJob() {
       {/* Main Content Area (offset by sidebar width) */}
       <div className="ml-[20%] w-[80%] p-8 flex items-center justify-center">
         <div className="w-full max-w-4xl bg-white shadow-lg rounded-lg p-8 h-full">
-          <h1 className="text-3xl font-bold mb-8 text-center text-purple-700">Create New Job Posting</h1>
+          <h1 className="text-3xl font-bold mb-8 text-center text-purple-700">Create New Job</h1>
           
           {/* Job creation form */}
           <form onSubmit={handleCreateJob} className="space-y-6">
@@ -122,22 +121,13 @@ function CreateJob() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-between items-center mt-4">
+            <div className="flex justify-center items-center mt-4">
               {/* Create Job Button */}
               <button
                 type="submit"
                 className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-colors"
               >
                 Create Job Posting
-              </button>
-
-              {/* Share Button */}
-              <button
-                type="button"
-                onClick={handleShareJob}
-                className="flex items-center justify-center px-4 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
-              >
-                <FaShareAlt className="mr-2" /> Share Job
               </button>
             </div>
           </form>

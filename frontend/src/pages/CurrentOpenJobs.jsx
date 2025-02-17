@@ -184,6 +184,19 @@ const CurrentOpenJobs = () => {
       // navigate("/Calendar")
   }
 
+  const handleLink = (id) => {
+    if (!id) return;
+    const url = `http://localhost:5173/application/${id}`;
+
+    navigator.clipboard.writeText(url)
+    .then(() => {
+      alert("Job link copied to clipboard!");
+    })
+    .catch((err) => {
+      console.error("Failed to copy: ", err);
+    });
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       {/* Static Navbar */}
@@ -240,6 +253,7 @@ const CurrentOpenJobs = () => {
                     <th className="p-3 border border-purple-900 rounded-tr-lg text-left">No of Applications</th>
                     <th className="p-3 border border-purple-900 rounded-tr-lg text-left">Job Status</th>
                     <th className="p-3 border border-purple-900 rounded-tr-lg text-left">Add Available Slots</th>
+                    <th className="p-3 border border-purple-900 rounded-tr-lg text-left">Share Link</th>
                   </tr>
                 </thead>
                 <tbody className="text-center text-gray-700">
@@ -267,6 +281,7 @@ const CurrentOpenJobs = () => {
                       <td className="p-3 border border-purple-200 text-left">{job.applications}</td>
                       <td className="p-3 border border-purple-200 text-left">{job.status}</td>
                       <td> <button className="p-3 border border-purple-600 text-left" onClick={() => handleSlots(job.id)}> Add Slots </button></td>
+                      <td> <button className="p-3 border border-purple-600 text-left" onClick={() => handleLink(job.id)}> Copy Link </button></td>
                     </tr>
                   ))}
                 </tbody>

@@ -26,9 +26,9 @@ function App() {
         <Route path="/resetpassword" element={<ForgetPassword />} />
         <Route path="/Calendar/:isManagement1/:jobid/:useremail?" element={<CalendarPage />} />
         <Route path="/verify/:token" element={<Verification />}/>
+        <Route path="/application/:id" element={<ApplicationForm />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/home" element={<Home />} />
-          <Route path="/application" element={<ApplicationForm />} />
           <Route path="/create-job" element={<CreateJob />} />
           <Route path="/reports" element={<Report />} />
           <Route path='/shortlist-candidate' element={<ShortlistCandidate/>} />
