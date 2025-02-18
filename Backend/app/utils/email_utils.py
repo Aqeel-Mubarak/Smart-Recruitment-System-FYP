@@ -3,11 +3,11 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 
-def send_email(email, otp):
+def send_email(email, link):
     sender_email = "talharajput3455@gmail.com"
-    sender_password = "lbuy utbx drvb segn"
+    sender_password = "lbuy utbx drvb segn"  # Use an App Password instead
 
-    body = f"Your reset password code is {otp}. If you have not requested this code, then secure your account"
+    body = f"Click the link to reset your password: {link}"
 
     message = MIMEMultipart()
     message["From"] = sender_email
@@ -17,14 +17,18 @@ def send_email(email, otp):
 
     try:
         # SMTP connection
-        server = smtplib.SMTP("smtp.gmail.com", 587)  # For Gmail
-        server.starttls()
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        # server.ehlo()  # Identify yourself to the server
+        server.starttls()  # Secure connection
+        # server.ehlo()
         server.login(sender_email, sender_password)
         server.send_message(message)
         server.quit()
 
+        print("Email sent successfully!")
         return True
     except Exception as e:
+        print(f"Error sending email: {e}")  # Print the error
         return None
 
 

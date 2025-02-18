@@ -1,19 +1,43 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import backgroundImage from '../assets/background2.jpg';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-
+import axios from 'axios';
 
 const NewPassword = () => {
   const [password, setPassword] = useState('');
   const [Cpassword, setCPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { token } = useParams();
+  const navigate = useNavigate();
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent the form from refreshing the page
+
+    if (password !== Cpassword) {
+      setErrorMessage("Passwords do not match");
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage('');
 
     const formData = new FormData();
     formData.append('password', password);
+    formData.append('token', token);
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/create-new-password`, formData);
+      setLoading(false);
+      navigate('/'); // Redirect to login page after successful password reset
+    } catch (error) {
+      setLoading(false);
+      setErrorMessage("An error occurred while resetting the password. Please try again.");
+      console.error("Error:", error);
+    }
+  };
 
   return (
     <div className="h-screen overflow-hidden flex flex-col">
@@ -41,7 +65,7 @@ const NewPassword = () => {
           >
             {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
             <h2 className="text-3xl font-bold mb-6 text-left" style={{ color: '#000000' }}>Create New Password</h2>
-            <form>
+            <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
                   Password
@@ -57,12 +81,12 @@ const NewPassword = () => {
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
-                  Password
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="Cpassword">
+                  Confirm Password
                 </label>
                 <input
                   className="shadow appearance-none border border-gray-300 rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline"
-                  id="password"
+                  id="Cpassword"
                   type="password"
                   placeholder="********"
                   value={Cpassword}
@@ -70,17 +94,14 @@ const NewPassword = () => {
                   style={{ backgroundColor: '#ffffff', color: '#333333' }}
                 />
               </div>
-              <div className="flex items-center justify-between mb-4">
-                <span style={{ color: '#000000' }}>Forgot your password? <a href="resetpassword" style={{ color: '#0000ff' }}>Reset here</a></span>
-              </div>
               <div className="mb-6">
                 <button
-                onClick={handleLogin}
                   className="hover:bg-gray-800 text-white font-bold py-2 px-4 w-full rounded focus:outline-none focus:shadow-outline"
-                  type="button"
+                  type="submit"
                   style={{ backgroundColor: '#000000' }}
+                  disabled={loading}
                 >
-                  LOGIN
+                  {loading ? "Resetting..." : "Reset Password"}
                 </button>
               </div>
               <div className="flex items-center justify-start">
@@ -95,7 +116,6 @@ const NewPassword = () => {
       </div>
     </div>
   );
-};
 };
 
 export default NewPassword;

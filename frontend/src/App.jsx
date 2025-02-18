@@ -16,6 +16,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Verification from './pages/Verification';
 import CalendarPage from './pages/CalendarPage';
 import UpcomingInterviews from './pages/UpcomingInterviews';
+import NewPassword from './pages/NewPassword';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
         <Route path="/" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/resetpassword" element={<ForgetPassword />} />
+        <Route path="/new-password/:token" element={<NewPassword />} />
         <Route path="/Calendar/:isManagement1/:jobid/:useremail?" element={<CalendarPage />} />
         <Route path="/verify/:token" element={<Verification />}/>
         <Route path="/application/:id" element={<ApplicationForm />} />

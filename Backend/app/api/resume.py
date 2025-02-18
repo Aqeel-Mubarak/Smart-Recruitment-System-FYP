@@ -5,7 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from typing import List
 from app.database import get_db
 from app.models import Candidate, JobDescription
-from app.parsers import parse_pdf, parse_doc, extract_email
+from app.parsers import parse_pdf, parse_doc, extract_email, ocr_pdf  # <-- added ocr_pdf import
 from app.ai_scoring import generate_embeddings, calculate_ai_score
 from app.utils.qdrant_utils import store_embeddings, get_embedding
 from app.schemas import CandidateOut
@@ -22,7 +22,6 @@ AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
 AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY")
 BUCKET_NAME = os.getenv("BUCKET_NAME")
 REGION_NAME = os.getenv("REGION_NAME")
-
 
 s3_client = boto3.client(
     "s3",
@@ -68,14 +67,29 @@ def upload_resume(
             resume_text = parse_pdf(file) if file.content_type == "application/pdf" else parse_doc(file)
             resume_text = remove_nul_characters(resume_text)
             
+            # Attempt to extract email from the parsed text
+            email = extract_email(resume_text)
+            
+            # If email is not found and the file is a PDF, try OCR extraction as a fallback
+            if not email and file.content_type == "application/pdf":
+                file.file.seek(0)  # Reset stream for OCR
+                try:
+                    ocr_text = ocr_pdf(file)
+                    ocr_email = extract_email(ocr_text)
+                    if ocr_email:
+                        email = ocr_email
+                        logger.info(f"OCR extracted email: {email} from file {file.filename}")
+                    else:
+                        logger.warning(f"OCR did not extract any email from file {file.filename}")
+                except Exception as ocr_error:
+                    logger.exception(f"OCR extraction failed for file {file.filename}: {ocr_error}")
+            
             # Generate embeddings once
             resume_embedding = generate_embeddings(resume_text)
             
             # Calculate score using embeddings
             ai_score = calculate_ai_score(resume_embedding, job_desc_embedding)
             
-            # Extract email
-            email = extract_email(resume_text)
             # Create candidate record
             candidate = Candidate(
                 name=file.filename,
@@ -95,6 +109,7 @@ def upload_resume(
             db.add(candidate)
             db.commit()
             db.refresh(candidate)
+            
             if file:
                 file.file.seek(0)  # Reset stream before uploading to S3
                 mime_type, _ = mimetypes.guess_type(file.filename)
@@ -142,10 +157,10 @@ def upload_resume(
 
 @router.get("/signed-url")
 def get_signed_Url(
-    id:int ,
+    id: int,
     session = Depends(get_db),
 ):
-    candidate = session.query(Candidate).filter(Candidate.id==id).first()
+    candidate = session.query(Candidate).filter(Candidate.id == id).first()
     if not candidate:
         raise HTTPException(status_code=404, detail="candidate not found")
     
@@ -158,9 +173,9 @@ def get_signed_Url(
     
     ext = url.split('.')[-1].lower()
     if ext == "pdf":
-        return {"url":signed_url, "type": "pdf"}
-    elif ext == "doc" or ext == "docx":
-        return {"url": signed_url, "type":"doc/docx"}
+        return {"url": signed_url, "type": "pdf"}
+    elif ext in ["doc", "docx"]:
+        return {"url": signed_url, "type": "doc/docx"}
 
 def sign_url(file_name: str):
     try:
@@ -177,13 +192,14 @@ def sign_url(file_name: str):
                 mime_type = "application/octet-stream"
         url = s3_client.generate_presigned_url(
             "get_object",
-            Params={"Bucket": BUCKET_NAME, 
-                    "Key": file_name, 
-                    "ResponseContentDisposition": "inline", 
-                    "ResponseContentType": mime_type
-                    },
+            Params={
+                "Bucket": BUCKET_NAME, 
+                "Key": file_name, 
+                "ResponseContentDisposition": "inline", 
+                "ResponseContentType": mime_type
+            },
             ExpiresIn=3600  # 1-hour validity
-            )
+        )
         return url
     except Exception as e:
         return {"error": str(e)}
