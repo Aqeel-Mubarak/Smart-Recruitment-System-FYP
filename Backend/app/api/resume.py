@@ -203,6 +203,7 @@ def sign_url(file_name: str):
         return url
     except Exception as e:
         return {"error": str(e)}
+
     
 @router.post("/application/upload_resume", response_model=CandidateOut)
 def application_upload_resume(
@@ -300,3 +301,4 @@ def application_upload_resume(
         raise HTTPException(status_code=400, detail="No valid resumes processed")
     
     return candidate
+
