@@ -203,3 +203,102 @@ def sign_url(file_name: str):
         return url
     except Exception as e:
         return {"error": str(e)}
+
+    
+@router.post("/application/upload_resume", response_model=CandidateOut)
+def application_upload_resume(
+    file: UploadFile = File(...),
+    job_description_id= Form(...),
+    db: Session = Depends(get_db)
+):
+    allowed_content_types = [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ]
+        
+    # Get job description and generate embeddings once
+    job_description = db.query(JobDescription).filter(JobDescription.id == job_description_id).first()
+    if not job_description:
+        raise HTTPException(status_code=404, detail="Job description not found")
+    
+    # Generate job description embeddings
+    job_desc_embedding = generate_embeddings(job_description.description_text)
+    
+    if file.content_type not in allowed_content_types:
+        logger.warning(f"Unsupported file type: {file.content_type} for file {file.filename}")
+    
+    try:
+        # Parse resume
+        resume_text = parse_pdf(file) if file.content_type == "application/pdf" else parse_doc(file)
+        resume_text = remove_nul_characters(resume_text)
+        
+        # Generate embeddings once
+        resume_embedding = generate_embeddings(resume_text)
+        
+        # Calculate score using embeddings
+        ai_score = calculate_ai_score(resume_embedding, job_desc_embedding)
+        
+        # Extract email
+        email = extract_email(resume_text)
+        # Create candidate record
+        candidate = Candidate(
+            name=file.filename,
+            resume_text=resume_text,
+            job_description_id=job_description_id,
+            email=email,
+            score=ai_score
+        )
+        
+        # Save to database
+        db.add(candidate)
+        db.commit()
+        db.refresh(candidate)
+
+        s3_filename = f"{candidate.id}+{file.filename}"
+        candidate.resume_url = f"{s3_filename}"
+        db.add(candidate)
+        db.commit()
+        db.refresh(candidate)
+        if file:
+            file.file.seek(0)  # Reset stream before uploading to S3
+            mime_type, _ = mimetypes.guess_type(file.filename)
+            if not mime_type:
+                ext = file.filename.split('.')[-1].lower()
+                if ext == "pdf":
+                    mime_type = "application/pdf"
+                elif ext == "doc":
+                    mime_type = "application/msword"
+                elif ext == "docx":
+                    mime_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                else:
+                    mime_type = "application/octet-stream" 
+
+            s3_client.upload_fileobj(
+                file.file, 
+                BUCKET_NAME,
+                s3_filename,
+                ExtraArgs={'ContentType': mime_type}
+            )
+
+        # Store embeddings in Qdrant with metadata
+        metadata = {
+            "filename": file.filename,
+            "email": email,
+            "score": ai_score
+        }
+        store_embeddings(resume_embedding, candidate.id, metadata)
+        return candidate
+            
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.exception(f"Database error for file {file.filename}: {str(e)}")
+    except Exception as e:
+        db.rollback()
+        logger.exception(f"Unexpected error for file {file.filename}: {str(e)}")
+    
+    if not candidate:
+        raise HTTPException(status_code=400, detail="No valid resumes processed")
+    
+    return candidate
+

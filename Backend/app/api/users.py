@@ -10,7 +10,7 @@ from app.crud.users import (
     user_create,
 )
 from fastapi.security import OAuth2PasswordBearer
-from app.utils.email_utils import send_verification_email
+from app.utils.email_utils import send_verification_email, send_email
 
 router = APIRouter()
 
@@ -139,4 +139,38 @@ def verify_account(token: str, db: Session = Depends(get_db)):
 
     return user
 
+@router.post("/send-reset-link/")
+async def forgot_password(
+    email: str = Form(...), 
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Email not found")
+    
+    token = create_access_token({"sub":user.email})
 
+    reset_link = f"http://localhost:5173/new-password/{token}"
+    result = send_email(user.email, reset_link)
+    if result:
+        return {"message": "Password reset link sent to your email"}
+    else:
+        raise HTTPException(status_code=400, detail="Error sending Email")
+
+@router.post("/create-new-password")
+def create_new_password(
+    token: str = Form(...),
+    password: str = Form(...), 
+    db: Session = Depends(get_db)
+):
+    payload = decode_access_token(token)
+    email = payload.get("sub")
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    hashed_password = hash_password(password)
+    user.hashed_password  = hashed_password
+    db.commit()
+    return user
