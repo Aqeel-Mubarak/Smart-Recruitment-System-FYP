@@ -139,7 +139,7 @@ def verify_account(token: str, db: Session = Depends(get_db)):
 
     return user
 
-@router.post("/send-reset-link/")
+@router.post("/send-reset-link")
 async def forgot_password(
     email: str = Form(...), 
     db: Session = Depends(get_db)
