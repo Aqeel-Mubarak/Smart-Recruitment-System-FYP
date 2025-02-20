@@ -34,8 +34,8 @@ def send_email(email, link):
 
 
 def send_verification_email(email, token):
-    link = f"http://localhost:5173/verify/{token}"
-    #link = f"http://207.180.240.67/verify/{token}"
+    # link = f"http://localhost:5173/verify/{token}"
+    link = f"http://207.180.240.67/verify/{token}"
     sender_email = "talharajput3455@gmail.com"
     sender_password = "lbuy utbx drvb segn"
 

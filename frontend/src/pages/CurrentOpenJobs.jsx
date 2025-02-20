@@ -186,7 +186,7 @@ const CurrentOpenJobs = () => {
 
   const handleLink = (id) => {
     if (!id) return;
-    const url = `http://localhost:5173/application/${id}`;
+    const url = `http://207.180.240.67/application/${id}`;
 
     navigator.clipboard.writeText(url)
     .then(() => {

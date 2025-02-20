@@ -150,7 +150,7 @@ async def forgot_password(
     
     token = create_access_token({"sub":user.email})
 
-    reset_link = f"http://localhost:5173/new-password/{token}"
+    reset_link = f"http://207.180.240.67/new-password/{token}"
     result = send_email(user.email, reset_link)
     if result:
         return {"message": "Password reset link sent to your email"}
