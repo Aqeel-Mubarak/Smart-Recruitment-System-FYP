@@ -7,6 +7,7 @@ import {
   FaBriefcase,
   FaCalendarAlt,
   FaChartBar,
+  FaVideo,
 } from 'react-icons/fa';
 
 const Sidebar = () => {
@@ -19,6 +20,7 @@ const Sidebar = () => {
   const isShortlistCandidate = location.pathname === '/shortlist-candidate';
   const isUpcomingInterviews = location.pathname === '/upcoming-interviews';
   const isReports = location.pathname === '/reports';
+  const isVideo = location.pathname === '/video-analysis';
 
   return (
     <aside className="w-64 bg-white text-gray-800 shadow-lg">
@@ -119,6 +121,19 @@ const Sidebar = () => {
             >
               <span className="font-medium">Reports</span>
               <FaChartBar className="text-[#800080]" />
+            </Link>
+            <hr className="border-[#800080]" />
+          </li>
+          {/* Video Analysis */}
+          <li>
+            <Link
+              to="/video-analysis"
+              className={`sidebar-reports-link flex justify-between items-center p-2 text-gray-800 hover:text-[#800080] hover:bg-gray-100 rounded-lg ${
+                isVideo ? 'bg-[#F0CBF0]' : ''
+              }`}
+            >
+              <span className="font-medium">Video Analysis</span>
+              <FaVideo className="text-[#800080]" />
             </Link>
             <hr className="border-[#800080]" />
           </li>
