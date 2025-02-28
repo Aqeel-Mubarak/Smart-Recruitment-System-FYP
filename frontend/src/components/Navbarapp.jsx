@@ -17,6 +17,7 @@ const Navbarapp = () => {
     '/shortlist-candidate': 'Shortlist Candidates',
     '/upcoming-interviews': 'Upcoming Interviews',
     '/reports': 'Reports',
+    '/video-analysis': 'Video Analysis',
   };
 
   const pageTitle = pageTitles[location.pathname] || 'Dashboard';
