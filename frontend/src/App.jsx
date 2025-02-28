@@ -17,6 +17,7 @@ import Verification from './pages/Verification';
 import CalendarPage from './pages/CalendarPage';
 import UpcomingInterviews from './pages/UpcomingInterviews';
 import NewPassword from './pages/NewPassword';
+import VideoAnalysis from './pages/VideoAnalysis';
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/candidates" element={<CandidatesList />} />
           <Route path="/upcoming-interviews" element={< UpcomingInterviews/>} />
+          <Route path="/video-analysis" element={<VideoAnalysis/>} />
         </Route>
       </Routes>
     </Router>
