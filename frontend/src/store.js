@@ -19,7 +19,6 @@ export const useCalendarStore = create((set) => ({
   
 
 fetchTimeSlots: async (jobid) => {
-    // const API_URL = 'http://localhost:8000';
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     
     try {
@@ -72,7 +71,6 @@ fetchTimeSlots: async (jobid) => {
 
 addTimeSlot: (date, slot) => set(async (state) => {
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-    // const API_URL = 'http://localhost:8000';
     // First update the state synchronously
     const newTimeSlots = {
       ...state.timeSlots,
@@ -98,7 +96,6 @@ addTimeSlot: (date, slot) => set(async (state) => {
   
 removeTimeSlot: (date, slotId) => set(async (state) => {
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-    // const API_URL = 'http://localhost:8000';
   
     // First update the state synchronously, filter out the slot locally
     const newTimeSlots = {
@@ -158,7 +155,6 @@ removeTimeSlot: (date, slotId) => set(async (state) => {
     // Call the API to update the slot selection in the database
     try {
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-      // const API_URL = 'http://localhost:8000'; // Your FastAPI URL
       const response = await fetch(`${API_BASE_URL}/selectSlot`, {
         method: 'POST',
         headers: {
