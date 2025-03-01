@@ -17,6 +17,8 @@ import Verification from './pages/Verification';
 import CalendarPage from './pages/CalendarPage';
 import UpcomingInterviews from './pages/UpcomingInterviews';
 import NewPassword from './pages/NewPassword';
+import AIInterview from "./pages/AIInterview";
+
 
 function App() {
   return (
@@ -29,6 +31,8 @@ function App() {
         <Route path="/Calendar/:isManagement1/:jobid/:useremail?" element={<CalendarPage />} />
         <Route path="/verify/:token" element={<Verification />}/>
         <Route path="/application/:id" element={<ApplicationForm />} />
+        <Route path="/ai-interview" element={<AIInterview />} />
+
         <Route element={<ProtectedRoute />}>
           <Route path="/home" element={<Home />} />
           <Route path="/create-job" element={<CreateJob />} />
