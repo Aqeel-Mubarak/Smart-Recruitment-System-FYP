@@ -5,12 +5,13 @@ import axios from 'axios';
 
 const UpcomingInterviews = () => {
   const [interviews, setInterviews] = useState([]);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     // Fetch data from the API to get upcoming interviews
     const fetchInterviews = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/upcoming_interviews');  // Use the correct API URL
+        const response = await axios.get(`${API_BASE_URL}/upcoming_interviews`);  // Use the correct API URL
         setInterviews(response.data);  // Set the fetched interviews data in the state
       } catch (error) {
         console.error("Error fetching interviews:", error);

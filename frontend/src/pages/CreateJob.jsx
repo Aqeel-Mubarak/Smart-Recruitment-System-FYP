@@ -12,7 +12,11 @@ function CreateJob() {
   const [jobDescription, setJobDescription] = useState("");
   const [deadline, setDeadline] = useState("");
   const [status, setStatus] = useState("");
+  const today = new Date();
+  today.setDate(today.getDate()+1); // Ensure it is today's date, not potentially incorrect
 
+  // Format date as YYYY-MM-DD
+  const formattedToday = today.toISOString().split("T")[0];
   // Set the document title so that the Navbar displays the correct page title.
   useEffect(() => {
     document.title = "Create Job";
@@ -123,6 +127,7 @@ function CreateJob() {
                 onChange={(e) => setDeadline(e.target.value)}
                 required
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                min={formattedToday}
               />
             </div>
 

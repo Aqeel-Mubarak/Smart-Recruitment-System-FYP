@@ -14,7 +14,7 @@ const CurrentOpenJobs = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [dropdownVisible, setDropdownVisible] = useState(null);
   const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
-  const [jobType, setJobType] = useState('all'); 
+  const [jobType, setJobType] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState({ title: '', description_text: '', status: 'open', deadline: '' });
   const dropdownRefs = useRef([]);
@@ -176,25 +176,32 @@ const CurrentOpenJobs = () => {
   };
 
   const handleSlots = (e) => {
-      // navigate('/Calendar',{jobid:{e},hiringmanagerid:{hiringmanagerid}})
-      console.log({ jobid: e, hiringmanagerid: hiringmanagerid })
-      const isManagement = true;
-      navigate(`/Calendar/${isManagement}/${e}`, { state: { jobid: e, hiringmanagerid: hiringmanagerid } });
+    // navigate('/Calendar',{jobid:{e},hiringmanagerid:{hiringmanagerid}})
+    console.log({ jobid: e, hiringmanagerid: hiringmanagerid })
+    const isManagement = true;
+    navigate(`/Calendar/${isManagement}/${e}`, { state: { jobid: e, hiringmanagerid: hiringmanagerid } });
 
-      // navigate("/Calendar")
+    // navigate("/Calendar")
   }
-
+  function copyTextFallback(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textArea);
+  }
   const handleLink = (id) => {
     if (!id) return;
-    const url = `http://localhost:5173/application/${id}`;
-
-    navigator.clipboard.writeText(url)
-    .then(() => {
-      alert("Job link copied to clipboard!");
-    })
-    .catch((err) => {
-      console.error("Failed to copy: ", err);
-    });
+    const url = `http://207.180.240.67/application/${id}`;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url)
+        .then(() => alert("URL copied successfully!"))
+        .catch(err => console.error("Failed to copy URL:", err));
+    } else {
+      copyTextFallback(url);
+      alert("URL copied using fallback method!");
+    }
   }
 
   return (
@@ -208,7 +215,7 @@ const CurrentOpenJobs = () => {
         <aside className="fixed left-0 top-16 w-[19%] h-screen overflow-y-auto overflow-x-hidden bg-white shadow-lg">
           <Sidebar />
         </aside>
-      
+
 
         {/* Main Content Area */}
         <div className="ml-[20%] w-[80%] p-6 space-y-6">
