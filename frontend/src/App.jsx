@@ -19,6 +19,7 @@ import UpcomingInterviews from './pages/UpcomingInterviews';
 import NewPassword from './pages/NewPassword';
 import AIInterview from "./pages/AIInterview";
 
+import VideoAnalysis from './pages/VideoAnalysis';
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/candidates" element={<CandidatesList />} />
           <Route path="/upcoming-interviews" element={< UpcomingInterviews/>} />
+          <Route path="/video-analysis" element={<VideoAnalysis/>} />
         </Route>
       </Routes>
     </Router>
