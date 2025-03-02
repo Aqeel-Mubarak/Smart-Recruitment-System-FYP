@@ -295,24 +295,40 @@ const ShortlistCandidate = () => {
       alert("Please select at least one candidate");
       return;
     }
+    
     const jobid = selectedOption.value;
-    console.log(jobid)
+    const token = localStorage.getItem('accessToken');
+    
     try {
-      const token = localStorage.getItem('accessToken');
+      // First, update the status of selected candidates to 'shortlisted'
+      await axios.post(
+        `${API_BASE_URL}/update_candidates_status`,
+        {
+          candidate_ids: Array.from(checkedCandidates),
+          job_description_id: jobid
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+  
+      // Continue with existing email functionality
       const encryptResponse = await axios.post(`${API_BASE_URL}/encryptid`, {
         value: [hiringmanagerid, jobid],
       });
+      
       const encodedhiringmanagerid = encryptResponse.data.encodedlst[0];
       const encodedjobid = encryptResponse.data.encodedlst[1];
       const isManagement = false;
       const linkkk = `http://207.180.240.67/Calendar/${isManagement}/${jobid}`;
-      // const linkkk = `http://localhost:5173/Calendar/${isManagement}/${jobid}`;
+      
       const selectedCandidates = candidates
         .filter(candidate => checkedCandidates.has(candidate.id))
         .map(candidate => ({
           id: candidate.id,
           email: candidate.email,
         }));
+        
       await axios.post(`${API_BASE_URL}/send_email`, {
         to_email: selectedCandidates,
         subject: "Job Application Update",
@@ -321,13 +337,17 @@ const ShortlistCandidate = () => {
         encodedhiringmanagerid,
         encodedjobid,
       });
-      alert("Email sent successfully!");
+      
+      alert("Emails sent successfully!");
+      
+      // Refresh the candidates list to show updated status
+      await fetchCandidates();
+      
     } catch (error) {
       console.error("Error:", error.response?.data || error.message);
-      alert("Failed to send email.");
+      alert("Failed to shortlist candidates and send emails.");
     }
   };
-
   // Custom styles for react-select.
   const customSelectStyles = {
     control: (base) => ({

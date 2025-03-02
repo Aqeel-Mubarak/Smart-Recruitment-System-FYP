@@ -7,6 +7,8 @@ from . import (
     users,
     calendar,
     upcoming_interviews,
+    home,
+    report,
 )
 
 api_router = APIRouter()
@@ -18,6 +20,8 @@ api_router.include_router(jobs.router, tags=["jobs"])
 api_router.include_router(resume.router, tags=["resume"])
 api_router.include_router(users.router, tags=["users"])
 api_router.include_router(upcoming_interviews.router, tags=["upcoming_interviews"])
+api_router.include_router(home.router, tags=["home"])
+api_router.include_router(report.router, tags=["report"])
 
 
 

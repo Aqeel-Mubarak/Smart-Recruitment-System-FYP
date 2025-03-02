@@ -199,3 +199,47 @@ async def analyze_candidate(request: AnalysisRequest, db: Session = Depends(get_
         error_msg = f"Error analyzing candidate: {str(e)}"
         print(error_msg)
         raise HTTPException(status_code=500, detail=error_msg)
+class ShortlistRequest(BaseModel):
+    candidate_ids: List[int]
+    job_description_id: int
+
+# Add this new endpoint in candidates.py
+@router.post("/update_candidates_status")
+async def shortlist_candidates(request: ShortlistRequest, db: Session = Depends(get_db)):
+    """
+    Update the status of selected candidates to 'shortlisted' for a specific job.
+    
+    Args:
+        request: ShortlistRequest containing candidate_ids and job_description_id
+        db: Database session
+    
+    Returns:
+        Dict with success message and number of candidates updated
+    """
+    try:
+        # Update status for all specified candidates
+        updated_count = db.query(Candidate).filter(
+            Candidate.id.in_(request.candidate_ids),
+            Candidate.job_description_id == request.job_description_id
+        ).update(
+            {"status": "shortlisted"},
+            synchronize_session=False
+        )
+        
+        db.commit()
+        
+        return {
+            "message": "Successfully updated candidates status to shortlisted",
+            "updated_count": updated_count
+        }
+    except Exception as e:
+        db.rollback()
+        error_msg = f"Error updating candidate status: {str(e)}"
+        print(error_msg)
+        raise HTTPException(status_code=500, detail=error_msg)
+class CandidateStatusCount(BaseModel):
+    waiting: int
+    shortlisted: int
+    total: int
+
+

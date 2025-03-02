@@ -26,7 +26,7 @@ class Candidate(Base):
     email = Column(String, index=True, nullable=True) 
     resume_url = Column(String)
     job_description_id = Column(Integer, ForeignKey("job_descriptions.id"))
-
+    status = Column(String, nullable=False, default="waiting")
     job_description = relationship("JobDescription", back_populates="candidates")
     # calendars= relationship("Calendar", back_populates="candidates")
 

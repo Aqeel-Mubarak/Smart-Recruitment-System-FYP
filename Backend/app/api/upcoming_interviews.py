@@ -4,7 +4,10 @@ from sqlalchemy import and_, func
 from datetime import datetime
 from app.database import get_db
 from app.models import Calendar, JobDescription, Candidate
-from typing import List ,Dict
+from typing import List ,Dict , Optional
+from sqlalchemy import desc
+from app.models import Candidate, Calendar, JobDescription
+
 
 router = APIRouter()
 
@@ -96,3 +99,5 @@ def get_today_interviews_count(db: Session = Depends(get_db)) -> Dict:
         "total_interviews": today_count,
         "message": f"Total interviews scheduled for {current_date_str}"
     }
+
+
