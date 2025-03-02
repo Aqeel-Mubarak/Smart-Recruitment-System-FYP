@@ -4,6 +4,8 @@ import Navbarapp from '../components/Navbarapp';
 import Sidebar from '../components/Sidebar';
 import axios from 'axios';
 import Select from "react-select";
+import { Button, Snackbar, Alert, LinearProgress, Typography, Box, Card, CardContent } from "@mui/material";
+
 
 // Import Recharts components for the vertical bar chart
 import {
@@ -183,18 +185,24 @@ const ShortlistCandidate = () => {
   // Filter candidates based on specific requirements.
   const handlePromptSearch = async () => {
     if (!prompt.trim() || !selectedOption) return;
-    setAnalyzing(true); // Set analyzing to true on click
+  
+    // Set analyzing state to true (loading state starts).
+    setAnalyzing(true); 
+  
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) {
         console.error('No access token found in local storage');
         return;
       }
+      
       const response = await axios.post(
         `${API_BASE_URL}/filter_candidates`,
         { prompt, job_description_id: selectedOption.value },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+  
+      // Filter the results based on the response from the API.
       const filteredResults = response.data.map((candidate) => ({
         ...candidate,
         promptAnalysis: null,
@@ -202,16 +210,18 @@ const ShortlistCandidate = () => {
         loadingPrompt: false,
         loadingJob: false,
       }));
+      
       setFilteredCandidates(filteredResults);
       setActiveFilter(prompt);
       setPrompt('');
+  
     } catch (error) {
       console.error('Error filtering candidates:', error);
     } finally {
-      setAnalyzing(false); // Reset analyzing state after completion
+      // Reset analyzing state after completion.
+      setAnalyzing(false); 
     }
   };
-
   // Generate analysis for a candidate.
   const handleViewAnalysis = async (candidateId, resumeText, analysisType) => {
     setFilteredCandidates((prev) =>
@@ -432,13 +442,36 @@ const ShortlistCandidate = () => {
                   onChange={(e) => setPrompt(e.target.value)}
                   className="flex-1 p-3 border rounded"
                 />
-                <button
-                  onClick={handlePromptSearch}
-                  disabled={analyzing}
-                  className="bg-black text-white px-4 py-2 rounded"
-                >
-                  {analyzing ? "Analyzing Candidates" : "Analyze Candidates"}
-                </button>
+<Button
+  onClick={handlePromptSearch}
+  disabled={analyzing}
+  variant="contained"
+  color="primary"
+  sx={{ 
+    backgroundColor: analyzing ? "#bdbdbd" : "#000000", // MUI primary color
+    color: "white",
+    borderRadius: "4px",
+    padding: "8px 16px",
+    textTransform: "none",
+    "&:hover": {
+      backgroundColor: analyzing ? "#bdbdbd" : "#1565c0", // Darker shade when hovering
+    },
+    "&:disabled": {
+      color: "white",
+    }
+  }}
+>
+  {analyzing ? (
+    <Box sx={{ textAlign: "center" }}>
+      Analyzing Candidates...
+      <Typography variant="caption" display="block">
+        This may take some time
+      </Typography>
+    </Box>
+  ) : (
+    "Analyze Candidates"
+  )}
+</Button>
               </div>
             </div>
 

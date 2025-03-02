@@ -44,8 +44,8 @@ function App() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/candidates" element={<CandidatesList />} />
           <Route path="/upcoming-interviews" element={< UpcomingInterviews/>} />
-          <Route path="/video-analysis" element={<VideoAnalysis/>} />
-        </Route>
+          <Route path="/video-analysis" element={<VideoAnalysis />} /> {/* Route for VideoAnalysis */}
+          </Route>
       </Routes>
     </Router>
   );

@@ -1,5 +1,10 @@
 {
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/material": "^6.4.6",
+    "notistack": "^3.0.2",
+    "react-dropzone": "^14.3.8",
     "react-joyride": "^2.9.3"
   }
 }

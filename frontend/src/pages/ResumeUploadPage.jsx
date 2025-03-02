@@ -302,13 +302,25 @@ const ResumeUploadPage = () => {
               )}
 
               <div className="mt-6 space-y-4">
-                <button 
-                  onClick={handleResumeUpload}
-                  className="w-full bg-black text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors"
-                  disabled={loading}
-                >
-                  {loading ? "Uploading..." : "Upload Resume"}
-                </button>
+              <button
+  onClick={handleResumeUpload}
+  className={`w-full py-3 px-6 rounded-lg transition-colors ${
+    loading 
+      ? "bg-gray-400 text-white cursor-not-allowed" 
+      : "bg-black text-white hover:bg-gray-800"
+  }`}
+  disabled={loading}
+>
+  {loading ? (
+    <span>
+      Uploading...
+      <br />
+      <small>This may take some time</small>
+    </span>
+  ) : (
+    "Upload Resume"
+  )}
+</button>
                 <button 
                   onClick={() => navigate("/shortlist-candidate")}
                   className="w-full bg-black text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors"
