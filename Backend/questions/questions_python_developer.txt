@@ -1,0 +1,12 @@
+Here are five interview questions for a Python developer position:
+**What is your experience with Python frameworks, and how have you used them in previous projects? Can you give an example of a project where you used a framework like Django or Flask?**
+This question assesses the candidate's familiarity with popular Python frameworks and their ability to apply them in real-world projects.
+**How do you handle errors and exceptions in Python? Can you explain the difference between try-except blocks and error handling mechanisms like logging and debugging?**
+This question evaluates the candidate's understanding of error handling in Python and their ability to write robust and reliable code.
+**How do you optimize the performance of a Python application? What techniques or tools do you use to identify and address performance bottlenecks?**
+This question tests the candidate's knowledge of performance optimization techniques in Python, such as caching, memoization, and profiling, and their ability to apply them in practical scenarios.
+**Can you explain the concept of decorators in Python? How have you used decorators in your previous projects, and what benefits do they provide?**
+This question assesses the candidate's understanding of decorators, a key feature of Python, and their ability to apply them to simplify code and improve functionality.
+**How do you approach testing and validation in Python? Can you describe your experience with testing frameworks like unittest or pytest, and how you ensure that your code is thoroughly tested and validated?**
+This question evaluates the candidate's commitment to testing and validation, their familiarity with popular testing frameworks, and their ability to write high-quality, testable code.
+These questions cover a range of topics, from frameworks and error handling to performance optimization and testing, and can help you assess the candidate's technical skills and experience as a Python developer.

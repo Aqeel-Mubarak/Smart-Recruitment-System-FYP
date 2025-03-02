@@ -1,15 +1,17 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException, Request, Body
+import cv2
+import logging
+from fastapi import Request, HTTPException, APIRouter, WebSocket, WebSocketDisconnect, Body, UploadFile, File, Form
 import base64
 import io
 from PIL import Image
 import numpy as np
-import cv2
 from groq import Groq
 import os
-import logging
 import json
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from datetime import datetime
+import speech_recognition as sr
 
 # Initialize the router
 router = APIRouter()
@@ -30,9 +32,14 @@ if GROQ_API_KEY:
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-# Create a directory for storing question files if it doesn't exist
+# Create directories for storing files if they don't exist
 QUESTIONS_DIR = "questions"
+ANSWERS_DIR = "answers"
 os.makedirs(QUESTIONS_DIR, exist_ok=True)
+os.makedirs(ANSWERS_DIR, exist_ok=True)
+
+# Initialize question cache dictionary
+question_cache = {}
 
 @router.websocket("/ws/video")
 async def video_stream(websocket: WebSocket):
@@ -113,10 +120,19 @@ def process_frame_for_gaze(frame):
 
         logging.info(f"Faces detected: {len(faces)}")
 
-        if len(faces) > 0:
-            return "Looking at Camera"
-        else:
-            return "Looking Away"
+        # Add eye detection for more accurate gaze tracking
+        eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_eye.xml')
+        
+        for (x, y, w, h) in faces:
+            roi_gray = gray[y:y+h, x:x+w]
+            eyes = eye_cascade.detectMultiScale(roi_gray)
+            
+            if len(eyes) >= 1:
+                return "Looking at Camera"
+            else:
+                return "Eyes Not Detected"
+        
+        return "Looking Away"
     except Exception as e:
         logging.error(f"Error in face detection: {e}")
         return "Error detecting face"
@@ -183,6 +199,9 @@ async def generate_questions(request: QuestionRequest):
                 for question in questions:
                     file.write(f"{question}\n")
             
+            # Update cache
+            question_cache[sanitized_title] = questions
+            
             return {"questions": questions}
             
         except Exception as e:
@@ -212,6 +231,9 @@ def generate_fallback_questions(job_title):
         for question in fallback_questions:
             file.write(f"{question}\n")
     
+    # Update cache
+    question_cache[sanitized_title] = fallback_questions
+    
     return {"questions": fallback_questions}
 
 @router.get("/api/get-questions/{job_title}")
@@ -222,6 +244,12 @@ async def get_questions(job_title: str):
     try:
         # Sanitize job title for filename
         sanitized_title = "".join(c if c.isalnum() else "_" for c in job_title.lower())
+        
+        # Check cache first
+        if sanitized_title in question_cache:
+            logging.info(f"Returning cached questions for {job_title}")
+            return {"questions": question_cache[sanitized_title]}
+        
         questions_file_path = os.path.join(QUESTIONS_DIR, f"questions_{sanitized_title}.txt")
         
         if not os.path.exists(questions_file_path):
@@ -237,6 +265,9 @@ async def get_questions(job_title: str):
             # If file exists but is empty or contains only whitespace
             question_request = QuestionRequest(job_title=job_title)
             return await generate_questions(question_request)
+        
+        # Update cache
+        question_cache[sanitized_title] = questions
             
         return {"questions": questions}
     except HTTPException:
@@ -244,3 +275,198 @@ async def get_questions(job_title: str):
     except Exception as e:
         logging.error(f"Error fetching questions for {job_title}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error fetching questions: {str(e)}")
+
+@router.post("/api/analyze-answer")
+async def analyze_answer(request: Request):
+    data = await request.json()
+    question = data.get("question")
+    answer = data.get("answer")
+    job_title = data.get("job_title")
+    
+    if not all([question, answer, job_title]):
+        raise HTTPException(status_code=400, detail="Missing required fields")
+    
+    try:
+        if not groq_client:
+            return {"feedback": "Answer analysis not available"}
+        
+        completion = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{
+                "role": "system",
+                "content": "You are an AI assistant specializing in interview coaching."
+            }, {
+                "role": "user",
+                "content": f"For a {job_title} position, analyze this answer to the question: '{question}'\n\nAnswer: {answer}\n\nProvide brief, constructive feedback."
+            }],
+            temperature=0.5,
+            max_tokens=300
+        )
+        
+        feedback = completion.choices[0].message.content.strip()
+        return {"feedback": feedback}
+    except Exception as e:
+        logging.error(f"Error analyzing answer: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error analyzing answer: {str(e)}")
+
+
+@router.post("/api/analyze-interview")
+async def analyze_interview(request: Request):
+    """
+    This endpoint analyzes the entire interview session and provides overall feedback.
+    """
+    data = await request.json()
+    questions = data.get("questions", [])
+    answers = data.get("answers", [])
+    job_title = data.get("job_title")
+    
+    if not all([questions, job_title]) or len(questions) == 0:
+        raise HTTPException(status_code=400, detail="Missing required fields")
+    
+    if len(questions) != len(answers):
+        raise HTTPException(status_code=400, detail="Questions and answers count mismatch")
+    
+    try:
+        if not groq_client:
+            return {"analysis": "Interview analysis not available"}
+        
+        # Format the questions and answers for the LLM
+        qa_pairs = []
+        for i, (question, answer) in enumerate(zip(questions, answers)):
+            if not answer or answer == "Not answered":
+                qa_pairs.append(f"Q{i+1}: {question}\nA: [No answer provided]")
+            else:
+                qa_pairs.append(f"Q{i+1}: {question}\nA: {answer}")
+        
+        interview_text = "\n\n".join(qa_pairs)
+        
+        completion = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{
+                "role": "system",
+                "content": "You are an AI assistant specializing in interview coaching and evaluation."
+            }, {
+                "role": "user",
+                "content": f"Please analyze this interview for a {job_title} position and provide overall feedback. Consider the quality of answers, areas of strength, and suggestions for improvement. Keep your analysis professional but friendly.\n\n{interview_text}"
+            }],
+            temperature=0.5,
+            max_tokens=800
+        )
+        
+        analysis = completion.choices[0].message.content.strip()
+        return {"analysis": analysis}
+    except Exception as e:
+        logging.error(f"Error analyzing interview: {str(e)}")
+        return {"analysis": f"Error analyzing interview: {str(e)}"}
+
+@router.post("/api/transcribe-audio")
+async def transcribe_audio(
+    file: UploadFile = File(...),
+    job_title: str = Form(...),
+    question_id: int = Form(...)
+):
+    """
+    This endpoint receives audio from the frontend, transcribes it to text,
+    and saves both the audio and transcription.
+    """
+    if not file:
+        raise HTTPException(status_code=400, detail="No audio file provided")
+    
+    if not job_title:
+        raise HTTPException(status_code=400, detail="Job title is required")
+    
+    if question_id is None:
+        raise HTTPException(status_code=400, detail="Question ID is required")
+    
+    # Create unique filenames
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    sanitized_title = "".join(c if c.isalnum() else "_" for c in job_title.lower())
+    temp_audio_path = f"temp_audio_{timestamp}.webm"
+    converted_audio_path = f"temp_audio_{timestamp}.wav"
+    
+    try:
+        # Read the audio file
+        audio_data = await file.read()
+        
+        # Save the uploaded file
+        with open(temp_audio_path, "wb") as temp_file:
+            temp_file.write(audio_data)
+        
+        # Convert the audio to WAV format for better compatibility with speech_recognition
+        try:
+            import subprocess
+            # Use ffmpeg to convert the audio to WAV format
+            subprocess.run([
+                'ffmpeg', '-i', temp_audio_path, 
+                '-ar', '16000', '-ac', '1', '-c:a', 'pcm_s16le', 
+                converted_audio_path
+            ], check=True)
+            logging.info(f"Successfully converted audio to WAV format: {converted_audio_path}")
+        except Exception as e:
+            logging.error(f"Error converting audio format: {e}")
+            # If conversion fails, we'll try to use the original file
+
+        # Save the permanent audio file
+        audio_filename = f"audio_{sanitized_title}_q{question_id}_{timestamp}.wav"
+        audio_path = os.path.join(ANSWERS_DIR, audio_filename)
+        
+        # Copy the file to permanent storage
+        source_path = converted_audio_path if os.path.exists(converted_audio_path) else temp_audio_path
+        with open(source_path, "rb") as source_file:
+            with open(audio_path, "wb") as audio_file:
+                audio_file.write(source_file.read())
+        
+        # Transcribe the audio - try multiple approaches
+        transcription = "Audio recorded, but transcription failed"
+        
+        # Try Google Speech Recognition first
+        try:
+            recognizer = sr.Recognizer()
+            
+            # Adjust recognition parameters for better results
+            recognizer.energy_threshold = 300
+            recognizer.dynamic_energy_threshold = True
+            recognizer.pause_threshold = 0.8
+            
+            audio_file_path = converted_audio_path if os.path.exists(converted_audio_path) else temp_audio_path
+            
+            with sr.AudioFile(audio_file_path) as source:
+                audio = recognizer.record(source)
+                logging.info("Audio file loaded successfully")
+                
+                # Try Google Speech Recognition
+                try:
+                    transcription = recognizer.recognize_google(audio)
+                    logging.info(f"Google transcription successful: {transcription}")
+                except sr.UnknownValueError:
+                    logging.warning("Google Speech Recognition could not understand audio")
+                    # Fall back to Sphinx (offline recognition) if Google fails
+                    try:
+                        transcription = recognizer.recognize_sphinx(audio)
+                        logging.info(f"Sphinx transcription: {transcription}")
+                    except Exception as sphinx_error:
+                        logging.error(f"Sphinx recognition also failed: {sphinx_error}")
+                except sr.RequestError as e:
+                    logging.error(f"Google Speech Recognition service error: {e}")
+        except Exception as e:
+            logging.error(f"Error in speech recognition: {e}")
+        
+        # Save the transcription to a file
+        answer_file_path = os.path.join(ANSWERS_DIR, f"answer_{sanitized_title}_q{question_id}.txt")
+        with open(answer_file_path, 'w') as file:
+            file.write(transcription)
+        
+        # Clean up temporary files
+        for path in [temp_audio_path, converted_audio_path]:
+            if os.path.exists(path):
+                os.remove(path)
+        
+        return {"transcription": transcription, "success": True}
+    
+    except Exception as e:
+        logging.error(f"Error processing audio: {e}")
+        # Clean up temporary files
+        for path in [temp_audio_path, converted_audio_path]:
+            if 'path' in locals() and os.path.exists(path):
+                os.remove(path)
+        raise HTTPException(status_code=500, detail=f"Error processing audio: {str(e)}")

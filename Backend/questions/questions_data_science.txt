@@ -1,0 +1,5 @@
+Tell me about your background and experience relevant to the data science role.
+What specific skills do you possess that make you a good candidate for this data science position?
+Describe a challenging situation you faced at work and how you resolved it.
+Why are you interested in this data science position?
+What are your career goals for the next 3-5 years?

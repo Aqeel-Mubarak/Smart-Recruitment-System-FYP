@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Video } from 'lucide-react';
+import { Video, Mic, MicOff, Send } from 'lucide-react';
 
 export default function MockInterview() {
   const [jobTitle, setJobTitle] = useState('');
@@ -12,8 +12,15 @@ export default function MockInterview() {
   const [gazeStatus, setGazeStatus] = useState(null);
   const [interviewStarted, setInterviewStarted] = useState(false);
   const [interviewEnded, setInterviewEnded] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioFeedback, setAudioFeedback] = useState('');
+  const [interviewAnalysis, setInterviewAnalysis] = useState('');
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  
   const videoRef = useRef(null);
   const socketRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
   // Get base API URL
   const getApiBaseUrl = () => {
@@ -256,7 +263,7 @@ export default function MockInterview() {
         clearInterval(intervalId);
       }
     };
-  }, [stream, interviewEnded, socketRef.current]);
+  }, [stream, interviewEnded]);
 
   // Clean up resources when component unmounts
   useEffect(() => {
@@ -274,35 +281,6 @@ export default function MockInterview() {
     };
   }, []);
 
-  const handleAnswerChange = (e) => {
-    const newAnswers = [...answers];
-    newAnswers[selectedQuestion] = e.target.value;
-    setAnswers(newAnswers);
-  };
-
-  const handleSubmit = () => {
-    if (!answers[selectedQuestion] || answers[selectedQuestion].trim() === "") {
-      setError("Please provide an answer before submitting.");
-      return;
-    }
-    
-    setError(null);
-    console.log("Answer submitted:", answers[selectedQuestion]);
-    
-    // Move to the next question if available
-    if (selectedQuestion < generatedQuestions.length - 1) {
-      setSelectedQuestion(selectedQuestion + 1);
-      
-      // Automatically speak the next question
-      setTimeout(() => {
-        speakQuestion(generatedQuestions[selectedQuestion + 1]);
-      }, 1000);
-    } else {
-      // If this was the last question, suggest ending the interview
-      alert("You've completed all the questions! You can now end the interview.");
-    }
-  };
-
   const startInterview = () => {
     if (!jobTitle || !jobTitle.trim()) {
       setError('Please enter a job title.');
@@ -312,6 +290,36 @@ export default function MockInterview() {
     setInterviewStarted(true);
     fetchQuestions(jobTitle); // Fetch questions from backend
     enableWebcam();
+  };
+
+  const analyzeInterview = async () => {
+    if (!jobTitle || !generatedQuestions.length) {
+      return;
+    }
+    
+    setAnalysisLoading(true);
+    
+    try {
+      const response = await fetch(`${getApiBaseUrl()}/api/analyze-interview`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          questions: generatedQuestions,
+          answers: answers.map(a => a || "Not answered"),
+          job_title: jobTitle
+        }),
+      });
+      
+      const data = await response.json();
+      setInterviewAnalysis(data.analysis || 'No analysis available');
+    } catch (error) {
+      console.error('Error analyzing interview:', error);
+      setInterviewAnalysis('Failed to analyze the interview.');
+    } finally {
+      setAnalysisLoading(false);
+    }
   };
 
   const endInterview = () => {
@@ -330,6 +338,153 @@ export default function MockInterview() {
     
     // Cancel any ongoing speech
     window.speechSynthesis.cancel();
+    
+    // Get analysis of the entire interview
+    analyzeInterview();
+  };
+
+  // Audio recording functions
+  const startRecording = async () => {
+    try {
+      setAudioFeedback('Initializing audio recording...');
+      
+      // Request microphone access
+      const audioStream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          channelCount: 1,
+          sampleRate: 16000,
+          echoCancellation: true,
+          noiseSuppression: true
+        } 
+      });
+      
+      // Create MediaRecorder with specific audio settings
+      const mediaRecorder = new MediaRecorder(audioStream, {
+        mimeType: 'audio/webm',  // More widely supported format
+        audioBitsPerSecond: 128000
+      });
+      
+      audioChunksRef.current = [];
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+      
+      mediaRecorder.onstart = () => {
+        setIsRecording(true);
+        setAudioFeedback('Recording... Speak your answer clearly');
+        audioChunksRef.current = [];
+      };
+      
+      mediaRecorder.onstop = async () => {
+        setIsRecording(false);
+        setAudioFeedback('Uploading and transcribing your answer...');
+        
+        // Create audio blob from recorded chunks
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        
+        // Create FormData for upload
+        const formData = new FormData();
+        formData.append('file', audioBlob, 'recording.webm');
+        formData.append('job_title', jobTitle);
+        formData.append('question_id', selectedQuestion);
+        
+        try {
+          // Upload to backend
+          const response = await fetch(`${getApiBaseUrl()}/api/transcribe-audio`, {
+            method: 'POST',
+            body: formData,
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Server responded with status: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          
+          // Update the answer with the transcription from backend
+          const newAnswers = [...answers];
+          newAnswers[selectedQuestion] = data.transcription;
+          setAnswers(newAnswers);
+          
+          setAudioFeedback('Transcription completed');
+          setTimeout(() => setAudioFeedback(''), 3000);
+        } catch (error) {
+          console.error('Error uploading audio:', error);
+          setAudioFeedback(`Failed to process audio: ${error.message}`);
+        }
+        
+        // Stop all audio tracks
+        audioStream.getTracks().forEach(track => track.stop());
+      };
+      
+      // Store the media recorder for stopping later
+      mediaRecorderRef.current = mediaRecorder;
+      
+      // Start recording
+      mediaRecorder.start();
+    } catch (error) {
+      console.error('Error starting audio recording:', error);
+      setAudioFeedback(`Recording failed: ${error.message}`);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+    }
+  };
+
+  const getAnswerFeedback = async () => {
+    if (!answers[selectedQuestion]) {
+      setAudioFeedback('No answer to analyze');
+      return;
+    }
+    
+    setAudioFeedback('Analyzing your answer...');
+    
+    try {
+      const response = await fetch(`${getApiBaseUrl()}/api/analyze-answer`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          question: generatedQuestions[selectedQuestion],
+          answer: answers[selectedQuestion],
+          job_title: jobTitle
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Display the feedback
+      setAudioFeedback(data.feedback || 'No feedback available');
+    } catch (error) {
+      console.error('Error getting answer feedback:', error);
+      setAudioFeedback(`Couldn't analyze answer: ${error.message}`);
+    }
+  };
+
+  const moveToNextQuestion = () => {
+    if (selectedQuestion < generatedQuestions.length - 1) {
+      setSelectedQuestion(selectedQuestion + 1);
+      
+      // Automatically speak the next question
+      setTimeout(() => {
+        speakQuestion(generatedQuestions[selectedQuestion + 1]);
+      }, 1000);
+    } else {
+      // If this was the last question, suggest ending the interview
+      setAudioFeedback("You've completed all the questions! You can now end the interview.");
+      setTimeout(() => setAudioFeedback(''), 5000);
+    }
   };
 
   return (
@@ -376,6 +531,17 @@ export default function MockInterview() {
               </div>
             ))}
           </div>
+          
+          {/* Interview Analysis Section */}
+          <div style={{ textAlign: 'left', marginTop: '20px', padding: '20px', border: '1px solid #ddd', borderRadius: '5px', backgroundColor: '#f9f9f9' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px' }}>Interview Analysis</h2>
+            {analysisLoading ? (
+              <p>Analyzing your interview, please wait...</p>
+            ) : (
+              <div style={{ whiteSpace: 'pre-line' }}>{interviewAnalysis}</div>
+            )}
+          </div>
+          
           <button
             onClick={() => {
               setInterviewEnded(false);
@@ -384,6 +550,7 @@ export default function MockInterview() {
               setAnswers([]);
               setSelectedQuestion(0);
               setError(null);
+              setInterviewAnalysis('');
             }}
             style={{
               marginTop: '20px',
@@ -454,21 +621,121 @@ export default function MockInterview() {
                   <p>{generatedQuestions[selectedQuestion]}</p>
                 </div>
                 
-                <button
-                  onClick={() => speakQuestion(generatedQuestions[selectedQuestion])}
-                  style={{
-                    padding: '10px 15px',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    backgroundColor: '#28A745',
-                    color: 'white',
-                    border: 'none',
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '20px' }}>
+                  <button
+                    onClick={() => speakQuestion(generatedQuestions[selectedQuestion])}
+                    style={{
+                      padding: '10px 15px',
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      backgroundColor: '#28A745',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '5px'
+                    }}
+                  >
+                    Read Question Aloud
+                  </button>
+                  
+                  {!isRecording && !answers[selectedQuestion] ? (
+                    <button
+                      onClick={startRecording}
+                      style={{
+                        padding: '10px 15px',
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        backgroundColor: '#17a2b8',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '5px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px'
+                      }}
+                    >
+                      <Mic size={16} /> Record Answer
+                    </button>
+                  ) : isRecording ? (
+                    <button
+                      onClick={stopRecording}
+                      style={{
+                        padding: '10px 15px',
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        backgroundColor: '#dc3545',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '5px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px'
+                      }}
+                    >
+                      <MicOff size={16} /> Stop Recording
+                    </button>
+                  ) : (
+                    <button
+                      onClick={moveToNextQuestion}
+                      style={{
+                        padding: '10px 15px',
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        backgroundColor: '#007BFF',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '5px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px'
+                      }}
+                    >
+                      <Send size={16} /> Next Question
+                    </button>
+                  )}
+                </div>
+                
+                {audioFeedback && (
+                  <div style={{
+                    padding: '10px',
+                    marginBottom: '15px',
+                    backgroundColor: isRecording ? '#d4edda' : '#f8d7da',
+                    color: isRecording ? '#155724' : '#721c24',
                     borderRadius: '5px',
-                    marginBottom: '20px'
-                  }}
-                >
-                  Read Question Aloud
-                </button>
+                    fontSize: '14px'
+                  }}>
+                    {audioFeedback}
+                  </div>
+                )}
+                
+                {answers[selectedQuestion] && (
+                  <div style={{
+                    padding: '15px',
+                    marginBottom: '15px',
+                    backgroundColor: '#e9ecef',
+                    borderRadius: '5px',
+                    fontSize: '14px'
+                  }}>
+                    <p style={{ fontWeight: 'bold' }}>Your Answer:</p>
+                    <p>{answers[selectedQuestion]}</p>
+                    
+                    {/* Add feedback button */}
+                    <button
+                      onClick={getAnswerFeedback}
+                      style={{
+                        padding: '5px 15px',
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        backgroundColor: '#6c757d',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '5px',
+                        marginTop: '10px'
+                      }}
+                    >
+                      Get AI Feedback
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div style={{ textAlign: 'center', marginBottom: '20px' }}>
@@ -492,7 +759,7 @@ export default function MockInterview() {
           </div>
 
           <div style={{ marginTop: '20px', padding: '20px', border: '1px solid #ddd', borderRadius: '5px', backgroundColor: '#fff' }}>
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px', justifyContent: 'space-between' }}>
               <button
                 onClick={enableWebcam}
                 style={{ 
@@ -508,56 +775,21 @@ export default function MockInterview() {
               >
                 <Video size={20} /> Restart Webcam
               </button>
+              
+              <button
+                onClick={endInterview}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#FF5733',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer'
+                }}
+              >
+                End Interview
+              </button>
             </div>
-
-            {generatedQuestions.length > 0 && (
-              <>
-                <textarea
-                  placeholder="Type your answer here..."
-                  value={answers[selectedQuestion] || ''}
-                  onChange={handleAnswerChange}
-                  style={{ 
-                    width: '100%', 
-                    height: '120px', 
-                    padding: '10px', 
-                    border: '1px solid #ccc', 
-                    borderRadius: '5px',
-                    marginBottom: '10px'
-                  }}
-                ></textarea>
-                
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button
-                    onClick={handleSubmit}
-                    style={{ 
-                      padding: '10px 20px', 
-                      backgroundColor: '#007BFF', 
-                      color: '#fff', 
-                      border: 'none', 
-                      borderRadius: '5px', 
-                      cursor: 'pointer' 
-                    }}
-                  >
-                    {selectedQuestion < generatedQuestions.length - 1 ? 'Submit & Next Question' : 'Submit Answer'}
-                  </button>
-                  
-                  <button
-                    onClick={endInterview}
-                    style={{
-                      padding: '10px 20px',
-                      backgroundColor: '#FF5733',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '5px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    End Interview
-                  </button>
-                </div>
-              </>
-            )}
-            
             {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
           </div>
         </div>

@@ -1,0 +1,11 @@
+Here are five interview questions for a Data Science position:
+**What is your approach to handling missing data in a dataset, and how do you decide which method to use (e.g., mean imputation, regression imputation, etc.)? Can you give an example of a project where you had to handle missing data?**
+This question assesses the candidate's understanding of data preprocessing techniques and their ability to think critically about data quality issues.
+**How do you evaluate the performance of a machine learning model, and what metrics do you use to compare the performance of different models? Can you explain the difference between precision, recall, and F1 score?**
+This question evaluates the candidate's knowledge of machine learning evaluation metrics and their ability to compare and contrast different models.
+**Suppose you are given a large dataset with millions of rows and multiple features. How would you approach feature selection, and what techniques would you use to reduce the dimensionality of the data (e.g., PCA, t-SNE, etc.)?**
+This question tests the candidate's understanding of feature selection and dimensionality reduction techniques, as well as their ability to think about the trade-offs between different approaches.
+**Can you explain the concept of overfitting in machine learning, and how do you prevent it from occurring in your models? What techniques do you use to regularize models and prevent overfitting (e.g., L1/L2 regularization, dropout, etc.)?**
+This question assesses the candidate's understanding of overfitting and their ability to prevent it using various regularization techniques.
+**Suppose you are tasked with building a predictive model to forecast sales for a company. How would you approach this problem, and what data would you need to collect to build an effective model? Can you walk me through your thought process and the steps you would take to build and deploy the model?**
+This question evaluates the candidate's ability to think critically about a business problem and develop a data-driven solution. It also assesses their understanding of the data science workflow, from data collection to model deployment.
