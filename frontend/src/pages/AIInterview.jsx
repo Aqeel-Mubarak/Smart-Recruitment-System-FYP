@@ -492,7 +492,7 @@ export default function MockInterview() {
       {!interviewStarted && !interviewEnded ? (
         <div style={{ textAlign: 'center' }}>
           <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '20px' }}>Job Interview</h1>
-          <p style={{ fontSize: '16px', marginBottom: '20px' }}>Please enter the job title you're applying for:</p>
+          <p style={{ fontSize: '16px', marginBottom: '20px' }}>Please enter the job role you're applying for:</p>
           <input
             type="text"
             value={jobTitle}
