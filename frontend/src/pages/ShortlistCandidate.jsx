@@ -4,6 +4,8 @@ import Navbarapp from '../components/Navbarapp';
 import Sidebar from '../components/Sidebar';
 import axios from 'axios';
 import Select from "react-select";
+import { motion, AnimatePresence } from "framer-motion";
+import { AlertCircle, FileText, LineChart, RefreshCw, Search, FileSpreadsheet, X } from 'lucide-react';
 
 // Import Recharts components for the vertical bar chart
 import {
@@ -89,6 +91,16 @@ const ShortlistCandidate = () => {
   const [downloaded, setDownloaded] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [analyzing, setAnalyzing] = useState(false); // New state for analyzing
+  const [filterComplete, setFilterComplete] = useState(false);
+
+  // State for analysis modal
+  const [analysisModal, setAnalysisModal] = useState({
+    isOpen: false,
+    type: null,
+    result: null,
+    candidateName: null,
+    loading: false
+  });
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const navigate = useNavigate();
@@ -183,7 +195,9 @@ const ShortlistCandidate = () => {
   // Filter candidates based on specific requirements.
   const handlePromptSearch = async () => {
     if (!prompt.trim() || !selectedOption) return;
-    setAnalyzing(true); // Set analyzing to true on click
+    setAnalyzing(true); 
+    setFilterComplete(false); // Reset filter status when starting new search
+
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) {
@@ -205,71 +219,79 @@ const ShortlistCandidate = () => {
       setFilteredCandidates(filteredResults);
       setActiveFilter(prompt);
       setPrompt('');
+      setFilterComplete(true); // Set filter as complete on success
     } catch (error) {
       console.error('Error filtering candidates:', error);
+      alert("Error filtering candidates. Please try again.");
+      setFilterComplete(false);
     } finally {
-      setAnalyzing(false); // Reset analyzing state after completion
+      setAnalyzing(false); 
     }
   };
 
-  // Generate analysis for a candidate.
-  const handleViewAnalysis = async (candidateId, resumeText, analysisType) => {
-    setFilteredCandidates((prev) =>
-      prev.map((candidate) => {
-        if (candidate.id === candidateId) {
-          return analysisType === "prompt"
-            ? { ...candidate, loadingPrompt: true }
-            : { ...candidate, loadingJob: true };
-        }
-        return candidate;
-      })
-    );
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      console.error('No access token found in local storage');
-      return;
-    }
-    const payload = {
-      candidate_id: candidateId,
-      resume_text: resumeText,
-      analysis_type: analysisType,
-      prompt: analysisType === "prompt" ? activeFilter : "",
-      job_description_id: analysisType === "job" && selectedOption ? selectedOption.value : null,
-    };
+  // Handle analysis view
+  const handleViewAnalysis = async (candidateId, resumeText, type) => {
+    setAnalysisModal({
+      isOpen: true,
+      type,
+      result: null,
+      candidateName: filteredCandidates.find(c => c.id === candidateId)?.name,
+      loading: true
+    });
+
     try {
       const response = await axios.post(
         `${API_BASE_URL}/analyze_candidate`,
-        payload,
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          candidate_id: candidateId,
+          resume_text: resumeText,
+          analysis_type: type,
+          prompt: type === "prompt" ? activeFilter : "",
+          job_description_id: type === "job" && selectedOption ? selectedOption.value : null,
+        }
       );
-      setFilteredCandidates((prev) =>
-        prev.map((candidate) => {
-          if (candidate.id === candidateId) {
-            return analysisType === "prompt"
-              ? { ...candidate, promptAnalysis: response.data.analysis, loadingPrompt: false }
-              : { ...candidate, jobAnalysis: response.data.analysis, loadingJob: false };
-          }
-          return candidate;
-        })
-      );
+
+      setAnalysisModal(prev => ({
+        ...prev,
+        result: response.data.analysis,
+        loading: false
+      }));
     } catch (error) {
-      console.error('Error generating analysis:', error);
-      setFilteredCandidates((prev) =>
-        prev.map((candidate) =>
-          candidate.id === candidateId
-            ? analysisType === "prompt"
-              ? { ...candidate, loadingPrompt: false }
-              : { ...candidate, loadingJob: false }
-            : candidate
-        )
-      );
+      console.error('Error analyzing resume:', error);
+      setAnalysisModal(prev => ({
+        ...prev,
+        result: 'Error analyzing resume. Please try again.',
+        loading: false
+      }));
     }
   };
 
   // Remove active prompt filter.
-  const removeFilter = () => {
-    setActiveFilter('');
-    setFilteredCandidates(candidates);
+  const removeFilter = async () => {
+    setActiveFilter("");
+    setFilterComplete(false);
+    setFilteredCandidates([]);
+    // Reload candidates for current job
+    if (selectedOption) {
+      try {
+        const token = localStorage.getItem("accessToken");
+        const response = await fetch(
+          `${API_BASE_URL}/get_candidates/${selectedOption.value}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch candidates");
+        }
+        const data = await response.json();
+        setFilteredCandidates(data);
+      } catch (error) {
+        console.error("Error fetching candidates:", error);
+      }
+    }
   };
 
   // Toggle checkbox selection.
@@ -283,6 +305,18 @@ const ShortlistCandidate = () => {
       }
       return newChecked;
     });
+  };
+
+  // Handle select all checkbox
+  const handleSelectAll = () => {
+    if (checkedCandidates.size === filteredCandidates.length) {
+      // If all are selected, clear the selection
+      setCheckedCandidates(new Set());
+    } else {
+      // Otherwise, select all candidates
+      const allIds = new Set(filteredCandidates.map(candidate => candidate.id));
+      setCheckedCandidates(allIds);
+    }
   };
 
   // Schedule interview for selected candidates.
@@ -403,217 +437,304 @@ const ShortlistCandidate = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
-      {/* Static Navbar */}
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-indigo-50 to-white">
       <Navbarapp />
 
-      {/* Working Window: Only this area scrolls */}
-      <div className="flex flex-1 pt-20 overflow-auto">
-        {/* Fixed Sidebar */}
-        <aside className="fixed left-0 top-16 w-[19%] h-screen overflow-y-auto overflow-x-hidden bg-white shadow-lg">
-          <Sidebar />
-        </aside>
+      <motion.aside 
+        className="fixed left-0 top-16 w-[19%] h-screen overflow-y-auto overflow-x-hidden bg-white/80 backdrop-blur-lg shadow-lg z-40"
+        initial={{ x: -100 }}
+        animate={{ x: 0 }}
+        transition={{ type: "spring", stiffness: 100 }}
+      >
+        <Sidebar />
+      </motion.aside>
 
-        {/* Main Content Area: Offset by sidebar width */}
-        <main className="ml-[20%] w-[80%] p-6 space-y-6">
-          {/* Top Row: Job Title/Description & Chart/Filtering */}
-          <div className="flex flex-col md:flex-row gap-6">
-            {/* Left Column (≈75%): Job Title, Description & Requirement Filter */}
-            <div className="w-full md:w-3/4 space-y-4">
-              {/* Job Title Label and Dropdown */}
-              <div>
-                <label className="block text-large font-bold text-gray-700 mb-1">Job Title</label>
-                <Select
-                  styles={customSelectStyles}
-                  options={jobs}
-                  value={selectedOption}
-                  onChange={(option) => {
-                    setSelectedOption(option);
-                  }}
-                  placeholder="Select a job..."
-                />
-              </div>
-              {/* Job Description Label and Field */}
-              <div>
-                <label className="block text-large font-bold text-gray-700 mb-1">Job Description</label>
-                <textarea
-                  readOnly
-                  value={selectedOption ? selectedOption.description : ''}
-                  placeholder="Job description will appear here..."
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm h-32 p-2 resize-none overflow-y-auto"
-                />
-              </div>
-              {/* Specific Requirement Input & Filter Button */}
-              <div className="flex space-x-4">
+      <motion.main 
+        className="ml-[19%] mt-16 p-6 md:p-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="flex items-center gap-3 mb-6">
+          <FileSpreadsheet className="w-8 h-8 text-indigo-600" />
+          <h1 className="font-bold text-2xl text-gray-800">Shortlist Candidates</h1>
+        </div>
+
+        {/* Top Row: Job Title/Description & Chart/Filtering */}
+        <div className="flex flex-col md:flex-row gap-6 mb-6">
+          {/* Left Column (≈60%): Job Title, Description & Requirement Filter */}
+          <div className="w-full md:w-3/5 space-y-4">
+            {/* Job Title Label and Dropdown */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Select
+                styles={{
+                  control: (base, state) => ({
+                    ...base,
+                    minHeight: 45,
+                    paddingLeft: 35,
+                    background: 'rgba(255, 255, 255, 0.8)',
+                    backdropFilter: 'blur(10px)',
+                    borderRadius: '0.75rem',
+                    border: state.isFocused ? '2px solid #4F46E5' : '1px solid #E2E8F0',
+                    boxShadow: state.isFocused ? '0 0 0 2px rgba(79, 70, 229, 0.1)' : 'none',
+                    '&:hover': { borderColor: '#4F46E5' }
+                  }),
+                  menu: base => ({
+                    ...base,
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    backdropFilter: 'blur(10px)',
+                    borderRadius: '0.75rem',
+                    border: '1px solid #E2E8F0'
+                  }),
+                  option: (base, state) => ({
+                    ...base,
+                    backgroundColor: state.isSelected ? '#4F46E5' : state.isFocused ? 'rgba(79, 70, 229, 0.1)' : 'transparent',
+                    color: state.isSelected ? 'white' : '#1F2937'
+                  })
+                }}
+                options={jobs}
+                value={selectedOption}
+                onChange={(option) => setSelectedOption(option)}
+                placeholder="Select a job..."
+              />
+            </div>
+            {/* Job Description Label and Field */}
+            <div>
+              <textarea
+                readOnly
+                value={selectedOption ? selectedOption.description : ''}
+                placeholder="Job description will appear here..."
+                className="w-full h-32 p-4 rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+              />
+            </div>
+            {/* Specific Requirement Input & Filter Button */}
+            <div className="space-y-4">
+              <div className="flex gap-3">
                 <input
                   type="text"
                   placeholder="Enter your specific requirements"
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  className="flex-1 p-3 border rounded"
+                  className="flex-1 h-11 px-4 rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
                 <button
                   onClick={handlePromptSearch}
                   disabled={analyzing}
-                  className="bg-black text-white px-4 py-2 rounded"
+                  className="px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors flex items-center gap-2"
                 >
-                  {analyzing ? "Analyzing Candidates" : "Analyze Candidates"}
+                  {analyzing ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    "Analyze Candidates"
+                  )}
                 </button>
               </div>
-            </div>
-
-            {/* Right Column (≈25%): Vertical Bar Chart */}
-            <div className="w-full md:w-2/4">
-              <div className="rounded-lg shadow p-4 h-64">
-                <h2 className="text-2xl font-bold text-center mb-2">{graphTitle}</h2>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="range"
-                      label={{ value: "Score Range", position: "insideBottom", offset: -3, fill: "#000", fontWeight: "bold", fontSize: 14 }}
-                    />
-                    <YAxis
-                      allowDecimals={false}
-                      label={{ value: "Candidates", angle: -90, position: "insideLeft", fill: "#000", fontWeight: "bold", fontSize: 14 }}
-                    />
-                    <Tooltip />
-                    <Bar dataKey="count">
-                      {chartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={barColors[entry.range]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              {filterComplete && activeFilter && (
+                <div className="flex items-center gap-2 bg-indigo-50 p-3 rounded-lg">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-600">Active Filter:</p>
+                    <p className="text-indigo-700">{activeFilter}</p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      setActiveFilter("");
+                      setFilterComplete(false);
+                      setFilteredCandidates([]);
+                      // Reload candidates for current job
+                      if (selectedOption) {
+                        try {
+                          const token = localStorage.getItem("accessToken");
+                          const response = await fetch(
+                            `${API_BASE_URL}/get_candidates/${selectedOption.value}`,
+                            {
+                              headers: {
+                                Authorization: `Bearer ${token}`,
+                              },
+                            }
+                          );
+                          if (!response.ok) {
+                            throw new Error("Failed to fetch candidates");
+                          }
+                          const data = await response.json();
+                          setFilteredCandidates(data);
+                        } catch (error) {
+                          console.error("Error fetching candidates:", error);
+                        }
+                      }
+                    }}
+                    className="text-red-600 hover:text-red-700 p-1"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Bottom Row: Candidate Table */}
-          <div className="bg-white rounded-lg shadow p-6">
-            {activeFilter && (
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold mb-2">Active Filter:</h3>
-                <div className="flex items-center gap-2">
-                  <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
-                    {activeFilter}
-                    <button
-                      onClick={removeFilter}
-                      className="hover:bg-purple-200 rounded-full w-5 h-5 flex items-center justify-center"
-                    >
-                      ×
-                    </button>
-                  </span>
-                </div>
-              </div>
-            )}
-            <div className="overflow-x-auto">
-              <table className="table-fixed w-full border-collapse">
-                <thead>
-                  <tr className="bg-purple-800 text-white">
-                    <th className="border p-3 w-12"></th>
-                    <th className="border p-3 text-left">Candidate Name</th>
-                    <th className="border p-3 text-left">Job Relevancy Score</th>
-                    <th className="border p-3 text-left">Prompt Relevancy Rank</th>
-                    <th className="border p-3 text-left">Analysis</th>
-                    <th className="border p-3 text-left">Resume</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredCandidates.length === 0 ? (
-                    <tr>
-                      <td colSpan="5" className="text-center p-3 text-gray-500">
-                        No candidates found based on your requirements.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredCandidates.map((candidate) => (
-                      <tr
-                        key={candidate.id}
-                        className="bg-gray-700 text-white hover:bg-gray-600 transition-colors"
-                      >
-                        <td className="border p-3 text-center">
+          {/* Right Column (≈40%): Vertical Bar Chart */}
+          <div className="w-full md:w-2/5">
+            <div className="h-full p-4 rounded-xl bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4 text-center">{graphTitle}</h2>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="range" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Bar dataKey="count">
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={barColors[Object.keys(barColors)[index]]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Row: Candidate Table */}
+        <motion.div 
+          layout
+          className="bg-white/80 backdrop-blur-lg shadow-lg rounded-xl overflow-hidden border border-gray-100"
+        >
+          <AnimatePresence mode="wait">
+            {!filteredCandidates.length ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-col items-center justify-center p-8 min-h-[200px]"
+              >
+                <AlertCircle className="w-8 h-8 text-gray-400" />
+                <p className="mt-4 text-gray-600">No candidates found</p>
+              </motion.div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead>
+                    <tr className="bg-indigo-600 text-white">
+                      <th className="px-6 py-4 text-left">
+                        <div className="flex items-center gap-3">
                           <input
                             type="checkbox"
-                            className="form-checkbox h-5 w-5 text-green-600"
-                            checked={checkedCandidates.has(candidate.id)}
-                            onChange={() => handleCheckboxChange(candidate.id)}
+                            checked={checkedCandidates.size === filteredCandidates.length}
+                            onChange={handleSelectAll}
+                            className="w-4 h-4 rounded border-white/30 bg-white/10 text-white focus:ring-0 focus:ring-offset-0"
                           />
+                          <span className="text-sm font-semibold">Candidate</span>
+                        </div>
+                      </th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold">Score</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold">Match</th>
+                      {filterComplete && (
+                        <th className="px-6 py-4 text-left text-sm font-semibold">Prompt Rank</th>
+                      )}
+                      <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 bg-transparent">
+                    {filteredCandidates.map((candidate, index) => (
+                      <motion.tr 
+                        key={candidate.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="hover:bg-indigo-50/50 transition-colors"
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-4">
+                            <input
+                              type="checkbox"
+                              checked={checkedCandidates.has(candidate.id)}
+                              onChange={() => handleCheckboxChange(candidate.id)}
+                              className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <div>
+                              <p className="font-medium text-gray-900">{candidate.name}</p>
+                              <p className="text-sm text-gray-500">{candidate.email}</p>
+                            </div>
+                          </div>
                         </td>
-                        <td className="border justify-center p-3">{candidate.name}</td>
-                        <td className="border text-center p-3">{candidate.score || 'N/A'}%</td>
-                        <td className="border text-center p-3">{candidate.rank || 'N/A'}</td>
-                        <td className="border p-3 text-sm">
-                          <div className="flex flex-col gap-2">
-                            {!candidate.promptAnalysis && (
+                        <td className="px-6 py-4">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                            {candidate.score}%
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            candidate.score >= 60
+                              ? 'bg-green-100 text-green-800'
+                              : candidate.score >= 50
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {candidate.score >= 60
+                              ? 'High Match'
+                              : candidate.score >= 50
+                              ? 'Medium Match'
+                              : 'Low Match'}
+                          </span>
+                        </td>
+                        {filterComplete && (
+                          <td className="px-6 py-4">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                              #{candidate.rank || 'N/A'}
+                            </span>
+                          </td>
+                        )}
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => handleViewResume(candidate)}
+                              className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 font-medium text-sm"
+                            >
+                              <FileText className="w-4 h-4" />
+                              View Resume
+                            </button>
+                            <button
+                              onClick={() => handleViewAnalysis(candidate.id, candidate.resume_text, "job")}
+                              className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 font-medium text-sm"
+                            >
+                              <LineChart className="w-4 h-4" />
+                              Job Analysis
+                            </button>
+                            {filterComplete && (
                               <button
-                                className="bg-blue-500 text-white px-2 py-1 text-sm rounded hover:bg-blue-700 transition"
-                                onClick={() =>
-                                  handleViewAnalysis(candidate.id, candidate.resume_text, "prompt")
-                                }
+                                onClick={() => handleViewAnalysis(candidate.id, candidate.resume_text, "prompt")}
+                                className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 font-medium text-sm"
                               >
-                                View Prompt Analysis
-                              </button>
-                            )}
-                            {!candidate.jobAnalysis && (
-                              <button
-                                className="bg-blue-500 text-white px-2 py-1 text-sm rounded hover:bg-blue-700 transition"
-                                onClick={() =>
-                                  handleViewAnalysis(candidate.id, candidate.resume_text, "job")
-                                }
-                              >
-                                View Job Analysis
+                                <LineChart className="w-4 h-4" />
+                                Prompt Analysis
                               </button>
                             )}
                           </div>
-                          {candidate.loadingPrompt && (
-                            <p className="mt-2 text-sm">Loading Prompt Analysis...</p>
-                          )}
-                          {candidate.loadingJob && (
-                            <p className="mt-2 text-sm">Loading Job Analysis...</p>
-                          )}
-                          {candidate.promptAnalysis && (
-                            <div className="mt-2">
-                              <p className="font-bold text-sm">Prompt Analysis:</p>
-                              {renderAnalysisText(candidate.promptAnalysis)}
-                            </div>
-                          )}
-                          {candidate.jobAnalysis && (
-                            <div className="mt-2">
-                              <p className="font-bold text-sm">Job Analysis:</p>
-                              {renderAnalysisText(candidate.jobAnalysis)}
-                            </div>
-                          )}
                         </td>
-                        <td className="border p-3 text-sm">
-                          <button
-                            className="bg-blue-500 text-white px-2 py-1 text-sm rounded hover:bg-blue-700 transition"
-                            onClick={() => handleViewResume(candidate)}
-                          >
-                            View Resume
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </AnimatePresence>
+        </motion.div>
 
-          {/* Schedule Interview Button */}
-          <div className="flex justify-center mt-4">
-            <button
-              onClick={handleEmail}
-              className="w-1/5 bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition"
-            >
-              Schedule Interview
-            </button>
-          </div>
-        </main>
-      </div>
+        {/* Schedule Interview Button */}
+        <div className="flex justify-center mt-6">
+          <button
+            onClick={handleEmail}
+            className="px-8 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium"
+          >
+            Schedule Interview
+          </button>
+        </div>
+      </motion.main>
+
       {(showPopup && URL && Type === "pdf") && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-4 rounded-lg shadow-lg w-[80%] h-[80%]">
             <button className="bg-red-500 text-white px-2 py-1 rounded mb-2" onClick={() => setShowPopup(false)}>Close</button>
             <iframe src={URL} allow="fullscreen" className="w-full h-full" title="Resume" />
@@ -621,7 +742,7 @@ const ShortlistCandidate = () => {
         </div>
       )}
       {showPopup && URL && (Type === "doc/docx") && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-[80%] max-w-md text-center">
             {!downloaded ? (
               <>
@@ -667,6 +788,70 @@ const ShortlistCandidate = () => {
               </>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Analysis Modal */}
+      {analysisModal.isOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl p-6 max-w-2xl w-full mx-4"
+          >
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800">
+                  {analysisModal.type === 'job' ? 'Job Analysis' : 'Prompt Analysis'}
+                </h2>
+                <p className="text-gray-500 mt-1">
+                  Analysis for {analysisModal.candidateName}
+                </p>
+              </div>
+              <button
+                onClick={() => setAnalysisModal(prev => ({ ...prev, isOpen: false }))}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+              >
+                <X className="w-4 h-4" />
+                Close
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {analysisModal.loading ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <RefreshCw className="w-8 h-8 animate-spin text-indigo-600 mb-3" />
+                  <p className="text-gray-600 font-medium">Analyzing resume...</p>
+                  <p className="text-gray-500 text-sm">This may take a few moments</p>
+                </div>
+              ) : (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-gradient-to-br from-white to-indigo-50/50 rounded-lg p-6 shadow-sm"
+                >
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="p-2 bg-indigo-100 rounded-lg">
+                      <LineChart className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800">Analysis Results</h3>
+                      <p className="text-sm text-gray-500">
+                        {analysisModal.type === 'job' 
+                          ? 'Evaluation based on job requirements'
+                          : 'Evaluation based on specific prompt'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="prose prose-indigo max-w-none">
+                    <p className="text-gray-700 whitespace-pre-line leading-relaxed">
+                      {analysisModal.result}
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
         </div>
       )}
     </div>

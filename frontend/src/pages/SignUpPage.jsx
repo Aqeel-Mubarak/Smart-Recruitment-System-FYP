@@ -1,12 +1,109 @@
-
 import React, {useState} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import backgroundImage from '../assets/background2.jpg';
 import logo from '../assets/logo.jpg';
 import Navbar from '../components/Navbar';
 import axios from 'axios';
+import { motion, AnimatePresence } from 'framer-motion';
+import { fadeIn, slideUp, formFieldVariants, buttonVariants } from '../components/animations';
+import { UserPlus, Loader2, CheckCircle, XCircle, Mail } from 'lucide-react';
 
+const Modal = ({ message, onClose, status }) => {
+  return (
+    <AnimatePresence>
+      <motion.div 
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <motion.div 
+          className="bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl w-[90%] max-w-md"
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.5, opacity: 0 }}
+          transition={{ type: "spring", duration: 0.5 }}
+        >
+          <motion.div 
+            className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6 ${
+              status === 'success' ? 'bg-green-100' : 'bg-red-100'
+            }`}
+            initial={{ rotate: 180, scale: 0 }}
+            animate={{ rotate: 0, scale: 1 }}
+            transition={{ type: "spring", duration: 0.5 }}
+          >
+            {status === 'success' ? (
+              <CheckCircle className="w-10 h-10 text-green-600" />
+            ) : (
+              <XCircle className="w-10 h-10 text-red-600" />
+            )}
+          </motion.div>
 
+          <motion.h2
+            className={`text-2xl font-bold text-center mb-2 ${
+              status === 'success' ? 'text-green-600' : 'text-red-600'
+            }`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            {status === 'success' ? 'Success!' : 'Error'}
+          </motion.h2>
+
+          <motion.p
+            className="text-center text-gray-600 mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            {message}
+          </motion.p>
+
+          {status === 'success' && (
+            <>
+              <motion.div
+                className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                <motion.div
+                  className="h-full bg-green-500 rounded-full"
+                  initial={{ width: "0%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: 2, ease: "easeInOut" }}
+                />
+              </motion.div>
+
+              <motion.p
+                className="text-sm text-center text-gray-500 mb-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                Redirecting to sign in...
+              </motion.p>
+            </>
+          )}
+
+          <motion.button
+            className={`w-full py-3 px-6 rounded-lg font-medium shadow-lg flex items-center justify-center gap-2 ${
+              status === 'success' 
+                ? 'bg-green-600 hover:bg-green-700 focus:ring-green-300' 
+                : 'bg-red-600 hover:bg-red-700 focus:ring-red-300'
+            } text-white focus:ring-4 transition-all`}
+            onClick={onClose}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            {status === 'success' ? 'Sign In' : 'Try Again'}
+          </motion.button>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -22,7 +119,6 @@ const SignupPage = () => {
     password: "",
   });
 
-  // Handle form input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -31,264 +127,281 @@ const SignupPage = () => {
     });
   };
 
+  const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [showPopup, setShowPopup] = useState(false);
+  const [status, setStatus] = useState(null); // 'success' or 'error'
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  // Handle form submission
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
+    setIsLoading(true);
     try {
       const response = await axios.post(`${API_BASE_URL}/signup`, formData, {
         headers: {
-          "Content-Type": "multipart/form-data", // Required for FormData
+          "Content-Type": "multipart/form-data",
         },
       });
 
-      setSuccessMessage("Signup successful!");
-      setErrorMessage("");
-      console.log("Response:", response.data);
+      setSuccessMessage("Account created successfully! Please sign in to continue.");
+      setStatus('success');
       setShowPopup(true);
+      setTimeout(() => {
+        navigate('/');
+      }, 2500);
     } catch (error) {
       if (error.response && error.response.status === 409) {
         setErrorMessage("Email is already registered.");
       } else {
         setErrorMessage("An error occurred during signup.");
       }
-      setSuccessMessage(""); // Clear any previous success message
-      console.error("Error:", error);
+      setStatus('error');
+      setShowPopup(true);
+      setSuccessMessage("");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleSignIn = () => {
-    navigate('/'); // Redirect to Login page
+    if (status === 'success') {
+      navigate('/');
+    } else {
+      setShowPopup(false);
+    }
   };
 
   return (
-    <div className="h-screen flex flex-col overflow-y-auto">
+    <motion.div 
+      className="min-h-screen overflow-y-auto bg-gray-50"
+      initial="initial"
+      animate="animate"
+      variants={fadeIn}
+    >
       <Navbar />
 
-      {/* Main Content */}
-      <div className={`h-screen flex flex-col overflow-y-auto ${showPopup ? 'blur-sm' : ''}`}>
-        {/* Full-Width Background Image */}
-        <div
-          className="absolute inset-0 bg-cover bg-center"
+      <div className="relative min-h-screen py-20 px-4">
+        <motion.div
+          className="absolute inset-0 bg-cover bg-center bg-fixed"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1 }}
           style={{
             backgroundImage: `url(${backgroundImage})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'top center',
-            backgroundRepeat: 'no-repeat',
-            minHeight: '100%',
           }}
         />
 
-        {/* Signup Form */}
-        <div className="relative z-10 w-full md:w-[calc(25%+.7in)] bg-white p-4 pl-4 pr-8 shadow-lg rounded-lg max-w-lg ml-[.8in] mt-24 mb-8">
-          <p className='text-red-500 font-bold'>{errorMessage}</p>
-          <h1 className="text-3xl font-bold mb-2 text-left" style={{ color: '#000000' }}>Sign up</h1>
-          <form onSubmit={handleSubmit}>
-            {/* First Name */}
-            <div className="mb-2">
-              <label className="block text-gray-700 text-xs font-bold mb-1" htmlFor="firstName">
-                First Name
-              </label>
-              <input
-                name="first_name"
-                className="shadow border rounded w-full py-1 px-2 text-gray-700 focus:outline-none focus:shadow-outline text-xs"
-                id="firstName"
-                type="text"
-                placeholder="First Name"
-                value={formData.first_name}
-                onChange={handleChange}
-                required
-              />
-            </div>
+        <motion.div 
+          className="relative z-10 max-w-2xl mx-auto"
+          variants={slideUp}
+        >
+          <motion.div
+            className="bg-white/80 backdrop-blur-lg p-8 shadow-xl rounded-xl border border-white/20"
+            variants={formFieldVariants}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            {errorMessage && (
+              <motion.div 
+                className="bg-red-50 text-red-600 p-4 rounded-lg mb-6"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                {errorMessage}
+              </motion.div>
+            )}
+            
+            <motion.h2 
+              className="text-3xl font-bold mb-6 text-gray-800"
+              variants={formFieldVariants}
+            >
+              Create Account
+            </motion.h2>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <motion.div variants={formFieldVariants}>
+                  <label className="block text-gray-700 text-sm font-medium mb-2">
+                    First Name
+                  </label>
+                  <input
+                    name="first_name"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white/50 backdrop-blur-sm"
+                    type="text"
+                    required
+                    value={formData.first_name}
+                    onChange={handleChange}
+                  />
+                </motion.div>
 
-            {/* Last Name */}
-            <div className="mb-2">
-              <label className="block text-gray-700 text-xs font-bold mb-1" htmlFor="lastName">
-                Last Name
-              </label>
-              <input
-                name="last_name"
-                className="shadow border rounded w-full py-1 px-2 text-gray-700 focus:outline-none focus:shadow-outline text-xs"
-                id="lastName"
-                type="text"
-                placeholder="Last Name"
-                value={formData.last_name}
-                onChange={handleChange}
-                required
-              />
-            </div>
+                <motion.div variants={formFieldVariants}>
+                  <label className="block text-gray-700 text-sm font-medium mb-2">
+                    Last Name
+                  </label>
+                  <input
+                    name="last_name"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white/50 backdrop-blur-sm"
+                    type="text"
+                    required
+                    value={formData.last_name}
+                    onChange={handleChange}
+                  />
+                </motion.div>
+              </div>
 
-            {/* Cell Phone */}
-            <div className="mb-2">
-              <label className="block text-gray-700 text-xs font-bold mb-1" htmlFor="cellPhone">
-                Cell Phone
-              </label>
-              <input
-                name="cell_phone"
-                className="shadow border rounded w-full py-1 px-2 text-gray-700 focus:outline-none focus:shadow-outline text-xs"
-                id="cellPhone"
-                type="text"
-                placeholder="123-456-7890"
-                value={formData.cell_phone}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            {/* Company Name */}
-            <div className="mb-2">
-              <label className="block text-gray-700 text-xs font-bold mb-1" htmlFor="companyName">
-                Company Name
-              </label>
-              <input
-                name="company_name"
-                className="shadow border rounded w-full py-1 px-2 text-gray-700 focus:outline-none focus:shadow-outline text-xs"
-                id="companyName"
-                type="text"
-                placeholder="Your Company"
-                value={formData.company_name}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            {/* City and Country */}
-            <div className="mb-2 grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-gray-700 text-xs font-bold mb-1" htmlFor="city">
-                  City
+              <motion.div variants={formFieldVariants}>
+                <label className="block text-gray-700 text-sm font-medium mb-2">
+                  Email Address
                 </label>
                 <input
-                  name="city"
-                  className="shadow border rounded w-full py-1 px-2 text-gray-700 focus:outline-none focus:shadow-outline text-xs"
-                  id="city"
-                  type="text"
-                  placeholder="City"
-                  value={formData.city}
-                  onChange={handleChange}
+                  name="email"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white/50 backdrop-blur-sm"
+                  type="email"
                   required
+                  value={formData.email}
+                  onChange={handleChange}
                 />
-              </div>
-              <div>
-                <label className="block text-gray-700 text-xs font-bold mb-1" htmlFor="country">
-                  Country
+              </motion.div>
+
+              <motion.div variants={formFieldVariants}>
+                <label className="block text-gray-700 text-sm font-medium mb-2">
+                  Password
                 </label>
                 <input
-                  name="country"
-                  className="shadow border rounded w-full py-1 px-2 text-gray-700 focus:outline-none focus:shadow-outline text-xs"
-                  id="country"
-                  type="text"
-                  placeholder="Country"
-                  value={formData.country}
-                  onChange={handleChange}
+                  name="password"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white/50 backdrop-blur-sm"
+                  type="password"
                   required
+                  value={formData.password}
+                  onChange={handleChange}
                 />
-              </div>
-            </div>
+              </motion.div>
 
-            {/* Gender */}
-            <div className="mb-2">
-              <label className="block text-gray-700 text-xs font-bold mb-1" htmlFor="gender">
-                Gender
-              </label>
-              <div className="flex space-x-2">
-                <label className="inline-flex items-center">
-                  <input type="radio" name="gender" value="male" checked={formData.gender === "male"} onChange={handleChange} className="form-radio" required />
-                  <span className="ml-1 text-xs">Male</span>
+              <motion.div variants={formFieldVariants}>
+                <label className="block text-gray-700 text-sm font-medium mb-2">
+                  Phone Number
                 </label>
-                <label className="inline-flex items-center">
-                  <input type="radio" name="gender" value="female" checked={formData.gender === "female"} onChange={handleChange} className="form-radio" required />
-                  <span className="ml-1 text-xs">Female</span>
+                <input
+                  name="cell_phone"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white/50 backdrop-blur-sm"
+                  type="tel"
+                  required
+                  value={formData.cell_phone}
+                  onChange={handleChange}
+                />
+              </motion.div>
+
+              <motion.div variants={formFieldVariants}>
+                <label className="block text-gray-700 text-sm font-medium mb-2">
+                  Company Name
                 </label>
+                <input
+                  name="company_name"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white/50 backdrop-blur-sm"
+                  type="text"
+                  required
+                  value={formData.company_name}
+                  onChange={handleChange}
+                />
+              </motion.div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <motion.div variants={formFieldVariants}>
+                  <label className="block text-gray-700 text-sm font-medium mb-2">
+                    City
+                  </label>
+                  <input
+                    name="city"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white/50 backdrop-blur-sm"
+                    type="text"
+                    required
+                    value={formData.city}
+                    onChange={handleChange}
+                  />
+                </motion.div>
+
+                <motion.div variants={formFieldVariants}>
+                  <label className="block text-gray-700 text-sm font-medium mb-2">
+                    Country
+                  </label>
+                  <input
+                    name="country"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white/50 backdrop-blur-sm"
+                    type="text"
+                    required
+                    value={formData.country}
+                    onChange={handleChange}
+                  />
+                </motion.div>
               </div>
-            </div>
 
-            {/* Email */}
-            <div className="mb-2">
-              <label className="block text-gray-700 text-xs font-bold mb-1" htmlFor="email">
-                Email
-              </label>
-              <input
-                name="email"
-                className="shadow border rounded w-full py-1 px-2 text-gray-700 focus:outline-none focus:shadow-outline text-xs"
-                id="email"
-                type="email"
-                placeholder="john.doe@example.com"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
+              <motion.div variants={formFieldVariants}>
+                <label className="block text-gray-700 text-sm font-medium mb-2">
+                  Gender
+                </label>
+                <select
+                  name="gender"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white/50 backdrop-blur-sm"
+                  required
+                  value={formData.gender}
+                  onChange={handleChange}
+                >
+                  <option value="">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </motion.div>
 
-            <div className="mb-2">
-              <label className="block text-gray-700 text-xs font-bold mb-1" htmlFor="email">
-                Password
-              </label>
-              <input
-                name="password"
-                className="shadow border rounded w-full py-1 px-2 text-gray-700 focus:outline-none focus:shadow-outline text-xs"
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            {/* Sign Up Button */}
-            <div className="mb-2">
-              <button
-                className="bg-black text-white font-bold py-2 px-4 w-full rounded focus:outline-none focus:shadow-outline hover:bg-gray-800 text-xs"
+              <motion.button
                 type="submit"
+                className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+                disabled={isLoading}
               >
-                Sign Up
-              </button>
-            </div>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Creating Account...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-5 h-5" />
+                    Create Account
+                  </>
+                )}
+              </motion.button>
 
-            {/* Sign In Link */}
-            {/* Already have an account and Sign In Button */}
-            <div className="text-left mb-2">
-              <p className="text-gray-700 text-xs font-bold mb-1">Already have an account?</p>
-              <button
-                onClick={handleSignIn}
-                className="bg-black text-white font-bold py-2 px-4 w-full rounded focus:outline-none focus:shadow-outline hover:bg-gray-800 text-xs"
+              <motion.div 
+                className="text-center mt-6"
+                variants={formFieldVariants}
               >
-                Sign In
-              </button>
-            </div>
-          </form>
-        </div>
+                <span className="text-gray-600">Already have an account? </span>
+                <Link 
+                  to="/" 
+                  className="text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
+                >
+                  Sign in
+                </Link>
+              </motion.div>
+            </form>
+          </motion.div>
+        </motion.div>
       </div>
+
       {showPopup && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-[80%] max-w-md text-center">
-            <h1 className="text-lg font-semibold mb-4">Account verification email sent</h1>
-            <div className="flex justify-center gap-4 mt-4">
-              <a
-                href="https://mail.google.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-              >
-                Go to Gmail
-              </a>
-              <button
-                className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
-                onClick={() => navigate('/')}
-              >
-                Go to Login page
-              </button>
-            </div>
-          </div>
-        </div>
+        <Modal 
+          message={status === 'success' ? successMessage : errorMessage}
+          status={status}
+          onClose={handleSignIn}
+        />
       )}
-    </div>
+    </motion.div>
   );
 };
 

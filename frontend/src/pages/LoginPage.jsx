@@ -3,7 +3,8 @@ import backgroundImage from '../assets/background2.jpg';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import axios from 'axios';
-
+import { motion } from 'framer-motion';
+import { fadeIn, slideUp, formFieldVariants, buttonVariants } from '../components/animations';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -26,10 +27,8 @@ const LoginPage = () => {
   
       if (response.status === 200) {
         const { access_token, token_type } = response.data;
-  
         localStorage.setItem('accessToken', access_token);
         localStorage.setItem('tokenType', token_type);
-  
         window.location.href = '/home';
       }
     } catch (error) {
@@ -42,84 +41,121 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="h-screen overflow-hidden flex flex-col">
-      {/* Navigation Bar */}
+    <motion.div 
+      className="min-h-screen overflow-hidden flex flex-col bg-gray-50"
+      initial="initial"
+      animate="animate"
+      variants={fadeIn}
+    >
       <Navbar />
 
-      {/* Main Content Section */}
       <div className="flex flex-1 relative">
-        {/* Full-screen Background Image */}
-        <div
-          className="absolute inset-0 bg-cover bg-center"
+        <motion.div
+          className="absolute inset-0 bg-cover bg-center bg-fixed"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1 }}
           style={{
             backgroundImage: `url(${backgroundImage})`,
           }}
         />
 
-        {/* Left Section with Login Form */}
-        <div className="relative z-10 w-full md:w-1/2 flex items-center justify-center min-h-screen">
-          <div
-            className="bg-white p-8 shadow-lg rounded-lg max-w-sm w-full"
-            style={{
-              transform: 'scale(0.8)',
-              marginLeft: '-1in', // Reduced left margin to half of the previous value
-            }}
+        <motion.div 
+          className="relative z-10 w-full md:w-1/2 flex items-center justify-center min-h-screen py-20"
+          variants={slideUp}
+        >
+          <motion.div
+            className="bg-white/80 backdrop-blur-lg p-8 shadow-xl rounded-xl w-full max-w-md mx-4 border border-white/20"
+            variants={formFieldVariants}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
           >
-            {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
-            <h2 className="text-3xl font-bold mb-6 text-left" style={{ color: '#000000' }}>Log in</h2>
-            <form>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+            {errorMessage && (
+              <motion.div 
+                className="bg-red-50 text-red-600 p-4 rounded-lg mb-6"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                {errorMessage}
+              </motion.div>
+            )}
+            
+            <motion.h2 
+              className="text-3xl font-bold mb-6 text-gray-800"
+              variants={formFieldVariants}
+            >
+              Welcome Back
+            </motion.h2>
+            
+            <form onSubmit={handleLogin} className="space-y-6">
+              <motion.div variants={formFieldVariants}>
+                <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="email">
                   Email
                 </label>
                 <input
-                  className="shadow appearance-none border border-gray-300 rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white/50 backdrop-blur-sm"
                   id="email"
                   type="email"
                   value={email}
                   placeholder="name@example.com"
                   onChange={(e) => setEmail(e.target.value)}
-                  style={{ backgroundColor: '#ffffff', color: '#333333' }}
                 />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+              </motion.div>
+
+              <motion.div variants={formFieldVariants}>
+                <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="password">
                   Password
                 </label>
                 <input
-                  className="shadow appearance-none border border-gray-300 rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white/50 backdrop-blur-sm"
                   id="password"
                   type="password"
-                  placeholder="***"
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  style={{ backgroundColor: '#ffffff', color: '#333333' }}
                 />
-              </div>
-              <div className="flex items-center justify-between mb-4">
-                <span style={{ color: '#000000' }}>Forgot your password? <a href="resetpassword" style={{ color: '#0000ff' }}>Reset here</a></span>
-              </div>
-              <div className="mb-6">
-                <button
-                onClick={handleLogin}
-                  className="hover:bg-gray-800 text-white font-bold py-2 px-4 w-full rounded focus:outline-none focus:shadow-outline"
-                  type="button"
-                  style={{ backgroundColor: '#000000' }}
+              </motion.div>
+
+              <motion.div 
+                className="flex items-center justify-between"
+                variants={formFieldVariants}
+              >
+                <Link 
+                  to="/resetpassword" 
+                  className="text-sm text-indigo-600 hover:text-indigo-700 transition-colors"
                 >
-                  LOGIN
-                </button>
-              </div>
-              <div className="flex items-center justify-start">
-                <span style={{ color: '#000000' }}>Don’t have an account?&nbsp;</span>
-                <Link to="/signup" className="font-normal" style={{ color: '#0000ff' }}>
-                  Register here
+                  Forgot your password?
                 </Link>
-              </div>
+              </motion.div>
+
+              <motion.button
+                type="submit"
+                className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                Sign In
+              </motion.button>
+
+              <motion.div 
+                className="text-center mt-6"
+                variants={formFieldVariants}
+              >
+                <span className="text-gray-600">Don't have an account? </span>
+                <Link 
+                  to="/signup" 
+                  className="text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
+                >
+                  Sign up
+                </Link>
+              </motion.div>
             </form>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

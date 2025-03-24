@@ -1,130 +1,119 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { buttonVariants } from './animations';
 import {
-  FaHome,
-  FaUpload,
-  FaClipboardList,
-  FaBriefcase,
-  FaCalendarAlt,
-  FaChartBar,
-} from 'react-icons/fa';
+  Home,
+  Upload,
+  FileText,
+  Briefcase,
+  Users,
+  Calendar,
+  BarChart2,
+} from 'lucide-react';
 
 const Sidebar = () => {
   const location = useLocation();
 
-  const isHome = location.pathname === '/home';
-  const isResumeUpload = location.pathname === '/resume-upload';
-  const isCreateJob = location.pathname === '/create-job';
-  const isOpenJobs = location.pathname === '/open-jobs';
-  const isShortlistCandidate = location.pathname === '/shortlist-candidate';
-  const isUpcomingInterviews = location.pathname === '/upcoming-interviews';
-  const isReports = location.pathname === '/reports';
+  const menuItems = [
+    { path: '/home', label: 'Home', icon: Home },
+    { path: '/open-jobs', label: 'Jobs', icon: Briefcase },
+    { path: '/create-job', label: 'Create Job', icon: FileText },
+    { path: '/resume-upload', label: 'Resume Upload', icon: Upload },
+    { path: '/shortlist-candidate', label: 'Shortlist Candidates', icon: Users },
+    { path: '/upcoming-interviews', label: 'Upcoming Interviews', icon: Calendar },
+    { path: '/reports', label: 'Reports', icon: BarChart2 },
+  ];
+
+  const sidebarVariants = {
+    hidden: { x: -100, opacity: 0 },
+    visible: {
+      x: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 20,
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { x: -20, opacity: 0 },
+    visible: {
+      x: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 20
+      }
+    }
+  };
 
   return (
-    <aside className="w-64 bg-white text-gray-800 shadow-lg">
-      <div className="p-6">
-        <ul className="space-y-2">
+    <motion.aside 
+      className="w-64 bg-white/80 backdrop-blur-sm text-gray-800 shadow-lg border-r border-indigo-100"
+      initial="hidden"
+      animate="visible"
+      variants={sidebarVariants}
+    >
+      <nav className="p-6">
+        <motion.ul className="space-y-2" variants={sidebarVariants}>
+          {menuItems.map((item, index) => {
+            const isActive = location.pathname === item.path;
+            const Icon = item.icon;
 
-          {/* Home Page Link */}
-          <li>
-            <Link
-              to="/home"
-              className={`sidebar-home-link flex justify-between items-center p-2 text-gray-800 hover:text-[#800080] hover:bg-gray-100 rounded-lg ${
-                isHome ? 'bg-[#F0CBF0]' : ''
-              }`}
-            >
-              <span className="font-medium">Home</span>
-              <FaHome className="text-[#800080]" />
-            </Link>
-            <hr className="border-[#800080]" />
-          </li>
-
-          {/* Resume Upload */}
-          <li>
-            <Link
-              to="/resume-upload"
-              className={`sidebar-resume-link flex justify-between items-center p-2 text-gray-800 hover:text-[#800080] hover:bg-gray-100 rounded-lg ${
-                isResumeUpload ? 'bg-[#F0CBF0]' : ''
-              }`}
-            >
-              <span className="font-medium">Resume Upload</span>
-              <FaUpload className="text-[#800080]" />
-            </Link>
-            <hr className="border-[#800080]" />
-          </li>
-
-          {/* Create Job */}
-          <li>
-            <Link
-              to="/create-job"
-              className={`sidebar-createjob-link flex justify-between items-center p-2 text-gray-800 hover:text-[#800080] hover:bg-gray-100 rounded-lg ${
-                isCreateJob ? 'bg-[#F0CBF0]' : ''
-              }`}
-            >
-              <span className="font-medium">Create Job</span>
-              <FaClipboardList className="text-[#800080]" />
-            </Link>
-            <hr className="border-[#800080]" />
-          </li>
-
-          {/* Open Jobs */}
-          <li>
-            <Link
-              to="/open-jobs"
-              className={`sidebar-openjobs-link flex justify-between items-center p-2 text-gray-800 hover:text-[#800080] hover:bg-gray-100 rounded-lg ${
-                isOpenJobs ? 'bg-[#F0CBF0]' : ''
-              }`}
-            >
-              <span className="font-medium">Jobs</span>
-              <FaBriefcase className="text-[#800080]" />
-            </Link>
-            <hr className="border-[#800080]" />
-          </li>
-
-          {/* Shortlist Candidates */}
-          <li>
-            <Link
-              to="/shortlist-candidate"
-              className={`sidebar-shortlist-link flex justify-between items-center p-2 text-gray-800 hover:text-[#800080] hover:bg-gray-100 rounded-lg ${
-                isShortlistCandidate ? 'bg-[#F0CBF0]' : ''
-              }`}
-            >
-              <span className="font-medium">Shortlist Candidates</span>
-              <FaClipboardList className="text-[#800080]" />
-            </Link>
-            <hr className="border-[#800080]" />
-          </li>
-
-          {/* Upcoming Interviews */}
-          <li>
-            <Link
-              to="/upcoming-interviews"
-              className={`sidebar-upcoming-link flex justify-between items-center p-2 text-gray-800 hover:text-[#800080] hover:bg-gray-100 rounded-lg ${
-                isUpcomingInterviews ? 'bg-[#F0CBF0]' : ''
-              }`}
-            >
-              <span className="font-medium">Upcoming Interviews</span>
-              <FaCalendarAlt className="text-[#800080]" />
-            </Link>
-            <hr className="border-[#800080]" />
-          </li>
-
-          {/* Reports */}
-          <li>
-            <Link
-              to="/reports"
-              className={`sidebar-reports-link flex justify-between items-center p-2 text-gray-800 hover:text-[#800080] hover:bg-gray-100 rounded-lg ${
-                isReports ? 'bg-[#F0CBF0]' : ''
-              }`}
-            >
-              <span className="font-medium">Reports</span>
-              <FaChartBar className="text-[#800080]" />
-            </Link>
-            <hr className="border-[#800080]" />
-          </li>
-        </ul>
-      </div>
-    </aside>
+            return (
+              <motion.li key={item.path} variants={itemVariants}>
+                <Link
+                  to={item.path}
+                  className={`
+                    group flex items-center justify-between p-3 rounded-lg transition-all duration-200
+                    ${isActive 
+                      ? 'bg-indigo-50 text-indigo-600' 
+                      : 'text-gray-600 hover:bg-indigo-50/50 hover:text-indigo-600'
+                    }
+                  `}
+                >
+                  <span className="flex items-center space-x-3">
+                    <motion.div
+                      className={`p-2 rounded-lg ${
+                        isActive 
+                          ? 'bg-indigo-100' 
+                          : 'bg-gray-100 group-hover:bg-indigo-100'
+                      }`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Icon className={`w-5 h-5 ${
+                        isActive 
+                          ? 'text-indigo-600' 
+                          : 'text-gray-600 group-hover:text-indigo-600'
+                      }`} />
+                    </motion.div>
+                    <span className="font-medium">{item.label}</span>
+                  </span>
+                  
+                  {isActive && (
+                    <motion.div
+                      className="w-1.5 h-1.5 rounded-full bg-indigo-600"
+                      layoutId="activeIndicator"
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 30
+                      }}
+                    />
+                  )}
+                </Link>
+              </motion.li>
+            );
+          })}
+        </motion.ul>
+      </nav>
+    </motion.aside>
   );
 };
 

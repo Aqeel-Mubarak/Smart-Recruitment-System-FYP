@@ -1,29 +1,29 @@
 import React, { useState } from 'react';
-import backgroundImage from '../assets/background1.jpg';
+import backgroundImage from '../assets/background2.jpg';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import axios from 'axios';
+import { motion } from 'framer-motion';
+import { fadeIn, slideUp, formFieldVariants, buttonVariants } from '../components/animations';
 
 const ForgetPassword = () => {
     const [email, setEmail] = useState("");
     const [showPopup, setShowPopup] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
-    const [successMessage, setSuccessMessage] = useState("");
-    const [loading, setLoading] = useState(false); // Add loading state
+    const [loading, setLoading] = useState(false);
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     const navigate = useNavigate();
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (e) => {
+        e.preventDefault();
         setErrorMessage("");
-        setLoading(true); // Set loading to true when the request starts
+        setLoading(true);
         const formData = new FormData();
         formData.append("email", email);
 
         try {
             const response = await axios.post(`${API_BASE_URL}/send-reset-link`, formData, { });
             if (response){
-                setSuccessMessage("Reset password email sent successfully!");
-                setErrorMessage("");
                 setShowPopup(true);
             } else {
                 throw "Error sending email"
@@ -34,97 +34,140 @@ const ForgetPassword = () => {
             } else {
                 setErrorMessage("An error occurred during the process.");
             }
-            setSuccessMessage(""); // Clear any previous success message
             console.error("Error:", error);
         } finally {
-            setLoading(false); // Set loading to false when the request completes
+            setLoading(false);
         }
     };
 
     return (
-        <div className="h-screen flex flex-col overflow-y-auto">
-            {/* Navigation Bar */}
+        <motion.div 
+            className="min-h-screen overflow-hidden flex flex-col bg-gray-50"
+            initial="initial"
+            animate="animate"
+            variants={fadeIn}
+        >
             <Navbar />
 
-            {/* Main Content Section */}
-            <div className={`h-screen flex flex-col overflow-y-auto ${showPopup ? 'blur-sm' : ''}`}>
-                {/* Full-screen Background Image */}
-                <div
-                    className="absolute inset-0 bg-center"
+            <div className="flex flex-1 relative">
+                <motion.div
+                    className="absolute inset-0 bg-cover bg-center bg-fixed"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 1 }}
                     style={{
                         backgroundImage: `url(${backgroundImage})`,
-                        backgroundSize: '100%',
-                        backgroundPosition: 'center',
-                        backgroundRepeat: 'no-repeat',
                     }}
                 />
 
-                {/* Left Section with Login Form */}
-                <div className="relative z-10 w-full md:w-1/2 flex items-center justify-center min-h-screen">
-                    <div
-                        className="bg-white p-8 shadow-lg rounded-lg max-w-sm w-full"
-                        style={{
-                            transform: 'scale(0.8)',
-                            marginTop: '-1in',
-                            marginLeft: '-1in',
-                        }}
+                <motion.div 
+                    className="relative z-10 w-full md:w-1/2 flex items-center justify-center min-h-screen py-20"
+                    variants={slideUp}
+                >
+                    <motion.div
+                        className="bg-white/80 backdrop-blur-lg p-8 shadow-xl rounded-xl w-full max-w-md mx-4 border border-white/20"
+                        variants={formFieldVariants}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
                     >
-                        <p className='font-bold text-red-700'>{errorMessage}</p>
-                        <h2 className="text-3xl font-bold mb-6 text-left" style={{ color: '#000000' }}>Reset Password</h2>
-                        <form>
-                            <div className="mb-4">
-                                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+                        {errorMessage && (
+                            <motion.div 
+                                className="bg-red-50 text-red-600 p-4 rounded-lg mb-6"
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                            >
+                                {errorMessage}
+                            </motion.div>
+                        )}
+                        
+                        <motion.h2 
+                            className="text-3xl font-bold mb-6 text-gray-800"
+                            variants={formFieldVariants}
+                        >
+                            Reset Password
+                        </motion.h2>
+                        
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <motion.div variants={formFieldVariants}>
+                                <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="email">
                                     Email
                                 </label>
                                 <input
-                                    className="shadow appearance-none border border-gray-300 rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white/50 backdrop-blur-sm"
                                     id="email"
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="name@example.com"
-                                    style={{ backgroundColor: '#ffffff', color: '#333333' }}
                                 />
-                            </div>
-                            <div className="mb-6">
-                                <button
-                                    className="hover:bg-gray-800 text-white font-bold py-2 px-4 w-full rounded focus:outline-none focus:shadow-outline"
-                                    type="button"
-                                    onClick={handleSubmit}
-                                    style={{ backgroundColor: '#000000' }}
-                                    disabled={loading} // Disable the button when loading
+                            </motion.div>
+
+                            <motion.button
+                                type="submit"
+                                className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                                variants={buttonVariants}
+                                whileHover="hover"
+                                whileTap="tap"
+                                disabled={loading}
+                            >
+                                {loading ? "Sending..." : "Send Reset Link"}
+                            </motion.button>
+
+                            <motion.div 
+                                className="text-center mt-6"
+                                variants={formFieldVariants}
+                            >
+                                <Link 
+                                    to="/" 
+                                    className="text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
                                 >
-                                    {loading ? "Sending..." : "Send Code"} {/* Show "Sending..." when loading */}
-                                </button>
-                            </div>
+                                    Back to Login
+                                </Link>
+                            </motion.div>
                         </form>
-                    </div>
-                </div>
+                    </motion.div>
+                </motion.div>
             </div>
+
             {showPopup && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg w-[80%] max-w-md text-center">
-                        <h1 className="text-lg font-semibold mb-4">Reset Password email sent</h1>
-                        <div className="flex justify-center gap-4 mt-4">
-                            <a
+                <motion.div 
+                    className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                >
+                    <motion.div 
+                        className="bg-white/90 backdrop-blur-lg p-8 rounded-xl shadow-xl max-w-md w-[90%] border border-white/20"
+                        initial={{ scale: 0.9, y: 20 }}
+                        animate={{ scale: 1, y: 0 }}
+                        transition={{ type: "spring", stiffness: 100 }}
+                    >
+                        <h2 className="text-2xl font-bold text-gray-800 mb-4">Reset Email Sent!</h2>
+                        <p className="text-gray-600 mb-6">Please check your email for the password reset link.</p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                            <motion.a
                                 href="https://mail.google.com"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                                className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors text-center"
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
                             >
-                                Go to Gmail
-                            </a>
-                            <button
-                                className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
+                                Open Gmail
+                            </motion.a>
+                            <motion.button
+                                className="bg-gray-800 text-white px-6 py-3 rounded-lg hover:bg-gray-900 transition-colors"
                                 onClick={() => navigate('/')}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
                             >
-                                Go to Login page
-                            </button>
+                                Back to Login
+                            </motion.button>
                         </div>
-                    </div>
-                </div>
+                    </motion.div>
+                </motion.div>
             )}
-        </div>
+        </motion.div>
     );
 };
 
