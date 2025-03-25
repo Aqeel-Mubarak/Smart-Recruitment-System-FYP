@@ -1,48 +1,141 @@
 // src/components/Navbarapp.jsx
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { buttonVariants } from './animations';
+import { LogOut, Home, Info, Mail, FileText, BriefcaseIcon, Users, Calendar, BarChart2 } from 'lucide-react';
 import logo from '../assets/logo.jpg';
 
 const Navbarapp = () => {
   const location = useLocation();
 
-  // Map paths to page titles.
-  const pageTitles = {
-    '/home': 'Home',
-    '/about': 'About',
-    '/contact': 'Contact',
-    '/resume-upload': 'Resume Upload',
-    '/create-job': 'Create Job',
-    '/open-jobs': 'Open Jobs',
-    '/shortlist-candidate': 'Shortlist Candidates',
-    '/upcoming-interviews': 'Upcoming Interviews',
-    '/reports': 'Reports',
+  // Map paths to page titles and icons
+  const pageInfo = {
+    '/home': { title: 'Home', icon: Home },
+    '/about': { title: 'About', icon: Info },
+    '/resume-upload': { title: 'Resume Upload', icon: FileText },
+    '/create-job': { title: 'Create Job', icon: BriefcaseIcon },
+    '/open-jobs': { title: 'Open Jobs', icon: BriefcaseIcon },
+    '/shortlist-candidate': { title: 'Shortlist Candidates', icon: Users },
+    '/upcoming-interviews': { title: 'Upcoming Interviews', icon: Calendar },
+    '/reports': { title: 'Reports', icon: BarChart2 },
   };
 
-  const pageTitle = pageTitles[location.pathname] || 'Dashboard';
+  const currentPage = pageInfo[location.pathname] || { title: 'Dashboard', icon: Home };
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
     window.location.href = '/';
   };
 
-  return (
-    <nav className="p-4 fixed top-0 left-0 w-full z-50" style={{ backgroundColor: '#800080' }}>
-      <div className="flex justify-between items-center">
-        {/* Logo and Page Title */}
-        <div className="flex items-center">
-          <img src={logo} alt="Company Logo" className="h-8 w-8 mr-2" />
-          <span className="text-white text-xl font-bold">{pageTitle}</span>
-        </div>
+  const navVariants = {
+    hidden: { y: -100 },
+    visible: { 
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 20
+      }
+    }
+  };
 
-        {/* Navigation Links */}
-        <div className="flex space-x-4 text-white font-light text-lg" style={{ fontFamily: 'Arial, sans-serif' }}>
-          <Link to="/about" className="hover:text-gray-300">About</Link>
-          <Link to="/contact" className="hover:text-gray-300">Contact</Link>
-          <button onClick={handleLogout} className="hover:text-gray-300">Logout</button>
+  const logoVariants = {
+    initial: { rotate: 0 },
+    hover: { rotate: 360, transition: { duration: 0.8 } }
+  };
+
+  const PageIcon = currentPage.icon;
+
+  return (
+    <motion.nav 
+      initial="hidden"
+      animate="visible"
+      variants={navVariants}
+      className="p-4 fixed top-0 left-0 w-full z-50 bg-gradient-to-r from-indigo-600 to-indigo-800 backdrop-blur-sm bg-opacity-90 shadow-lg"
+    >
+      <div className="container mx-auto">
+        <div className="flex justify-between items-center">
+          {/* Logo and Page Title */}
+          <div className="flex items-center space-x-4">
+            <Link to="/home" className="flex items-center space-x-2">
+              <motion.img 
+                src={logo} 
+                alt="Company Logo" 
+                className="h-10 w-10 rounded-full border-2 border-white/20"
+                variants={logoVariants}
+                whileHover="hover"
+                initial="initial"
+              />
+              <motion.span 
+                className="text-white font-semibold text-xl"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                Smart Recruitment System
+              </motion.span>
+            </Link>
+            <motion.div 
+              className="flex items-center space-x-2 text-white/90 pl-6 border-l border-white/20"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              <PageIcon className="w-5 h-5" />
+              <span className="text-lg font-medium">{currentPage.title}</span>
+            </motion.div>
+          </div>
+
+          {/* Navigation Links */}
+          <motion.div 
+            className="flex items-center space-x-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            <div className="flex space-x-6">
+              <Link to="/about">
+                <motion.span 
+                  className="text-white/90 hover:text-white font-medium transition-colors inline-flex items-center space-x-1"
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  <Info className="w-4 h-4" />
+                  <span>About</span>
+                </motion.span>
+              </Link>
+              <a href="mailto:aqeelmubarak2003@gmail.com" target="_blank" rel="noopener noreferrer">
+                <motion.span 
+                  className="text-white/90 hover:text-white font-medium transition-colors inline-flex items-center space-x-1"
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  <Mail className="w-4 h-4" />
+                  <span>Contact</span>
+                </motion.span>
+              </a>
+            </div>
+
+            <motion.button
+              onClick={handleLogout}
+              className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg font-medium backdrop-blur-sm transition-colors inline-flex items-center space-x-2"
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Logout</span>
+            </motion.button>
+          </motion.div>
         </div>
       </div>
-    </nav>
+    </motion.nav>
   );
 };
 
