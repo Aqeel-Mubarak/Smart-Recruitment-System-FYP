@@ -1,31 +1,43 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from app.database import get_db
-from app.models import Candidate # Import JobDescription model
+from app.models import Candidate, JobDescription ,User
 from app.schemas import CandidateOut
 from typing import List
-from dotenv import load_dotenv
-
-
-
-# Load environment variables
-load_dotenv()
+from app.api.users import get_current_user  # ✅ Import get_current_user
 
 router = APIRouter()
+
 @router.get("/waiting_candidates", response_model=List[CandidateOut])
-async def get_waiting_candidates(db: Session = Depends(get_db)):
+def get_waiting_candidates(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)  # ✅ Get logged-in HR
+):
     """
-    Get all candidates who are in the 'waiting' status.
+    Get all candidates with 'waiting' status for the logged-in HR user.
     """
     try:
-        waiting_candidates = db.query(Candidate).filter(Candidate.status == "waiting").all()
+        waiting_candidates = (
+            db.query(Candidate)
+            .join(JobDescription)
+            .filter(
+                JobDescription.hr_id == current_user.id,  # ✅ Use logged-in user's ID
+                Candidate.status == "waiting"
+            )
+            .all()
+        )
+
         if not waiting_candidates:
-            raise HTTPException(status_code=404, detail="No candidates found with 'waiting' status.")
+            return []
+
         return waiting_candidates
+
     except Exception as e:
         error_msg = f"Error fetching waiting candidates: {str(e)}"
         print(error_msg)
         raise HTTPException(status_code=500, detail=error_msg)
+
 
 @router.get("/candidate_status_counts")
 async def get_candidate_status_counts(db: Session = Depends(get_db)):

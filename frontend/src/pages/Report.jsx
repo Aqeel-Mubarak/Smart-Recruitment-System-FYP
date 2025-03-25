@@ -20,29 +20,49 @@ function Report() {
 
   const fetchJobTitles = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/job_titles`);
+      const token = localStorage.getItem("accessToken"); // ✅ Get token from localStorage
+      if (!token) {
+        throw new Error("No access token found");
+      }
+  
+      const response = await axios.get(`${API_BASE_URL}/job_titles`, {
+        headers: {
+          Authorization: `Bearer ${token}`,  // ✅ Include Authorization header
+        },
+      });
+  
       setJobOptions(response.data.map(job => ({ 
         value: job.id,
         label: job.title 
       })));
     } catch (error) {
-      console.error('Error fetching job titles:', error);
+      console.error("Error fetching job titles:", error);
     }
   };
-
+  
   const fetchCandidates = async (jobId = null) => {
     setLoading(true);
     try {
+      const token = localStorage.getItem("accessToken"); // ✅ Get token from localStorage
+      if (!token) {
+        throw new Error("No access token found");
+      }
+  
       const params = jobId ? { job_title_id: jobId } : {};
-      const response = await axios.get(`${API_BASE_URL}/top_candidates`, { params });
+      const response = await axios.get(`${API_BASE_URL}/top_candidates`, {
+        params,
+        headers: {
+          Authorization: `Bearer ${token}`,  // ✅ Include Authorization header
+        },
+      });
+  
       setCandidates(response.data);
     } catch (error) {
-      console.error('Error fetching candidates:', error);
+      console.error("Error fetching candidates:", error);
     } finally {
       setLoading(false);
     }
   };
-
   const handleJobChange = selectedOption => {
     setSelectedJob(selectedOption);
     fetchCandidates(selectedOption ? selectedOption.value : null);
