@@ -1,26 +1,26 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, func
+from sqlalchemy import func, desc
 from datetime import datetime
 from app.database import get_db
-from app.models import Calendar, JobDescription, Candidate
-from typing import List ,Dict , Optional
-from sqlalchemy import desc
-from app.models import Candidate, Calendar, JobDescription
-
+from app.models import Calendar, JobDescription, Candidate, User
+from app.api.users import get_current_user  # ✅ Import get_current_user
+from typing import List, Dict, Optional
 
 router = APIRouter()
 
-
-
 @router.get("/top_candidates")
-async def get_top_candidates(job_title_id: int = None, db: Session = Depends(get_db)):
+def get_top_candidates(
+    job_title_id: Optional[int] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)  # ✅ Get logged-in HR
+):
     """
-    Get all shortlisted candidates sorted by score, including their interview details if available.
-    If job_title_id is provided, only return candidates with matching job_title_id.
+    Get all shortlisted candidates sorted by score for the logged-in HR.
+    If job_title_id is provided, only return candidates for that job.
     """
     try:
-        # Get all shortlisted candidates with the highest scores, without limiting the number
+        # Get all shortlisted candidates for the logged-in HR
         query = db.query(
             Candidate.id,
             Candidate.name,
@@ -29,20 +29,16 @@ async def get_top_candidates(job_title_id: int = None, db: Session = Depends(get
             Candidate.status,
             JobDescription.title.label('job_title')
         ).join(
-            JobDescription,
-            Candidate.job_description_id == JobDescription.id
+            JobDescription, Candidate.job_description_id == JobDescription.id
         ).filter(
-            Candidate.status == "shortlisted"  # Only shortlist candidates
+            Candidate.status == "shortlisted",  # ✅ Only shortlisted candidates
+            JobDescription.hr_id == current_user.id  # ✅ Only logged-in HR's candidates
         )
 
         if job_title_id is not None:
-            query = query.filter(
-                JobDescription.id == job_title_id
-            )
+            query = query.filter(JobDescription.id == job_title_id)
 
-        shortlisted_candidates = query.order_by(
-            desc(Candidate.score)  # Order by score, highest first
-        ).all()  # Removed the limit to fetch all shortlisted candidates
+        shortlisted_candidates = query.order_by(desc(Candidate.score)).all()
 
         # Process candidates and get their interview details
         candidates_data = []
@@ -50,12 +46,11 @@ async def get_top_candidates(job_title_id: int = None, db: Session = Depends(get
             # Find interview details for this candidate
             interview = db.query(Calendar).filter(
                 Calendar.selectedby == candidate.email,
-                Calendar.isselected == 't'  # Check if interview is selected
+                Calendar.isselected == 't' # ✅ Fix: Use Boolean instead of 't'
             ).first()
 
             interview_summary = "No interview scheduled"
             if interview:
-                # Parse interview datetime from id (format: YYYY-MM-DD-HH:MM-JobID)
                 date_str, time_str, _ = interview.id.rsplit('-', 2)
                 interview_summary = f" {date_str} at {time_str}"
 
@@ -77,9 +72,18 @@ async def get_top_candidates(job_title_id: int = None, db: Session = Depends(get
         raise HTTPException(status_code=500, detail=error_msg)
 
 @router.get("/job_titles")
-def get_job_titles(db: Session = Depends(get_db)):
+def get_job_titles(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)  # ✅ Get logged-in HR
+):
     """
-    Endpoint to fetch all unique job titles with their IDs.
+    Fetch all unique job titles for the logged-in HR.
     """
-    job_data = db.query(JobDescription.id, JobDescription.title).distinct().all()
+    job_data = (
+        db.query(JobDescription.id, JobDescription.title)
+        .filter(JobDescription.hr_id == current_user.id)  # ✅ Only HR's jobs
+        .distinct()
+        .all()
+    )
+
     return [{"id": item[0], "title": item[1]} for item in job_data]
