@@ -7,7 +7,7 @@ from app.schemas import Calendar as  Calendar_schema
 from app.schemas import Calendar2 as  Calendar_schema2
 from app.schemas import Slot1
 from typing import Optional
-from cryptography.fernet import Fernet
+from cryptography.fernet  import Fernet
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -88,7 +88,7 @@ class EmailRequest(BaseModel):
 def send_email(request: EmailRequest):
     sender_email = "talharajput3455@gmail.com"
     sender_password = "lbuy utbx drvb segn"
-
+    print(request.to_email)
     # Initialize results
     results = {"success": [], "failed": []}
     linkk=request.linkkk
