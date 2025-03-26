@@ -7,6 +7,8 @@ export const useCalendarStore = create((set) => ({
   isManagement: true,
   slotDuration: 30,
   userEmail:null,
+  pastSlot:'',
+  
   jobs: [
     { id: '1', title: 'Frontend Developer' },
     { id: '2', title: 'Backend Developer' },
@@ -16,6 +18,8 @@ export const useCalendarStore = create((set) => ({
   setIsManagement: (value) => set({ isManagement: value }),
   setUserEmail: (value) => set({ userEmail: value }),
   setSelectedDate: (date) => set({ selectedDate: date }),
+  setPastSlot: (val) => set({ pastSlot: val }),
+
 
 
 fetchTimeSlots: async (jobid) => {
@@ -130,16 +134,22 @@ removeTimeSlot: (date, slotId) => set(async (state) => {
   selectTimeSlot: (date, slotId, userId) => set(async (state) => {
     console.log(date, slotId, userId)
     const dateSlots = state.timeSlots[date] || [];
-    const hasSelectedSlot = dateSlots.some(slot => slot.selectedBy === userId);
-
+    // const hasSelectedSlot = dateSlots.some(slot => slot.selectedBy === userId);
+    const hasSelectedSlot = Object.values(state.timeSlots).some(dateSlots => 
+      dateSlots.some(slot => slot.selectedBy === userId)
+    );
     // Get the current time and slot's start time
     const now = new Date();
     const slotTime = new Date(`${date}T${hasSelectedSlot.startTime}:00`); // Create a Date object for the slot time
 
     // Add condition to only proceed if the slot time is in the future
-    console.log(slotTime,now)
-    if (slotTime <= now) return;
+    console.log(slotTime,now,hasSelectedSlot,dateSlots)
+    if (slotTime <= now) {
 
+      return;}
+      console.log("hfrjgfudjfkdjfkdsls")
+      set({ pastSlot: false });
+      console.log(state.pastSlot)
     // Update local timeSlots state
     const newTimeSlots = {
       ...state.timeSlots,
@@ -176,9 +186,15 @@ removeTimeSlot: (date, slotId) => set(async (state) => {
 
       // Update the state with the new timeSlots
       set({ timeSlots: newTimeSlots });
+      set({ pastSlot: 'Slot added successfully' });
+
       window.location.reload();
     } catch (error) {
-      console.error('Error updating slot selection:', error);
+      if (error.response){
+        console.log(error.response.status)
+      }
+      set({ pastSlot: 'Select a valid slot or slot has already selected'});
+
     }
 
     // Return the updated timeSlots state

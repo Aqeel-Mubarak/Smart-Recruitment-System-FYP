@@ -366,7 +366,15 @@ const ShortlistCandidate = () => {
       await axios.post(`${API_BASE_URL}/send_email`, {
         to_email: selectedCandidates,
         subject: "Job Application Update",
-        body: `Hello, this is to inform you about the status of your application.`,
+        body: `
+          <html>
+            <body>
+              <p>We are excited to invite you to interview for the role at our company.<br>Please click the link below to schedule your interview at a time that works best for you:</p>
+              <p>We look forward to meeting with you and discussing your experience.<br>If you have any questions or need assistance, feel free to reach out.<br>Looking forward to speaking with you soon!</p>
+              <p>Best regards,<br>The Hiring Team</p>
+            </body>
+          </html>
+        `,
         linkkk,
         encodedhiringmanagerid,
         encodedjobid,

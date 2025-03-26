@@ -16,6 +16,8 @@ function TimeSlots() {
     removeTimeSlot,
     fetchTimeSlots,
     userEmail,
+    pastSlot,
+    setPastSlot,
   } = useCalendarStore();
   const navigate = useNavigate();
   const [isDragging, setIsDragging] = useState(false);
@@ -117,9 +119,16 @@ function TimeSlots() {
   
     // Prevent adding if: selected date is past OR (selected date is today AND slot time is past)
     if (selectedDay < today || (selectedDay.getTime() === today.getTime() && slotTime < now)) {
+      console.log("hhrjfjrf")
+      setPastSlot('Select a valid time slot ')
+      console.log(pastSlot)
+
       return;
     }
-  
+    console.log("hhrjfjrf")
+    setPastSlot('')
+    console.log(pastSlot)
+    
     // Existing logic for creating endTime and slots...
     const endTime = format(
       new Date(slotTime.getTime() + slotDuration * 60000),
@@ -192,6 +201,8 @@ function TimeSlots() {
         <h2 className="text-xl font-semibold ml-2">
           {format(selectedDate, 'MMMM d, yyyy')}
         </h2>
+        {/* <h2 className='ml-48'>{pastSlot}</h2> */}
+        {pastSlot && <h2 className='text-xl text-red-600 ml-60 font-semibold underline animate-blink'>{pastSlot}</h2>}
       </div>
 
       <div 
