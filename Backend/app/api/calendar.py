@@ -7,14 +7,17 @@ from app.schemas import Calendar as  Calendar_schema
 from app.schemas import Calendar2 as  Calendar_schema2
 from app.schemas import Slot1
 from typing import Optional
-from cryptography.fernet import Fernet
+from cryptography.fernet  import Fernet
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from fastapi import HTTPException
 from pydantic import BaseModel
+import os
 
 router = APIRouter()
+URL = os.getenv("URL")
+
 
 # Endpoint to add appointment
 @router.post("/add_data_to_calendar")
@@ -83,26 +86,39 @@ class EmailRequest(BaseModel):
     linkkk: str
     encodedhiringmanagerid: str
     encodedjobid: str
-
+sender_email = "talharajput3455@gmail.com"
+sender_password = "lbuy utbx drvb segn"
+    
+    
 @router.post("/send_email")
 def send_email(request: EmailRequest):
-    sender_email = "talharajput3455@gmail.com"
-    sender_password = "lbuy utbx drvb segn"
-
+    print(request.to_email)
     # Initialize results
     results = {"success": [], "failed": []}
-    linkkk=request.linkkk
+    linkk=request.linkkk
     for recipient in request.to_email:
         # Email content
-        print(recipient)
-        message = MIMEMultipart()
+        print(recipient,request.body)
+        message = MIMEMultipart("alternative")
         message["From"] = sender_email
         message["To"] = recipient.email
         message["Subject"] = request.subject
-        linkkk=f'{linkkk}/{recipient.email}'
-        # linkkk = f"http://localhost:5173/Calendar/{encodedhiringmanagerid[0]}/{encodedjobid}/{recipient.id}"
-        message.attach(MIMEText(request.body+linkkk, "plain"))
-
+        linkkk=f'{linkk}/{recipient.email}'
+        description= request.body
+        # HTML content with proper URL encoding
+        html_body = f"""
+        <html>
+        <body>
+            <p>Hi,</p>
+            <p>{description}</p>
+            <a href="{linkkk}" 
+            style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; font-size: 16px; text-align: center;">
+            Schedule your slot  
+            </a>
+        </body>
+        </html>
+        """
+        message.attach(MIMEText(html_body, "html"))
         try:
             # SMTP connection
             server = smtplib.SMTP("smtp.gmail.com", 587)  # For Gmail
@@ -268,14 +284,60 @@ async def remove_slot(slotId: str, db: Session = Depends(get_db)):
     db_slot = db.query(Calendar_table).filter(Calendar_table.id == slotId).first()
     if db_slot is None:
         raise HTTPException(status_code=404, detail="Slot not found")
+    if db_slot.isselected:
+        subject='Reschedule Your Slot'
+        email=db_slot.selectedby
+        jobid=db_slot.jobid
+        linkkk=f'{URL}/Calendar/False/{jobid}/{email}'
+        message = MIMEMultipart("alternative")
+        message["From"] = sender_email
+        message["To"] = email
+        message["Subject"] = subject
+        description="""
+            <body>
+                <p>We regret to inform you that the interviewers are currently unavailable. As a result, we kindly ask you to reschedule your interview.<br>Please click the link below to reschedule your interview at a time that works best for you:<br>We understand that schedules can change, and we are happy to accommodate you. Please select a new time that is more convenient.</p>
+                <p>Looking forward to our conversation!</p>
+                <p>Best regards,<br>The Hiring Team</p>
+            </body>
+        """
+        # HTML content with proper URL encoding
+        html_body = f"""
+        <html>
+        <body>
+            <p>Hi,</p>
+            <p>{description}</p>
+            <a href="{linkkk}" 
+            style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; font-size: 16px; text-align: center;">
+            Reschedule Your Slot
+            </a>
+        </body>
+        </html>
+        """
+        message.attach(MIMEText(html_body, "html"))
+
+        try:
+            # SMTP connection
+            server = smtplib.SMTP("smtp.gmail.com", 587)  # For Gmail
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.send_message(message)
+            server.quit()
+            
+        except Exception as e:
+            # Track failure
+            return {"message": "Slot is not removeed"}
     db.delete(db_slot)
     db.commit()
     return {"message": "Slot removed successfully"}
 
+from datetime import datetime
+
+# Get current date and time
+
+
 # Select or unselect a calendar slot
 @router.post("/selectSlot")
 async def select_slot(request:Request, db: Session = Depends(get_db)):
-    print("herhikjr")
     request_data = await request.json()
     # print(request_data)
     id = request_data.get("id")
@@ -285,9 +347,23 @@ async def select_slot(request:Request, db: Session = Depends(get_db)):
     if db_slot is None:
         raise HTTPException(status_code=404, detail="Slot not found")
     if db_slot.selectedby!=None and db_slot.selectedby!=user_id:
-        raise HTTPException(status_code=404, detail="Slot already booked")
+        raise HTTPException(status_code=405, detail="Slot already booked")
     
     # Toggle selection
+    slot_date=db_slot.id[:10]
+    slot_time=db_slot.id[11:16]
+    slot_date = datetime.strptime(slot_date, "%Y-%m-%d").date()
+    slot_time = datetime.strptime(slot_time, "%H:%M").time()
+    now = datetime.now()
+    current_date=now.date()
+    current_time = now.time()
+    print(slot_date,slot_time)
+    print(current_date,current_time)
+    if slot_date<current_date:
+        raise HTTPException(status_code=404, detail="Time is not suitable")
+    elif slot_date==current_date   and slot_time<current_time:
+        raise HTTPException(status_code=404, detail="Time is not suitable")
+    
     if db_slot.selectedby == user_id:
         db_slot.isselected = False
         db_slot.selectedby = None
