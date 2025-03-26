@@ -6,10 +6,17 @@ module.exports = {
   ],
   theme: {
     extend: {
-      colors:
-      {
-        custompink:'#F0CBF0',
-      }
+      colors: {
+        custompink: '#F0CBF0', // Corrected indentation
+      },
+      animation: {
+        blink: 'blink-animation 1s steps(5, start) infinite',
+      },
+      keyframes: {
+        'blink-animation': {
+          '50%': { opacity: '0' },
+        },
+      },
     },
   },
   plugins: [],

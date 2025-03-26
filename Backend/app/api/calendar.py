@@ -293,7 +293,13 @@ async def remove_slot(slotId: str, db: Session = Depends(get_db)):
         message["From"] = sender_email
         message["To"] = email
         message["Subject"] = subject
-        description="You have a new notification regarding your scheduled slot. Please use the link below to reschedule:"
+        description="""
+            <body>
+                <p>We regret to inform you that the interviewers are currently unavailable. As a result, we kindly ask you to reschedule your interview.<br>Please click the link below to reschedule your interview at a time that works best for you:<br>We understand that schedules can change, and we are happy to accommodate you. Please select a new time that is more convenient.</p>
+                <p>Looking forward to our conversation!</p>
+                <p>Best regards,<br>The Hiring Team</p>
+            </body>
+        """
         # HTML content with proper URL encoding
         html_body = f"""
         <html>
@@ -341,7 +347,7 @@ async def select_slot(request:Request, db: Session = Depends(get_db)):
     if db_slot is None:
         raise HTTPException(status_code=404, detail="Slot not found")
     if db_slot.selectedby!=None and db_slot.selectedby!=user_id:
-        raise HTTPException(status_code=404, detail="Slot already booked")
+        raise HTTPException(status_code=405, detail="Slot already booked")
     
     # Toggle selection
     slot_date=db_slot.id[:10]
