@@ -23,7 +23,17 @@ const UpcomingInterviews = () => {
     const fetchInterviews = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${API_BASE_URL}/upcoming_interviews`);
+        const token = localStorage.getItem("accessToken"); // ✅ Retrieve token
+        if (!token) {
+          throw new Error("No access token found");
+        }
+    
+        const response = await axios.get(`${API_BASE_URL}/upcoming_interviews`, {
+          headers: {
+            Authorization: `Bearer ${token}`,  // ✅ Include token in request
+          },
+        });
+    
         setInterviews(response.data);
         setError(null);
       } catch (error) {
