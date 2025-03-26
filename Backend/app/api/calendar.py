@@ -91,15 +91,15 @@ def send_email(request: EmailRequest):
 
     # Initialize results
     results = {"success": [], "failed": []}
-    linkkk=request.linkkk
+    linkk=request.linkkk
     for recipient in request.to_email:
         # Email content
-        print(recipient)
+        print(recipient,request.body)
         message = MIMEMultipart()
         message["From"] = sender_email
         message["To"] = recipient.email
         message["Subject"] = request.subject
-        linkkk=f'{linkkk}/{recipient.email}'
+        linkkk=f'{linkk}/{recipient.email}'
         # linkkk = f"http://localhost:5173/Calendar/{encodedhiringmanagerid[0]}/{encodedjobid}/{recipient.id}"
         message.attach(MIMEText(request.body+linkkk, "plain"))
 
