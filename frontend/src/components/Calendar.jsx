@@ -5,6 +5,7 @@ import { useCalendarStore } from '../store';
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import { addDays } from 'date-fns';
 
 
 function Calendar() {
@@ -25,9 +26,11 @@ function Calendar() {
   }, [selectedJob, fetchTimeSlots]);
 
   const handleDateClick = (date) => {
-    if (isAfter(date, new Date()) || isSameDay(date, new Date())) {
-      setSelectedDate(date);
-    }
+    // if (isAfter(date, new Date()) || isSameDay(date, new Date())) {
+    //   setSelectedDate(date);
+    // }
+    setSelectedDate(date);
+
   };
 
   const previousMonth = () => {
@@ -83,14 +86,18 @@ function Calendar() {
         </div>
 
         <div className="grid grid-cols-7 gap-1 mb-2">
-          {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map((day) => (
-            <div
-              key={day}
-              className="text-center text-xs font-medium text-gray-500 border-b pb-1"
-            >
-              {day}
-            </div>
-          ))}
+          {Array.from({ length: 7 }).map((_, index) => {
+            const firstDayOfMonth = startOfMonth(selectedDate);
+            const dayOfWeek = addDays(firstDayOfMonth, index); // Get the day of the week for each day in the first week
+            return (
+              <div
+                key={index}
+                className="text-center text-xs font-medium text-gray-500 border-b pb-1"
+              >
+                {format(dayOfWeek, 'EEE').toUpperCase()} {/* Format the date to show the day name */}
+              </div>
+            );
+          })}
         </div>
 
         <div className="grid grid-cols-7 gap-1">
@@ -106,12 +113,10 @@ function Calendar() {
               <button
                 key={date.toString()}
                 onClick={() => handleDateClick(date)}
-                disabled={isPast}
                 className={`
                   p-2 text-sm rounded-lg transition-colors
                   ${isSelected ? 'bg-blue-500 text-white' : ''}
                   ${isToday ? 'border border-blue-500' : ''}
-                  ${isPast ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-gray-100'}
                   ${!isCurrentMonth ? 'text-gray-300' : ''}
                   ${(isSunday || isSaturday) && !isPast ? 'text-red-500' : ''}
                   ${isCurrentMonth && !isPast && !isSelected ? 'text-gray-700' : ''}

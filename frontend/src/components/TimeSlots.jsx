@@ -23,6 +23,7 @@ function TimeSlots() {
   const [filteredSlots, setFilteredSlots] = useState([]);
   
   const dateKey = format(selectedDate, 'yyyy-MM-dd');
+  console.log(timeSlots)
   const slotsForDate = timeSlots[dateKey] || [];
 
   // Update filtered slots whenever dependencies change
@@ -38,7 +39,8 @@ function TimeSlots() {
     };
 
     fetchAndFilterSlots();
-  }, [slotsForDate, selectedJob, isManagement]);
+  }, [slotsForDate, selectedJob, isManagement,timeSlots,selectTimeSlot,
+    removeTimeSlot,fetchTimeSlots]);
 
   // Fetch slots when selectedJob changes
   useEffect(() => {
@@ -69,17 +71,61 @@ function TimeSlots() {
     return slots;
   };
 
+  // const handleSlotInteraction = async (startTime) => {
+  //   if (!selectedJob) return;
+
+  //   const endTime = format(
+  //     new Date(selectedDate.setHours(
+  //       parseInt(startTime.split(':')[0]),
+  //       parseInt(startTime.split(':')[1]) + slotDuration
+  //     )),
+  //     'HH:mm'
+  //   );
+
+  //   const newSlot = {
+  //     id: `${dateKey}-${startTime}-${selectedJob.id}`,
+  //     startTime,
+  //     endTime,
+  //     isSelected: false,
+  //     jobId: selectedJob.id,
+  //   };
+
+  //   const existingSlot = filteredSlots.find(
+  //     slot => slot.startTime === startTime && slot.jobId === selectedJob.id
+  //   );
+
+  //   if (existingSlot) {
+  //     removeTimeSlot(dateKey, existingSlot.id);
+  //   } else {
+  //     addTimeSlot(dateKey, newSlot);
+  //   }
+  // };
   const handleSlotInteraction = async (startTime) => {
     if (!selectedJob) return;
-
+    console.log(startTime);
+    // Create current date and slot time objects
+    const now = new Date();
+    const slotTime = new Date(selectedDate);
+    const [hours, minutes] = startTime.split(':').map(Number);
+    slotTime.setHours(hours, minutes, 0, 0);
+  
+    // Date comparison logic
+    const selectedDay = new Date(selectedDate);
+    selectedDay.setHours(0, 0, 0, 0);
+    const today = new Date(now);
+    today.setHours(0, 0, 0, 0);
+  
+    // Prevent adding if: selected date is past OR (selected date is today AND slot time is past)
+    if (selectedDay < today || (selectedDay.getTime() === today.getTime() && slotTime < now)) {
+      return;
+    }
+  
+    // Existing logic for creating endTime and slots...
     const endTime = format(
-      new Date(selectedDate.setHours(
-        parseInt(startTime.split(':')[0]),
-        parseInt(startTime.split(':')[1]) + slotDuration
-      )),
+      new Date(slotTime.getTime() + slotDuration * 60000),
       'HH:mm'
     );
-
+  
     const newSlot = {
       id: `${dateKey}-${startTime}-${selectedJob.id}`,
       startTime,
@@ -87,11 +133,11 @@ function TimeSlots() {
       isSelected: false,
       jobId: selectedJob.id,
     };
-
+  
     const existingSlot = filteredSlots.find(
       slot => slot.startTime === startTime && slot.jobId === selectedJob.id
     );
-
+  
     if (existingSlot) {
       removeTimeSlot(dateKey, existingSlot.id);
     } else {
@@ -115,6 +161,7 @@ function TimeSlots() {
   };
 
   const handleSlotClick = (slot) => {
+    console.log("agya ha")
     if (!isManagement && slot && slot.id) {
       selectTimeSlot(dateKey, slot.id, userEmail);
     }
@@ -156,6 +203,7 @@ function TimeSlots() {
           const existingSlot = filteredSlots.find(
             slot => slot.startTime === time
           );
+          console.log(existingSlot)
 
           return (
             <div
@@ -174,6 +222,7 @@ function TimeSlots() {
               `}
               onClick={() => {
                 if (!isManagement && existingSlot) {
+                console.log('agya')
                   handleSlotClick(existingSlot);
                 }
               }}
