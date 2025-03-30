@@ -57,7 +57,9 @@ const CurrentOpenJobs = () => {
       }
 
       const data = await response.json();
+      console.log('Jobs data received:', data);
       setJobs(data["jobs"]);
+      setDropdownVisible(null);
     } catch (error) {
       console.error('Error fetching jobs:', error);
     } finally {
@@ -101,15 +103,24 @@ const CurrentOpenJobs = () => {
       }
 
       await response.json();
-      fetchJobs();
+      setDropdownVisible(null);
+      await fetchJobs();
     } catch (error) {
       console.error('Error closing job:', error);
     }
   };
 
   const openEditModal = (job) => {
-    setSelectedJob(job);
-    setIsModalOpen(true);
+    navigate('/resume-upload', { 
+      state: { 
+        selectedJob: {
+          value: job.id,
+          label: job.title,
+          description: job.description_text
+        },
+        editMode: true
+      } 
+    });
   };
 
   const openDescriptionModal = (job) => {
