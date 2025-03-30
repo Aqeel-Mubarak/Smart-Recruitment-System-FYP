@@ -448,14 +448,9 @@ const ShortlistCandidate = () => {
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-indigo-50 to-white">
       <Navbarapp />
 
-      <motion.aside 
-        className="fixed left-0 top-16 w-[19%] h-screen overflow-y-auto overflow-x-hidden bg-white/80 backdrop-blur-lg shadow-lg z-40"
-        initial={{ x: -100 }}
-        animate={{ x: 0 }}
-        transition={{ type: "spring", stiffness: 100 }}
-      >
+      <aside className="fixed left-0 top-16 w-[19%] h-[calc(100vh-4rem)] bg-white/80 backdrop-blur-lg shadow-lg">
         <Sidebar />
-      </motion.aside>
+      </aside>
 
       <motion.main 
         className="ml-[19%] mt-16 p-6 md:p-8"
@@ -636,7 +631,7 @@ const ShortlistCandidate = () => {
                           <span className="text-sm font-semibold">Candidate</span>
                         </div>
                       </th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold">Score</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold">Job Relevancy Score</th>
                       <th className="px-6 py-4 text-left text-sm font-semibold">Match</th>
                       {filterComplete && (
                         <th className="px-6 py-4 text-left text-sm font-semibold">Prompt Rank</th>
@@ -852,9 +847,7 @@ const ShortlistCandidate = () => {
                     </div>
                   </div>
                   <div className="prose prose-indigo max-w-none">
-                    <p className="text-gray-700 whitespace-pre-line leading-relaxed">
-                      {analysisModal.result}
-                    </p>
+                    {renderAnalysisText(analysisModal.result || '')}
                   </div>
                 </motion.div>
               )}

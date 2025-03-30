@@ -52,3 +52,42 @@ async def get_candidate_status_counts(db: Session = Depends(get_db)):
         error_msg = f"Error fetching candidate status counts: {str(e)}"
         print(error_msg)
         raise HTTPException(status_code=500, detail=error_msg)
+
+
+
+@router.get("/open_jobs_with_applications")
+def get_open_jobs_with_applications(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get all open jobs with application counts for the logged-in HR."""
+    try:
+        # Get all open jobs for the logged-in HR
+        open_jobs = db.query(
+            JobDescription.id,
+            JobDescription.title,
+            JobDescription.deadline,
+            func.count(Candidate.id).label('applications')
+        ).outerjoin(
+            Candidate, JobDescription.id == Candidate.job_description_id
+        ).filter(
+            JobDescription.hr_id == current_user.id,
+            JobDescription.status == "open"
+        ).group_by(
+            JobDescription.id
+        ).order_by(
+            desc('applications')
+        ).all()
+        
+        jobs_data = []
+        for job in open_jobs:
+            jobs_data.append({
+                "id": job.id,
+                "title": job.title,
+                "deadline": job.deadline,
+                "applications": job.applications
+            })
+            
+        return {"jobs": jobs_data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching open jobs: {str(e)}")
