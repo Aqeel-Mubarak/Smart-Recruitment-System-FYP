@@ -10,6 +10,9 @@ import {
   Users,
   Calendar,
   BarChart2,
+  Video,
+  MessageCircle,
+  ClipboardList
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -23,6 +26,9 @@ const Sidebar = () => {
     { path: '/shortlist-candidate', label: 'Shortlist Candidates', icon: Users },
     { path: '/upcoming-interviews', label: 'Upcoming Interviews', icon: Calendar },
     { path: '/reports', label: 'Reports', icon: BarChart2 },
+    { path: '/video-analysis', label: 'Analyze recorded Interview', icon: Video },
+    { path: '/Create-Interview', label: 'Create AI Interview', icon: MessageCircle },
+    { path: '/admin/summaries', label: 'AI Interviews Results', icon: ClipboardList },
   ];
 
   const sidebarVariants = {
@@ -54,12 +60,13 @@ const Sidebar = () => {
 
   return (
     <motion.aside 
-      className="w-64 bg-white/80 backdrop-blur-sm text-gray-800 shadow-lg border-r border-indigo-100"
+      className="w-64 bg-white/80 backdrop-blur-sm text-gray-800 shadow-lg border-r border-indigo-100 h-full flex flex-col"
       initial="hidden"
       animate="visible"
       variants={sidebarVariants}
+      style={{ minHeight: "calc(100vh - 4rem)" }}
     >
-      <nav className="p-6">
+      <nav className="p-6 overflow-y-auto flex-1" style={{ maxHeight: "calc(100vh - 4rem)" }}>
         <motion.ul className="space-y-2" variants={sidebarVariants}>
           {menuItems.map((item, index) => {
             const isActive = location.pathname === item.path;
@@ -113,6 +120,22 @@ const Sidebar = () => {
           })}
         </motion.ul>
       </nav>
+      
+      <style jsx>{`
+        nav::-webkit-scrollbar {
+          width: 6px;
+        }
+        nav::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        nav::-webkit-scrollbar-thumb {
+          background-color: rgba(99, 102, 241, 0.3);
+          border-radius: 20px;
+        }
+        nav::-webkit-scrollbar-thumb:hover {
+          background-color: rgba(99, 102, 241, 0.5);
+        }
+      `}</style>
     </motion.aside>
   );
 };

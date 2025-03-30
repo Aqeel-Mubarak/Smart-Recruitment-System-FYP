@@ -9,6 +9,8 @@ from . import (
     upcoming_interviews,
     home,
     report,
+    video,
+    create_interview,
 )
 
 api_router = APIRouter()
@@ -22,6 +24,9 @@ api_router.include_router(users.router, tags=["users"])
 api_router.include_router(upcoming_interviews.router, tags=["upcoming_interviews"])
 api_router.include_router(home.router, tags=["home"])
 api_router.include_router(report.router, tags=["report"])
+api_router.include_router(video.router, tags=["video"])
+api_router.include_router(create_interview.router, tags=["create_interview"])
+
 
 
 
