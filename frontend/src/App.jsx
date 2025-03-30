@@ -18,6 +18,12 @@ import CalendarPage from './pages/CalendarPage';
 import UpcomingInterviews from './pages/UpcomingInterviews';
 import NewPassword from './pages/NewPassword';
 import About from './pages/About';
+import VideoAnalysis from './pages/VideoAnalysis';
+import CreateInterview from './pages/CreateInterview';
+import InterviewSession from './pages/InterviewSession';
+import InterviewSummaries from './pages/InterviewSummaries';
+
+
 
 function App() {
   return (
@@ -41,6 +47,12 @@ function App() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/candidates" element={<CandidatesList />} />
           <Route path="/upcoming-interviews" element={< UpcomingInterviews/>} />
+          <Route path="/Create-Interview" element={<CreateInterview/>} />
+          
+          <Route path="/video-analysis" element={<VideoAnalysis />} /> {/* Route for VideoAnalysis */}
+          <Route path="/interview/:interviewId" element={<InterviewSession />} />
+          <Route path="/admin/summaries" element={<InterviewSummaries />} />
+          <Route path="/admin/summaries" element={<InterviewSummaries />} />
         </Route>
       </Routes>
     </Router>

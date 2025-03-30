@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Navbarapp from "../components/Navbarapp";
 import Sidebar from "../components/Sidebar";
 import axios from "axios";
@@ -110,6 +110,7 @@ const ResumeUploadPage = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     document.title = "Resume Upload";
@@ -150,6 +151,15 @@ const ResumeUploadPage = () => {
 
     fetchJobs();
   }, [hiringManagerId]);
+
+  useEffect(() => {
+    // Check if we have state passed from navigation
+    if (location.state && location.state.selectedJob) {
+      setSelectedOption(location.state.selectedJob);
+      setJobDescription(location.state.selectedJob.description);
+      setJobId(location.state.selectedJob.value);
+    }
+  }, [location.state]);
 
   const handleFileChange = (event) => {
     const selectedFiles = event.target.files;

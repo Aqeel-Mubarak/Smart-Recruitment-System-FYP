@@ -1,0 +1,5 @@
+What experience do you have with deep learning frameworks and libraries such as TensorFlow or PyTorch, and how have you applied them to generate synthetic data or models?
+How do you stay current with the latest advancements and breakthroughs in the field of generative AI, and can you give an example of a recent development that interests you?
+Can you describe a project where you had to fine-tune a pre-trained generative model to achieve a specific task or outcome, and what techniques you used to improve its performance?
+How do you evaluate the quality and coherence of generated text or images, and what metrics or benchmarks do you use to assess the effectiveness of a generative model?
+What are some potential risks or challenges associated with deploying generative AI models in real-world applications, and how would you mitigate them to ensure safe and responsible use?
