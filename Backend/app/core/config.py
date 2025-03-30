@@ -13,8 +13,7 @@ class Settings(BaseSettings):
     API_PATH: StrictStr = "/api/"
     FRONTEND_URL: AnyHttpUrl = "http://localhost:5173/"
     BACKEND_CORS_ORIGINS: Union[str, List[AnyHttpUrl]] = ["http://localhost:5173", "http://localhost:8000"]
-    DATABASE_URL: PostgresDsn = "postgresql://postgres:password@localhost:5433/ubaid"
-
+    DATABASE_URL: PostgresDsn = "postgresql://postgres:bsdsf21m019@localhost/databasext22"
     #Auth
     SECRET_KEY: str = "this is the secret key for fyp" 
     ALGORITHM: str = "HS256" 

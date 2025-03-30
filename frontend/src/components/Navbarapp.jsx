@@ -3,7 +3,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { buttonVariants } from './animations';
-import { LogOut, Home, Info, Mail, FileText, BriefcaseIcon, Users, Calendar, BarChart2 } from 'lucide-react';
+import { LogOut, Home, Info, Mail, FileText, BriefcaseIcon, Users, Calendar, BarChart2, Video, ClipboardList, MessageCircle } from 'lucide-react';
 import logo from '../assets/logo.jpg';
 
 const Navbarapp = () => {
@@ -19,6 +19,10 @@ const Navbarapp = () => {
     '/shortlist-candidate': { title: 'Shortlist Candidates', icon: Users },
     '/upcoming-interviews': { title: 'Upcoming Interviews', icon: Calendar },
     '/reports': { title: 'Reports', icon: BarChart2 },
+    '/video-analysis': { title: 'Analysis of Recorded Interview', icon: Video },
+    '/admin/summaries': { title: 'AI Interviews Results', icon: ClipboardList },
+    '/Create-Interview': { title: 'Create AI Interview', icon: MessageCircle },
+    
   };
 
   const currentPage = pageInfo[location.pathname] || { title: 'Dashboard', icon: Home };

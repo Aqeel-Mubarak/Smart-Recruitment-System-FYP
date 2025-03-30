@@ -1,0 +1,5 @@
+What experience do you have with machine learning frameworks such as TensorFlow or PyTorch, and how have you applied them in previous projects?
+How do you handle overfitting or underfitting in a machine learning model, and what techniques do you use to prevent them?
+Can you explain the concept of regularization in machine learning, and how do you decide which type of regularization to use in a given situation?
+How do you evaluate the performance of a machine learning model, and what metrics do you use to measure its accuracy and effectiveness?
+How do you approach the problem of imbalanced datasets, where one class has a significantly larger number of instances than the others, and what techniques do you use to address this issue?

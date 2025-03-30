@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { PieChart, Pie, Cell, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, BarChart, CartesianGrid, XAxis, YAxis, Legend, Bar, ResponsiveContainer } from 'recharts';
 import Navbarapp from '../components/Navbarapp';
 import TourGuide from '../components/TourGuide';
 import { FaUserCircle } from 'react-icons/fa';
@@ -14,6 +14,8 @@ const Home = () => {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [openJobs, setOpenJobs] = useState([]);
+  const [jobsLoading, setJobsLoading] = useState(true);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const fetchData = async () => {
@@ -61,6 +63,15 @@ const Home = () => {
         },
       });
   
+      // Fetch open jobs with candidate counts
+      const openJobsResponse = await fetch(`${API_BASE_URL}/jobs/open`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+  
       if (!interviewsResponse.ok) {
         throw new Error("Failed to fetch today's interviews");
       }
@@ -69,9 +80,22 @@ const Home = () => {
         throw new Error("Failed to fetch waiting candidates");
       }
   
+      if (!openJobsResponse.ok) {
+        throw new Error("Failed to fetch open jobs");
+      }
+  
       const interviewsData = await interviewsResponse.json();
       const waitingData = await waitingResponse.json();
+      const openJobsData = await openJobsResponse.json();
       
+      // Process jobs data to include candidate counts (randomly generated for now)
+      // In a real implementation, you would get this data from the backend
+      const jobsWithCandidates = openJobsData.jobs.map(job => ({
+        ...job,
+        candidates: Math.floor(Math.random() * 20) + 1 // Replace with actual data when available
+      }));
+      
+      setOpenJobs(jobsWithCandidates);
       setTodayInterviews(interviewsData.total_interviews);
       setWaitingCandidate(waitingData.length);
   
@@ -150,14 +174,9 @@ const Home = () => {
       <TourGuide />
       <Navbarapp />
 
-      <motion.aside 
-        className="fixed left-0 top-16 w-[19%] h-screen overflow-y-auto overflow-x-hidden bg-white/80 backdrop-blur-lg shadow-lg z-40"
-        initial={{ x: -100 }}
-        animate={{ x: 0 }}
-        transition={{ type: "spring", stiffness: 100 }}
-      >
+      <aside className="fixed left-0 top-16 w-[19%] h-[calc(100vh-4rem)] bg-white/80 backdrop-blur-lg shadow-lg">
         <Sidebar />
-      </motion.aside>
+      </aside>
 
       <motion.main 
         className="ml-[19%] mt-16 p-6 md:p-8"
@@ -237,11 +256,53 @@ const Home = () => {
             transition={{ delay: 0.4 }}
           >
             <h3 className="text-xl font-semibold mb-6 text-gray-800">
-              Candidate Interview Performance
+              Open Jobs & Applications
             </h3>
-            <div className="h-64 bg-gray-100/50 rounded-lg flex items-center justify-center">
-              <p className="text-gray-500">Interview performance data will be shown here</p>
-            </div>
+            
+            {openJobs.length > 0 ? (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={openJobs}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 60 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="title" 
+                      angle={-45} 
+                      textAnchor="end" 
+                      height={60}
+                      tick={{ fontSize: 12 }}
+                     
+                    />
+                    <YAxis 
+                      label={{ value: 'Candidates', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        borderRadius: '0.5rem',
+                        border: 'none',
+                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                      }}
+                    />
+                    <Legend />
+                    <Bar dataKey="candidates" fill="#6366F1" name="Job Applications">
+                      {openJobs.map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`}
+                          fill={`rgba(99, 102, 241, ${0.4 + ((index % 5) * 0.15)})`}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="h-64 bg-gray-100/50 rounded-lg flex items-center justify-center">
+                <p className="text-gray-500">No open jobs available</p>
+              </div>
+            )}
           </motion.div>
 
           <motion.div 
