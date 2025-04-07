@@ -18,6 +18,10 @@ const Home = () => {
   const [jobsLoading, setJobsLoading] = useState(true);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+  useEffect(() => {
+    document.title = "Home";
+  }, []);
+
   const fetchData = async () => {
     setLoading(true);
     setError("");

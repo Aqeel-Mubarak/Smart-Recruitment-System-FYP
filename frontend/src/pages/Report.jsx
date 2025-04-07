@@ -16,6 +16,7 @@ function Report() {
   useEffect(() => {
     fetchJobTitles();
     fetchCandidates();
+    document.title = "Report";
   }, []);
 
   const fetchJobTitles = async () => {

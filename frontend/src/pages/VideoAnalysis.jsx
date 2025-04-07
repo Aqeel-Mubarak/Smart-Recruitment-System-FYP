@@ -19,6 +19,10 @@ export default function VideoAnalysis() {
   const fileInputRef = useRef(null);
   const pollIntervalRef = useRef(null);
 
+  useEffect(() => {
+    document.title = "Video Analysis";
+  }, []);
+
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file && (file.type === "video/mp4" || file.type === "video/mkv" || file.type === "video/avi")) {
