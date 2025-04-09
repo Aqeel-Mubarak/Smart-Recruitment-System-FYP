@@ -16,6 +16,7 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [openJobs, setOpenJobs] = useState([]);
   const [jobsLoading, setJobsLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
@@ -117,6 +118,25 @@ const Home = () => {
     return () => clearInterval(intervalId);
   }, [API_BASE_URL]);
 
+  // Handle sidebar toggle for mobile
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  // Close sidebar when clicking outside on mobile
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (sidebarOpen && !event.target.closest('.sidebar') && !event.target.closest('.sidebar-toggle')) {
+        setSidebarOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [sidebarOpen]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-white flex items-center justify-center">
@@ -178,12 +198,31 @@ const Home = () => {
       <TourGuide />
       <Navbarapp />
 
-      <aside className="fixed left-0 top-16 w-[19%] h-[calc(100vh-4rem)] bg-white/80 backdrop-blur-lg shadow-lg">
+      {/* Mobile sidebar toggle button */}
+      <button 
+        className="sidebar-toggle fixed z-50 top-20 left-4 bg-indigo-600 text-white p-2 rounded-full shadow-lg md:hidden"
+        onClick={toggleSidebar}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      {/* Sidebar - Hidden on mobile by default */}
+      <aside className={`sidebar fixed left-0 top-16 w-3/4 sm:w-1/2 md:w-[19%] h-[calc(100vh-4rem)] bg-white/80 backdrop-blur-lg shadow-lg z-40 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         <Sidebar />
       </aside>
 
+      {/* Overlay for when sidebar is open on mobile */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/30 z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       <motion.main 
-        className="ml-[19%] mt-16 p-6 md:p-8"
+        className="md:ml-[19%] mt-16 p-4 md:p-6 lg:p-8"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -200,20 +239,19 @@ const Home = () => {
         )}
 
         <motion.div 
-          className="flex items-center justify-between mb-8"
+          className="flex items-center justify-between mb-6 md:mb-8"
           variants={cardVariants}
           initial="hidden"
           animate="visible"
         >
-          <h1 className="text-4xl font-bold text-gray-900">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
             Welcome Back, <span className="text-indigo-600">{name}</span>
           </h1>
-          <FaUserCircle className="text-indigo-600 text-3xl cursor-pointer hover:text-indigo-700 transition-colors" />
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
           <motion.div 
-            className="bg-white/80 backdrop-blur-lg shadow-lg rounded-xl p-6 text-center hover:shadow-xl transition-all"
+            className="bg-white/80 backdrop-blur-lg shadow-lg rounded-xl p-4 md:p-6 text-center hover:shadow-xl transition-all"
             variants={cardVariants}
             initial="hidden"
             animate="visible"
@@ -221,11 +259,11 @@ const Home = () => {
             whileHover={{ scale: 1.02 }}
           >
             <h3 className="text-lg font-semibold text-gray-800">Total Applications</h3>
-            <p className="text-4xl mt-2 font-bold text-indigo-600">{totalApplications}</p>
+            <p className="text-3xl md:text-4xl mt-2 font-bold text-indigo-600">{totalApplications}</p>
           </motion.div>
 
           <motion.div 
-            className="bg-white/80 backdrop-blur-lg shadow-lg rounded-xl p-6 text-center hover:shadow-xl transition-all"
+            className="bg-white/80 backdrop-blur-lg shadow-lg rounded-xl p-4 md:p-6 text-center hover:shadow-xl transition-all"
             variants={cardVariants}
             initial="hidden"
             animate="visible"
@@ -233,12 +271,12 @@ const Home = () => {
             whileHover={{ scale: 1.02 }}
           >
             <h3 className="text-lg font-semibold text-gray-800">Interviews Today</h3>
-            <p className="text-4xl mt-2 font-bold text-indigo-600">{todayInterviews}</p>
+            <p className="text-3xl md:text-4xl mt-2 font-bold text-indigo-600">{todayInterviews}</p>
             <p className="text-sm text-gray-500 mt-1">Scheduled for today</p>
           </motion.div>
 
           <motion.div 
-            className="bg-white/80 backdrop-blur-lg shadow-lg rounded-xl p-6 text-center hover:shadow-xl transition-all"
+            className="bg-white/80 backdrop-blur-lg shadow-lg rounded-xl p-4 md:p-6 text-center hover:shadow-xl transition-all sm:col-span-2 md:col-span-1"
             variants={cardVariants}
             initial="hidden"
             animate="visible"
@@ -246,29 +284,34 @@ const Home = () => {
             whileHover={{ scale: 1.02 }}
           >
             <h3 className="text-lg font-semibold text-gray-800">Waiting Candidates</h3>
-            <p className="text-4xl mt-2 font-bold text-indigo-600">{waitingCandidate}</p>
+            <p className="text-3xl md:text-4xl mt-2 font-bold text-indigo-600">{waitingCandidate}</p>
             <p className="text-sm text-gray-500 mt-1">Pending Review</p>
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
           <motion.div 
-            className="col-span-1 md:col-span-2 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl p-6"
+            className="col-span-1 lg:col-span-2 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl p-4 md:p-6"
             variants={cardVariants}
             initial="hidden"
             animate="visible"
             transition={{ delay: 0.4 }}
           >
-            <h3 className="text-xl font-semibold mb-6 text-gray-800">
+            <h3 className="text-xl font-semibold mb-4 md:mb-6 text-gray-800">
               Open Jobs & Applications
             </h3>
             
             {openJobs.length > 0 ? (
-              <div className="h-64">
+              <div className="h-64 md:h-72">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={openJobs}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 60 }}
+                    margin={{ 
+                      top: 5, 
+                      right: 10, 
+                      left: 0, 
+                      bottom: 60 
+                    }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis 
@@ -276,21 +319,24 @@ const Home = () => {
                       angle={-45} 
                       textAnchor="end" 
                       height={60}
-                      tick={{ fontSize: 12 }}
-                     
+                      tick={{ fontSize: 10, fontWeight: 500 }}
+                      interval={0}
                     />
                     <YAxis 
-                      label={{ value: 'Candidates', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
+                      width={30}
+                      tick={{ fontSize: 10 }}
+                      tickFormatter={(value) => value.toFixed(0)}
                     />
                     <Tooltip 
                       contentStyle={{ 
                         backgroundColor: 'rgba(255, 255, 255, 0.9)',
                         borderRadius: '0.5rem',
                         border: 'none',
-                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                        fontSize: '12px'
                       }}
                     />
-                    <Legend />
+                    <Legend wrapperStyle={{ fontSize: '12px' }} />
                     <Bar dataKey="candidates" fill="#6366F1" name="Job Applications">
                       {openJobs.map((entry, index) => (
                         <Cell 
@@ -310,45 +356,48 @@ const Home = () => {
           </motion.div>
 
           <motion.div 
-            className="col-span-1 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl p-6"
+            className="col-span-1 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl p-4 md:p-6"
             variants={cardVariants}
             initial="hidden"
             animate="visible"
             transition={{ delay: 0.5 }}
           >
-            <h3 className="text-xl font-semibold mb-6 text-gray-800">
+            <h3 className="text-xl font-semibold mb-4 md:mb-6 text-gray-800">
               Candidate Status Distribution
             </h3>
             <div className="flex flex-col items-center">
-              <PieChart width={240} height={200}>
-                <Pie
-                  data={pieChartData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  fill="#8884d8"
-                  labelLine={false}
-                  label={renderCustomizedLabel}
-                  animationDuration={1500}
-                >
-                  {pieChartData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={COLORS[index % COLORS.length]} 
-                    />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                    borderRadius: '0.5rem',
-                    border: 'none',
-                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-                  }}
-                />
-              </PieChart>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={pieChartData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    fill="#8884d8"
+                    labelLine={false}
+                    label={renderCustomizedLabel}
+                    animationDuration={1500}
+                  >
+                    {pieChartData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={COLORS[index % COLORS.length]} 
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                      borderRadius: '0.5rem',
+                      border: 'none',
+                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                      fontSize: '12px'
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
               
               <div className="flex flex-col w-full mt-4">
                 {pieChartData.map((entry, index) => (
