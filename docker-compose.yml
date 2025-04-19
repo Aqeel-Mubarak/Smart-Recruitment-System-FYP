@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./Backend
+    container_name: recruitment-backend
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - FRONTEND_URL=http://frontend:80
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - BUCKET_NAME=${BUCKET_NAME}
+      - REGION_NAME=${REGION_NAME}
+      - URL=${URL}
+    volumes:
+      - backend_data:/app/uploads
+      - backend_transcripts:/app/transcripts
+    networks:
+      - app-network
+
+  frontend:
+    build: ./frontend
+    container_name: recruitment-frontend
+    restart: always
+    environment:
+      - VITE_API_BASE_URL=/api
+    ports:
+      - "80:80"
+    networks:
+      - app-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: recruitment-postgres
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  backend_data:
+  backend_transcripts:

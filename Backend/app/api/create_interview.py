@@ -425,7 +425,7 @@ async def transcribe_audio(
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     sanitized_title = "".join(c if c.isalnum() else "_" for c in job_title.lower())
     temp_audio_path = f"temp_audio_{timestamp}.webm"
-    converted_audio_path = f"temp_audio_{timestamp}.wav"
+    converted_audio_path = f"converted_audio_{timestamp}.wav"
     
     try:
         # Read the audio file
