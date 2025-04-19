@@ -1,12 +1,15 @@
-// src/components/Navbar.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { buttonVariants } from './animations';
-import { Home, Info, Mail, LogIn } from 'lucide-react';
+import { Home, Info, Mail, LogIn, Menu, X } from 'lucide-react';
 import logo from '../assets/logo.jpg';
 
 const Navbar = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
   const navVariants = {
     hidden: { y: -100 },
     visible: { 
@@ -22,6 +25,23 @@ const Navbar = () => {
   const logoVariants = {
     initial: { rotate: 0 },
     hover: { rotate: 360, transition: { duration: 0.8 } }
+  };
+
+  const mobileMenuVariants = {
+    closed: { 
+      opacity: 0,
+      height: 0,
+      transition: {
+        duration: 0.3
+      }
+    },
+    open: { 
+      opacity: 1,
+      height: "auto",
+      transition: {
+        duration: 0.3
+      }
+    }
   };
 
   return (
@@ -49,12 +69,13 @@ const Navbar = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
             >
-              Smart Recruitment System
+              <span className="hidden sm:inline">Smart Recruitment System</span>
+              <span className="sm:hidden">Smart Recruitment System</span>
             </motion.span>
           </Link>
 
-          {/* Navigation Links */}
-          <div className="flex items-center space-x-6">
+          {/* Desktop Navigation Links */}
+          <div className="hidden md:flex items-center space-x-6">
             <motion.div 
               className="flex space-x-6"
               initial={{ opacity: 0 }}
@@ -100,7 +121,66 @@ const Navbar = () => {
               </motion.button>
             </Link>
           </div>
+
+          {/* Mobile Menu Button */}
+          <motion.button 
+            className="md:hidden text-white p-2 rounded-lg hover:bg-white/10"
+            onClick={toggleMenu}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </motion.button>
         </div>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial="closed"
+              animate="open"
+              exit="closed"
+              variants={mobileMenuVariants}
+              className="md:hidden overflow-hidden"
+            >
+              <div className="py-4 flex flex-col space-y-4 border-t border-white/10 mt-4">
+                <Link to="/about" onClick={() => setIsMenuOpen(false)}>
+                  <motion.div 
+                    className="text-white/90 hover:text-white font-medium py-2 transition-colors flex items-center space-x-2"
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Info className="w-5 h-5" />
+                    <span>About</span>
+                  </motion.div>
+                </Link>
+                <a 
+                  href="mailto:aqeelmubarak2003@gmail.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <motion.div 
+                    className="text-white/90 hover:text-white font-medium py-2 transition-colors flex items-center space-x-2"
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Mail className="w-5 h-5" />
+                    <span>Contact</span>
+                  </motion.div>
+                </a>
+                <Link to="/" onClick={() => setIsMenuOpen(false)}>
+                  <motion.div
+                    className="bg-white/10 hover:bg-white/20 text-white px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 w-full"
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <LogIn className="w-5 h-5" />
+                    <span>Get Started</span>
+                  </motion.div>
+                </Link>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.nav>
   );

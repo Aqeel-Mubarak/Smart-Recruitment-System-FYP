@@ -93,6 +93,9 @@ const ShortlistCandidate = () => {
   const [analyzing, setAnalyzing] = useState(false); // New state for analyzing
   const [filterComplete, setFilterComplete] = useState(false);
 
+  useEffect(() => {
+    document.title = "Shortlist Candidates";
+  }, []);
   // State for analysis modal
   const [analysisModal, setAnalysisModal] = useState({
     isOpen: false,
@@ -106,9 +109,9 @@ const ShortlistCandidate = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const jobId = searchParams.get("jobId"); 
+  const jobId = searchParams.get("jobId");
   console.log(jobId);
-  
+
   // Preselect default job if passed via location.state.
   useEffect(() => {
     if (location.state && location.state.selectedJob) {
@@ -195,7 +198,7 @@ const ShortlistCandidate = () => {
   // Filter candidates based on specific requirements.
   const handlePromptSearch = async () => {
     if (!prompt.trim() || !selectedOption) return;
-    setAnalyzing(true); 
+    setAnalyzing(true);
     setFilterComplete(false); // Reset filter status when starting new search
 
     try {
@@ -225,7 +228,7 @@ const ShortlistCandidate = () => {
       alert("Error filtering candidates. Please try again.");
       setFilterComplete(false);
     } finally {
-      setAnalyzing(false); 
+      setAnalyzing(false);
     }
   };
 
@@ -319,7 +322,11 @@ const ShortlistCandidate = () => {
     }
   };
 
-  // Schedule interview for selected candidates.
+
+  // Add a new state to track email sending status
+  const [sendingEmails, setSendingEmails] = useState(false);
+
+  // Modify the handleEmail function to include loading state and redirection
   const handleEmail = async () => {
     if (!selectedOption || !selectedOption.value) {
       alert("Please select a job first");
@@ -329,10 +336,13 @@ const ShortlistCandidate = () => {
       alert("Please select at least one candidate");
       return;
     }
-    
+
+    // Set sending state to true
+    setSendingEmails(true);
+
     const jobid = selectedOption.value;
     const token = localStorage.getItem('accessToken');
-    
+
     try {
       // First, update the status of selected candidates to 'shortlisted'
       await axios.post(
@@ -345,49 +355,55 @@ const ShortlistCandidate = () => {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
-  
+
       // Continue with existing email functionality
       const encryptResponse = await axios.post(`${API_BASE_URL}/encryptid`, {
         value: [hiringmanagerid, jobid],
       });
-      
+
       const encodedhiringmanagerid = encryptResponse.data.encodedlst[0];
       const encodedjobid = encryptResponse.data.encodedlst[1];
       const isManagement = false;
       const linkkk = `http://207.180.240.67/Calendar/${isManagement}/${jobid}`;
-      
+
       const selectedCandidates = candidates
         .filter(candidate => checkedCandidates.has(candidate.id))
         .map(candidate => ({
           id: candidate.id,
           email: candidate.email,
         }));
-        
+
       await axios.post(`${API_BASE_URL}/send_email`, {
         to_email: selectedCandidates,
         subject: "Job Application Update",
         body: `
-          <html>
-            <body>
-              <p>We are excited to invite you to interview for the role at our company.<br>Please click the link below to schedule your interview at a time that works best for you:</p>
-              <p>We look forward to meeting with you and discussing your experience.<br>If you have any questions or need assistance, feel free to reach out.<br>Looking forward to speaking with you soon!</p>
-              <p>Best regards,<br>The Hiring Team</p>
-            </body>
-          </html>
-        `,
+        <html>
+          <body>
+            <p>We are excited to invite you to interview for the role at our company.<br>Please click the link below to schedule your interview at a time that works best for you:</p>
+            <p>We look forward to meeting with you and discussing your experience.<br>If you have any questions or need assistance, feel free to reach out.<br>Looking forward to speaking with you soon!</p>
+            <p>Best regards,<br>The Hiring Team</p>
+          </body>
+        </html>
+      `,
         linkkk,
         encodedhiringmanagerid,
         encodedjobid,
       });
-      
+
+      // Update the sending state
+      setSendingEmails(false);
+
+      // Alert success and redirect to report page
       alert("Emails sent successfully!");
-      
-      // Refresh the candidates list to show updated status
-      await fetchCandidates();
-      
+
+      // Redirect to the report page
+      navigate(`/reports?jobId=${jobid}`);
+
     } catch (error) {
       console.error("Error:", error.response?.data || error.message);
       alert("Failed to shortlist candidates and send emails.");
+      // Reset sending state on error
+      setSendingEmails(false);
     }
   };
   // Custom styles for react-select.
@@ -452,7 +468,7 @@ const ShortlistCandidate = () => {
         <Sidebar />
       </aside>
 
-      <motion.main 
+      <motion.main
         className="ml-[19%] mt-16 p-6 md:p-8"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -600,7 +616,7 @@ const ShortlistCandidate = () => {
         </div>
 
         {/* Bottom Row: Candidate Table */}
-        <motion.div 
+        <motion.div
           layout
           className="bg-white/80 backdrop-blur-lg shadow-lg rounded-xl overflow-hidden border border-gray-100"
         >
@@ -641,7 +657,7 @@ const ShortlistCandidate = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-transparent">
                     {filteredCandidates.map((candidate, index) => (
-                      <motion.tr 
+                      <motion.tr
                         key={candidate.id}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -668,18 +684,17 @@ const ShortlistCandidate = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            candidate.score >= 60
-                              ? 'bg-green-100 text-green-800'
-                              : candidate.score >= 50
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${candidate.score >= 60
+                            ? 'bg-green-100 text-green-800'
+                            : candidate.score >= 50
                               ? 'bg-yellow-100 text-yellow-800'
                               : 'bg-red-100 text-red-800'
-                          }`}>
+                            }`}>
                             {candidate.score >= 60
                               ? 'High Match'
                               : candidate.score >= 50
-                              ? 'Medium Match'
-                              : 'Low Match'}
+                                ? 'Medium Match'
+                                : 'Low Match'}
                           </span>
                         </td>
                         {filterComplete && (
@@ -726,12 +741,32 @@ const ShortlistCandidate = () => {
         </motion.div>
 
         {/* Schedule Interview Button */}
-        <div className="flex justify-center mt-6">
+        {/* <div className="flex justify-center mt-6">
           <button
             onClick={handleEmail}
             className="px-8 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium"
           >
             Schedule Interview
+          </button>
+        </div> */}
+        {/* Schedule Interview Button */}
+        <div className="flex justify-center mt-6">
+          <button
+            onClick={handleEmail}
+            disabled={sendingEmails}
+            className={`px-8 py-3 ${sendingEmails
+                ? 'bg-indigo-400 cursor-not-allowed'
+                : 'bg-indigo-600 hover:bg-indigo-700'
+              } text-white rounded-xl transition-colors font-medium flex items-center gap-2`}
+          >
+            {sendingEmails ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                Sending Emails...
+              </>
+            ) : (
+              'Schedule Interview'
+            )}
           </button>
         </div>
       </motion.main>
@@ -797,7 +832,7 @@ const ShortlistCandidate = () => {
       {/* Analysis Modal */}
       {analysisModal.isOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl p-6 max-w-2xl w-full mx-4"
@@ -819,7 +854,7 @@ const ShortlistCandidate = () => {
                 Close
               </button>
             </div>
-            
+
             <div className="space-y-4">
               {analysisModal.loading ? (
                 <div className="flex flex-col items-center justify-center py-12">
@@ -828,7 +863,7 @@ const ShortlistCandidate = () => {
                   <p className="text-gray-500 text-sm">This may take a few moments</p>
                 </div>
               ) : (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="bg-gradient-to-br from-white to-indigo-50/50 rounded-lg p-6 shadow-sm"
@@ -840,7 +875,7 @@ const ShortlistCandidate = () => {
                     <div>
                       <h3 className="font-semibold text-gray-800">Analysis Results</h3>
                       <p className="text-sm text-gray-500">
-                        {analysisModal.type === 'job' 
+                        {analysisModal.type === 'job'
                           ? 'Evaluation based on job requirements'
                           : 'Evaluation based on specific prompt'}
                       </p>

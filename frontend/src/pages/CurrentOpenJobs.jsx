@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import Navbarapp from "../components/Navbarapp";
 import Sidebar from "../components/Sidebar";
 import axios from "axios";
-import JobsForCreateOpenJobs from "../components/JobsForCreateOpenJobs";
 import { useAppContext } from "../components/AppContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Briefcase, Plus, Filter, MoreVertical, Users, Calendar, Link, XCircle, Loader2, Edit3, FileText } from "lucide-react";
@@ -38,6 +37,10 @@ const CurrentOpenJobs = () => {
       .catch((error) => {
         console.log(error);
       });
+  }, []);
+
+  useEffect(() => {
+    document.title = "Jobs";
   }, []);
 
   const fetchJobs = async () => {

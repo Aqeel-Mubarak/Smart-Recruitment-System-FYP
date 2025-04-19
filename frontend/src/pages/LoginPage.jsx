@@ -61,11 +61,11 @@ const LoginPage = () => {
         />
 
         <motion.div 
-          className="relative z-10 w-full md:w-1/2 flex items-center justify-center min-h-screen py-20"
+          className="relative z-10 w-full md:w-1/2 flex items-center justify-center min-h-screen py-20 px-4 sm:px-6"
           variants={slideUp}
         >
           <motion.div
-            className="bg-white/80 backdrop-blur-lg p-8 shadow-xl rounded-xl w-full max-w-md mx-4 border border-white/20"
+            className="bg-white/80 backdrop-blur-lg p-4 sm:p-8 shadow-xl rounded-xl w-full max-w-md mx-auto border border-white/20"
             variants={formFieldVariants}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -73,7 +73,7 @@ const LoginPage = () => {
           >
             {errorMessage && (
               <motion.div 
-                className="bg-red-50 text-red-600 p-4 rounded-lg mb-6"
+                className="bg-red-50 text-red-600 p-3 sm:p-4 rounded-lg mb-4 sm:mb-6 text-sm sm:text-base"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
@@ -82,19 +82,19 @@ const LoginPage = () => {
             )}
             
             <motion.h2 
-              className="text-3xl font-bold mb-6 text-gray-800"
+              className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-800"
               variants={formFieldVariants}
             >
               Welcome Back
             </motion.h2>
             
-            <form onSubmit={handleLogin} className="space-y-6">
+            <form onSubmit={handleLogin} className="space-y-4 sm:space-y-6">
               <motion.div variants={formFieldVariants}>
-                <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="email">
+                <label className="block text-gray-700 text-sm font-medium mb-1 sm:mb-2" htmlFor="email">
                   Email
                 </label>
                 <input
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white/50 backdrop-blur-sm"
+                  className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white/50 backdrop-blur-sm"
                   id="email"
                   type="email"
                   value={email}
@@ -104,11 +104,11 @@ const LoginPage = () => {
               </motion.div>
 
               <motion.div variants={formFieldVariants}>
-                <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="password">
+                <label className="block text-gray-700 text-sm font-medium mb-1 sm:mb-2" htmlFor="password">
                   Password
                 </label>
                 <input
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white/50 backdrop-blur-sm"
+                  className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white/50 backdrop-blur-sm"
                   id="password"
                   type="password"
                   placeholder="Enter your password"
@@ -123,7 +123,7 @@ const LoginPage = () => {
               >
                 <Link 
                   to="/resetpassword" 
-                  className="text-sm text-indigo-600 hover:text-indigo-700 transition-colors"
+                  className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-700 transition-colors"
                 >
                   Forgot your password?
                 </Link>
@@ -131,7 +131,7 @@ const LoginPage = () => {
 
               <motion.button
                 type="submit"
-                className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                className="w-full bg-indigo-600 text-white py-2 sm:py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 text-sm sm:text-base"
                 variants={buttonVariants}
                 whileHover="hover"
                 whileTap="tap"
@@ -140,13 +140,13 @@ const LoginPage = () => {
               </motion.button>
 
               <motion.div 
-                className="text-center mt-6"
+                className="text-center mt-4 sm:mt-6"
                 variants={formFieldVariants}
               >
-                <span className="text-gray-600">Don't have an account? </span>
+                <span className="text-gray-600 text-xs sm:text-sm">Don't have an account? </span>
                 <Link 
                   to="/signup" 
-                  className="text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
+                  className="text-indigo-600 hover:text-indigo-700 font-medium transition-colors text-xs sm:text-sm"
                 >
                   Sign up
                 </Link>
