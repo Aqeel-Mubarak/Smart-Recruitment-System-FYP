@@ -6,7 +6,8 @@ import { FileText, BriefcaseIcon, Code, Send, Copy, ExternalLink, ArrowLeft, Plu
 import Navbarapp from '../components/Navbarapp';
 import Sidebar from '../components/Sidebar';
 
-const API_URL = 'http://localhost:8000';
+
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Toast notification component
 const Toast = ({ message, type, onClose }) => {
@@ -46,6 +47,10 @@ const CreateInterview = () => {
   const showToast = (message, type = 'success') => {
     setToast({ visible: true, message, type });
   };
+  
+  useEffect(() => {
+    document.title = "AI Interview";
+  }, []);
 
   const hideToast = () => {
     setToast({ ...toast, visible: false });
