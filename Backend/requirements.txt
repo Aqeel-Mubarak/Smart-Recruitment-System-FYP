@@ -98,7 +98,7 @@ sympy==1.13.1
 textract==1.5.0
 threadpoolctl==3.5.0
 tokenizers==0.21.0
-torch==2.5.1
+https://download.pytorch.org/whl/cpu/torch-2.1.0%2Bcpu-cp311-cp311-linux_x86_64.whl
 tqdm==4.67.1
 transformers==4.47.0
 typing_extensions==4.12.2

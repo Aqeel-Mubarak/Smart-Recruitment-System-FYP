@@ -76,7 +76,7 @@ def get_open_jobs_with_applications(
         ).group_by(
             JobDescription.id
         ).order_by(
-            desc('applications')
+            func.count(Candidate.id).desc()
         ).all()
         
         jobs_data = []

@@ -64,7 +64,7 @@ const Home = () => {
       });
   
       // Fetch open jobs with candidate counts
-      const openJobsResponse = await fetch(`${API_BASE_URL}/jobs/open`, {
+      const openJobsResponse = await fetch(`${API_BASE_URL}/open_jobs_with_applications`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -88,14 +88,9 @@ const Home = () => {
       const waitingData = await waitingResponse.json();
       const openJobsData = await openJobsResponse.json();
       
-      // Process jobs data to include candidate counts (randomly generated for now)
-      // In a real implementation, you would get this data from the backend
-      const jobsWithCandidates = openJobsData.jobs.map(job => ({
-        ...job,
-        candidates: Math.floor(Math.random() * 20) + 1 // Replace with actual data when available
-      }));
+      // Use the actual applications count from backend
+      setOpenJobs(openJobsData.jobs);
       
-      setOpenJobs(jobsWithCandidates);
       setTodayInterviews(interviewsData.total_interviews);
       setWaitingCandidate(waitingData.length);
   
@@ -276,7 +271,7 @@ const Home = () => {
                      
                     />
                     <YAxis 
-                      label={{ value: 'Candidates', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
+                      label={{ value: 'Applications', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
                     />
                     <Tooltip 
                       contentStyle={{ 
@@ -287,7 +282,7 @@ const Home = () => {
                       }}
                     />
                     <Legend />
-                    <Bar dataKey="candidates" fill="#6366F1" name="Job Applications">
+                    <Bar dataKey="applications" fill="#6366F1" name="Job Applications">
                       {openJobs.map((entry, index) => (
                         <Cell 
                           key={`cell-${index}`}
