@@ -102,7 +102,11 @@ export default function VideoAnalysis() {
     pollIntervalRef.current = setInterval(async () => {
       try {
         const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
-        const response = await axios.get(`${API_BASE_URL}/api/video/video/${id}`);
+        
+        // Remove the leading /api if it's already in the base URL
+        const apiPrefix = API_BASE_URL.endsWith('/api') ? '' : '/api';
+        const response = await axios.get(`${API_BASE_URL}${apiPrefix}/video/video/${id}`);
+        
         setProcessingStatus(response.data.status);
 
         if (response.data.status === "completed") {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { PieChart, Pie, Cell, Tooltip, BarChart, CartesianGrid, XAxis, YAxis, Legend, Bar, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip } from 'recharts';
 import Navbarapp from '../components/Navbarapp';
 import TourGuide from '../components/TourGuide';
 import { FaUserCircle } from 'react-icons/fa';
@@ -14,8 +14,6 @@ const Home = () => {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const [openJobs, setOpenJobs] = useState([]);
-  const [jobsLoading, setJobsLoading] = useState(true);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const fetchData = async () => {
@@ -63,15 +61,6 @@ const Home = () => {
         },
       });
   
-      // Fetch open jobs with candidate counts
-      const openJobsResponse = await fetch(`${API_BASE_URL}/open_jobs_with_applications`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-  
       if (!interviewsResponse.ok) {
         throw new Error("Failed to fetch today's interviews");
       }
@@ -80,16 +69,8 @@ const Home = () => {
         throw new Error("Failed to fetch waiting candidates");
       }
   
-      if (!openJobsResponse.ok) {
-        throw new Error("Failed to fetch open jobs");
-      }
-  
       const interviewsData = await interviewsResponse.json();
       const waitingData = await waitingResponse.json();
-      const openJobsData = await openJobsResponse.json();
-      
-      // Use the actual applications count from backend
-      setOpenJobs(openJobsData.jobs);
       
       setTodayInterviews(interviewsData.total_interviews);
       setWaitingCandidate(waitingData.length);
@@ -242,83 +223,26 @@ const Home = () => {
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           <motion.div 
-            className="col-span-1 md:col-span-2 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl p-6"
+            className="bg-white/80 backdrop-blur-lg shadow-lg rounded-xl p-6"
             variants={cardVariants}
             initial="hidden"
             animate="visible"
             transition={{ delay: 0.4 }}
           >
             <h3 className="text-xl font-semibold mb-6 text-gray-800">
-              Open Jobs & Applications
-            </h3>
-            
-            {openJobs.length > 0 ? (
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={openJobs}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 60 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="title" 
-                      angle={-45} 
-                      textAnchor="end" 
-                      height={60}
-                      tick={{ fontSize: 12 }}
-                     
-                    />
-                    <YAxis 
-                      label={{ value: 'Applications', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
-                    />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                        borderRadius: '0.5rem',
-                        border: 'none',
-                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-                      }}
-                    />
-                    <Legend />
-                    <Bar dataKey="applications" fill="#6366F1" name="Job Applications">
-                      {openJobs.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`}
-                          fill={`rgba(99, 102, 241, ${0.4 + ((index % 5) * 0.15)})`}
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="h-64 bg-gray-100/50 rounded-lg flex items-center justify-center">
-                <p className="text-gray-500">No open jobs available</p>
-              </div>
-            )}
-          </motion.div>
-
-          <motion.div 
-            className="col-span-1 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl p-6"
-            variants={cardVariants}
-            initial="hidden"
-            animate="visible"
-            transition={{ delay: 0.5 }}
-          >
-            <h3 className="text-xl font-semibold mb-6 text-gray-800">
               Candidate Status Distribution
             </h3>
             <div className="flex flex-col items-center">
-              <PieChart width={240} height={200}>
+              <PieChart width={300} height={240}>
                 <Pie
                   data={pieChartData}
                   dataKey="value"
                   nameKey="name"
                   cx="50%"
                   cy="50%"
-                  outerRadius={80}
+                  outerRadius={100}
                   fill="#8884d8"
                   labelLine={false}
                   label={renderCustomizedLabel}
@@ -341,9 +265,9 @@ const Home = () => {
                 />
               </PieChart>
               
-              <div className="flex flex-col w-full mt-4">
+              <div className="flex justify-center gap-8 w-full mt-6">
                 {pieChartData.map((entry, index) => (
-                  <div key={`legend-${index}`} className="flex items-center mt-2">
+                  <div key={`legend-${index}`} className="flex items-center">
                     <div 
                       className="w-4 h-4 mr-2 rounded"
                       style={{ backgroundColor: COLORS[index % COLORS.length] }}
