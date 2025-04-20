@@ -18,10 +18,10 @@ import os
 
 load_dotenv()
 
-AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
-AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY")
-BUCKET_NAME = os.getenv("BUCKET_NAME")
-REGION_NAME = os.getenv("REGION_NAME")
+AWS_ACCESS_KEY = "AKIA5G4FULXWL2XCEOWF"
+AWS_SECRET_KEY = "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"
+BUCKET_NAME = "candidatesresume"
+REGION_NAME = "us-east-1"
 
 s3_client = boto3.client(
     "s3",

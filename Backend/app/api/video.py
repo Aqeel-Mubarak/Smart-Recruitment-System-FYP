@@ -23,7 +23,7 @@ os.makedirs(TRANSCRIPT_DIR, exist_ok=True)
 video_status = {}
 
 # Groq client initialization
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")  # Use environment variables for security
+GROQ_API_KEY = "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" # Use environment variables for security
 groq_client = Groq(api_key=GROQ_API_KEY)
 
 class VideoStatus(BaseModel):
@@ -68,8 +68,11 @@ logging.basicConfig(level=logging.INFO)
 
 async def process_video(video_id: str, video_path: str):
     try:
-        # Path for extracted audio
+        # Initialize variables
         audio_path = os.path.join(UPLOAD_DIR, f"{video_id}.wav")
+        transcript_path = os.path.join(TRANSCRIPT_DIR, f"{video_id}.txt")
+        
+        # Extract audio
         extract_audio_cmd = [
             "ffmpeg", "-i", video_path, "-vn", "-acodec", "pcm_s16le", 
             "-ar", "16000", "-ac", "1", audio_path
@@ -77,8 +80,7 @@ async def process_video(video_id: str, video_path: str):
         logging.info(f"Running command: {' '.join(extract_audio_cmd)}")
         subprocess.run(extract_audio_cmd, check=True)
         
-        # Path for generated transcript
-        transcript_path = os.path.join(TRANSCRIPT_DIR, f"{video_id}.txt")
+        # Transcribe audio
         transcribe_cmd = [
             "whisper", audio_path, "--model", "base", "--output_dir", TRANSCRIPT_DIR,
             "--output_format", "txt"

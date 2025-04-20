@@ -35,7 +35,7 @@ class GroqAnalyzer:
     
     def __init__(self):
         """Initialize the Groq client."""
-        self.api_key = os.getenv("GROQ_API_KEY")
+        self.api_key = "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"
         if not self.api_key:
             raise ValueError("GROQ_API_KEY not found in .env file")
         self.client = Groq(api_key=self.api_key)

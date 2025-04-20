@@ -50,7 +50,7 @@ app.add_middleware(
 
 
 # Initialize Groq client
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_API_KEY = "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"
 groq_client = None
 if GROQ_API_KEY:
     try:
@@ -557,12 +557,35 @@ async def video_stream(websocket: WebSocket):
     await websocket.accept()
     logging.info("WebSocket connection established.")
 
+    # Check if running in VM by trying to detect common VM environments
+    is_vm = check_if_running_in_vm()
+    if is_vm:
+        logging.info("Running in VM environment - providing limited webcam functionality")
+        await websocket.send_text(json.dumps({"gazeStatus": "Limited Mode (VM)", "isVm": True}))
+    
     while True:
         try:
             data = await websocket.receive_text()
+            
+            # First check if it's a special command - for VM detection
+            if data == "check_environment":
+                await websocket.send_text(json.dumps({
+                    "gazeStatus": "Limited Mode (VM)" if is_vm else "Ready",
+                    "isVm": is_vm
+                }))
+                continue
+            
             logging.info("Received frame from frontend.")
 
-            # Decode the base64 data received from the frontend
+            # For VM environments, provide a consistent response
+            if is_vm:
+                await websocket.send_text(json.dumps({
+                    "gazeStatus": "Limited Mode (VM)",
+                    "isVm": True
+                }))
+                continue
+
+            # Normal processing for non-VM environments
             try:
                 if data.startswith("data:image"):
                     data = data.split(",")[1]  # Remove the prefix
@@ -645,6 +668,66 @@ def process_frame_for_gaze(frame):
     except Exception as e:
         logging.error(f"Error in face detection: {e}")
         return "Error detecting face"
+
+def check_if_running_in_vm():
+    """
+    Check if the code is running inside a VM environment
+    Returns True if VM is detected, False otherwise
+    """
+    try:
+        # Method 1: Check for common VM-specific files
+        vm_files = [
+            "/sys/class/dmi/id/product_name",  # For Linux
+            "/proc/cpuinfo",                   # Check for VM indicators in CPU info
+        ]
+        
+        vm_indicators = [
+            "VMware", "VirtualBox", "QEMU", "Virtual Machine",
+            "KVM", "Xen", "innotek GmbH", "Parallels"
+        ]
+        
+        for file_path in vm_files:
+            if os.path.exists(file_path):
+                try:
+                    with open(file_path, 'r') as f:
+                        content = f.read().lower()
+                        if any(indicator.lower() in content for indicator in vm_indicators):
+                            logging.info(f"VM detected via {file_path}")
+                            return True
+                except:
+                    pass
+        
+        # Method 2: Check Docker container
+        if os.path.exists('/.dockerenv'):
+            logging.info("Docker container detected")
+            return True
+            
+        # Method 3: Check if running inside WSL (Windows Subsystem for Linux)
+        if os.path.exists('/proc/version'):
+            try:
+                with open('/proc/version', 'r') as f:
+                    if 'microsoft' in f.read().lower():
+                        logging.info("WSL detected")
+                        return True
+            except:
+                pass
+                
+        # Method 4: Try to access webcam directly as a test
+        try:
+            test_cap = cv2.VideoCapture(0)
+            if not test_cap.isOpened():
+                logging.info("Cannot access webcam - assuming VM environment")
+                return True
+            test_cap.release()
+        except Exception as e:
+            logging.info(f"Webcam test failed, likely VM: {e}")
+            return True
+            
+        return False
+    except Exception as e:
+        logging.error(f"Error checking VM status: {e}")
+        # If we can't determine, assume it's not a VM to attempt full functionality
+        return False
 
 @router.post("/api/save-interview-summary")
 async def save_interview_summary(
