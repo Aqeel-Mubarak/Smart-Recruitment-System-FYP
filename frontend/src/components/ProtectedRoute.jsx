@@ -19,7 +19,7 @@ function ProtectedRoute() {
   const token = localStorage.getItem("accessToken");
   const isAuthenticated = token && isTokenValid(token);
 
-  return isAuthenticated ? <Outlet /> : <Navigate to="/" />;
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" />;
 }
 
 export default ProtectedRoute;

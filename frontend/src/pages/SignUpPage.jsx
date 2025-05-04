@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import backgroundImage from '../assets/background2.jpg';
-import logo from '../assets/logo.jpg';
 import Navbar from '../components/Navbar';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -149,7 +148,7 @@ const SignupPage = () => {
       setStatus('success');
       setShowPopup(true);
       setTimeout(() => {
-        navigate('/');
+        navigate('/login');
       }, 2500);
     } catch (error) {
       if (error.response && error.response.status === 409) {
@@ -167,7 +166,7 @@ const SignupPage = () => {
 
   const handleSignIn = () => {
     if (status === 'success') {
-      navigate('/');
+      navigate('/login');
     } else {
       setShowPopup(false);
     }
@@ -383,7 +382,7 @@ const SignupPage = () => {
               >
                 <span className="text-gray-600">Already have an account? </span>
                 <Link 
-                  to="/" 
+                  to="/login" 
                   className="text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
                 >
                   Sign in
