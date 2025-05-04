@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { buttonVariants } from './animations';
 import { Home, Info, Mail, LogIn, Menu, X } from 'lucide-react';
-import logo from '../assets/logo.jpg';
+import logo from '../assets/logo.png';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -54,7 +54,7 @@ const Navbar = () => {
       <div className="container mx-auto">
         <div className="flex justify-between items-center">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to="/login" className="flex items-center space-x-2">
             <motion.img 
               src={logo} 
               alt="Company Logo" 
@@ -106,7 +106,7 @@ const Navbar = () => {
               </a>
             </motion.div>
             
-            <Link to="/">
+            <Link to="/signup">
               <motion.button
                 className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg font-medium backdrop-blur-sm transition-colors inline-flex items-center space-x-2"
                 variants={buttonVariants}
@@ -168,7 +168,7 @@ const Navbar = () => {
                     <span>Contact</span>
                   </motion.div>
                 </a>
-                <Link to="/" onClick={() => setIsMenuOpen(false)}>
+                <Link to="/signup" onClick={() => setIsMenuOpen(false)}>
                   <motion.div
                     className="bg-white/10 hover:bg-white/20 text-white px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 w-full"
                     whileTap={{ scale: 0.98 }}
