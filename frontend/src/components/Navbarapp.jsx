@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { buttonVariants } from './animations';
 import { LogOut, Home, Info, Mail, FileText, BriefcaseIcon, Users, Calendar, BarChart2, Video, ClipboardList, MessageCircle, Menu, X } from 'lucide-react';
-import logo from '../assets/logo.jpg';
+import logo from '../assets/logo.png';
 
 const Navbarapp = () => {
   const location = useLocation();

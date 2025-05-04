@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
 import Home from './pages/home'; 
@@ -22,6 +22,7 @@ import VideoAnalysis from './pages/VideoAnalysis';
 import CreateInterview from './pages/CreateInterview';
 import InterviewSession from './pages/InterviewSession';
 import InterviewSummaries from './pages/InterviewSummaries';
+import LandingPage from './pages/LandingPage';
 
 
 
@@ -29,7 +30,8 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<LoginPage />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/resetpassword" element={<ForgetPassword />} />
         <Route path="/new-password/:token" element={<NewPassword />} />

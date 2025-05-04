@@ -18,7 +18,7 @@ const AccountVerification = () => {
       const response = await axios.get(`${API_BASE_URL}/verify/${token}`);
       setMessage(response.data.message || "Account verified successfully!");
       setStatus("success");
-      setTimeout(() => navigate("/"), 2500); 
+      setTimeout(() => navigate("/login"), 2500); 
     } catch (error) {
       setMessage(
         error.response?.data?.message || "Verification failed. Please try again."
@@ -31,7 +31,7 @@ const AccountVerification = () => {
 
   useEffect(() => {
     if (status === "success") {
-      setTimeout(() => navigate("/"), 2500);
+      setTimeout(() => navigate("/login"), 2500);
     }
   }, [status, navigate]);
 

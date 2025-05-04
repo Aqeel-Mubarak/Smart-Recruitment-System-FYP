@@ -119,7 +119,7 @@ const ForgetPassword = () => {
                                 variants={formFieldVariants}
                             >
                                 <Link 
-                                    to="/" 
+                                    to="/login" 
                                     className="text-indigo-600 hover:text-indigo-700 font-medium transition-colors text-xs sm:text-sm"
                                 >
                                     Back to Login
@@ -157,7 +157,7 @@ const ForgetPassword = () => {
                             </motion.a>
                             <motion.button
                                 className="bg-gray-800 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-gray-900 transition-colors text-sm sm:text-base"
-                                onClick={() => navigate('/')}
+                                onClick={() => navigate('/login')}
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                             >
