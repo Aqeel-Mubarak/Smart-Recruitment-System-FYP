@@ -23,8 +23,9 @@ import CreateInterview from './pages/CreateInterview';
 import InterviewSession from './pages/InterviewSession';
 import InterviewSummaries from './pages/InterviewSummaries';
 import LandingPage from './pages/LandingPage';
-
-
+import AdminDashboard from './pages/AdminDashboard';
+import UsersPage from './pages/UsersPage';
+import AdminLoginPage from './pages/AdminLoginPage';
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/adminlogin" element={<AdminLoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/resetpassword" element={<ForgetPassword />} />
         <Route path="/new-password/:token" element={<NewPassword />} />
@@ -55,6 +57,8 @@ function App() {
           <Route path="/interview/:interviewId" element={<InterviewSession />} />
           <Route path="/admin/summaries" element={<InterviewSummaries />} />
           <Route path="/admin/summaries" element={<InterviewSummaries />} />
+          <Route path="/admindashboard" element={< AdminDashboard/>} />
+          <Route path="/admindashboard/users" element={<UsersPage />} />
         </Route>
       </Routes>
     </Router>
