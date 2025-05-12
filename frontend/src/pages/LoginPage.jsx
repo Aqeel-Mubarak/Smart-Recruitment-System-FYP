@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { fadeIn, slideUp, formFieldVariants, buttonVariants } from '../components/animations';
+import AdminLoginPage from './AdminLoginPage';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -149,6 +150,18 @@ const LoginPage = () => {
                   className="text-indigo-600 hover:text-indigo-700 font-medium transition-colors text-xs sm:text-sm"
                 >
                   Sign up
+                </Link>
+              </motion.div>
+              <motion.div 
+                className="text-center mt-4 sm:mt-6"
+                variants={formFieldVariants}
+              >
+                <span className="text-gray-600 text-xs sm:text-sm"> </span>
+                <Link 
+                  to="/adminlogin" 
+                  className="text-indigo-600 hover:text-indigo-700 font-medium transition-colors text-xs sm:text-sm"
+                >
+                  Login as Admin Here !
                 </Link>
               </motion.div>
             </form>
