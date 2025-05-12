@@ -11,6 +11,7 @@ from . import (
     report,
     video,
     create_interview,
+    admin_dashboard,
 )
 
 api_router = APIRouter()
@@ -26,6 +27,7 @@ api_router.include_router(home.router, tags=["home"])
 api_router.include_router(report.router, tags=["report"])
 api_router.include_router(video.router, tags=["video"])
 api_router.include_router(create_interview.router, tags=["create_interview"])
+api_router.include_router(admin_dashboard.router, tags=["admin_dashboard"])
 
 
 
