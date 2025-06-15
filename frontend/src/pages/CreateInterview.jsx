@@ -6,10 +6,11 @@ import { FileText, BriefcaseIcon, Code, Send, Copy, ExternalLink, ArrowLeft, Plu
 import Navbarapp from '../components/Navbarapp';
 import Sidebar from '../components/Sidebar';
 
-
+// API base URL from environment variables
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
-// Toast notification component
+// Toast notification component for displaying success/error messages
+// Uses Framer Motion for smooth animations and auto-dismisses after 3 seconds
 const Toast = ({ message, type, onClose }) => {
   useEffect(() => {
     const timer = setTimeout(onClose, 3000);
@@ -33,9 +34,10 @@ const Toast = ({ message, type, onClose }) => {
   );
 };
 
-// Create Interview Component
+// Main component for creating AI-powered interviews
 const CreateInterview = () => {
   const navigate = useNavigate();
+  // State management for form inputs and UI
   const [jobTitle, setJobTitle] = useState('');
   const [skillInput, setSkillInput] = useState('');
   const [skills, setSkills] = useState([]);
@@ -44,10 +46,12 @@ const CreateInterview = () => {
   const [generatedData, setGeneratedData] = useState(null);
   const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
 
+  // Toast notification handlers
   const showToast = (message, type = 'success') => {
     setToast({ visible: true, message, type });
   };
   
+  // Set page title on component mount
   useEffect(() => {
     document.title = "AI Interview";
   }, []);
@@ -56,6 +60,7 @@ const CreateInterview = () => {
     setToast({ ...toast, visible: false });
   };
 
+  // Skill management functions
   const addSkill = () => {
     const trimmedSkill = skillInput.trim();
     if (trimmedSkill && !skills.includes(trimmedSkill)) {
@@ -68,6 +73,7 @@ const CreateInterview = () => {
     setSkills(skills.filter(skill => skill !== skillToRemove));
   };
 
+  // Handle Enter key press in skill input
   const handleSkillKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -75,6 +81,7 @@ const CreateInterview = () => {
     }
   };
 
+  // Form submission handler - generates interview questions via API
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -103,6 +110,7 @@ const CreateInterview = () => {
     }
   };
 
+  // Utility functions for sharing and viewing interviews
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text)
       .then(() => showToast('Link copied to clipboard!'))
@@ -115,6 +123,7 @@ const CreateInterview = () => {
     }
   };
 
+  // Animation variants for Framer Motion
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -342,15 +351,17 @@ const CreateInterview = () => {
   );
 };
 
-// Interview Page Component
+// Interview Page Component - Displays the generated interview questions
 const InterviewPage = () => {
   const { interviewId } = useParams();
   const navigate = useNavigate();
+  // State management for interview data and UI
   const [interview, setInterview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
 
+  // Toast notification handlers
   const showToast = (message, type = 'success') => {
     setToast({ visible: true, message, type });
   };
@@ -359,6 +370,7 @@ const InterviewPage = () => {
     setToast({ ...toast, visible: false });
   };
 
+  // Fetch interview data on component mount
   useEffect(() => {
     const fetchInterview = async () => {
       try {
@@ -376,6 +388,7 @@ const InterviewPage = () => {
     fetchInterview();
   }, [interviewId]);
 
+  // Utility functions for sharing and copying interview link
   const copyToClipboard = () => {
     const url = window.location.href;
     navigator.clipboard.writeText(url)

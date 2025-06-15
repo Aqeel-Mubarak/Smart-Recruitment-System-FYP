@@ -15,9 +15,11 @@ import {
   ClipboardList
 } from 'lucide-react';
 
+// Main Sidebar component that provides navigation for the application
 const Sidebar = () => {
   const location = useLocation();
 
+  // Navigation menu configuration with paths, labels and corresponding icons
   const menuItems = [
     { path: '/home', label: 'Home', icon: Home },
     { path: '/open-jobs', label: 'Jobs', icon: Briefcase },
@@ -31,6 +33,7 @@ const Sidebar = () => {
     { path: '/admin/summaries', label: 'AI Interviews Results', icon: ClipboardList },
   ];
 
+  // Animation configuration for sidebar entrance
   const sidebarVariants = {
     hidden: { x: -100, opacity: 0 },
     visible: {
@@ -45,6 +48,7 @@ const Sidebar = () => {
     }
   };
 
+  // Animation configuration for individual menu items
   const itemVariants = {
     hidden: { x: -20, opacity: 0 },
     visible: {
@@ -59,6 +63,7 @@ const Sidebar = () => {
   };
 
   return (
+    // Sidebar container with motion animations and glass-morphism effect
     <motion.aside 
       className="w-64 bg-white/80 backdrop-blur-sm text-gray-800 shadow-lg border-r border-indigo-100 h-full flex flex-col"
       initial="hidden"
@@ -66,8 +71,10 @@ const Sidebar = () => {
       variants={sidebarVariants}
       style={{ minHeight: "calc(100vh - 4rem)" }}
     >
+      {/* Scrollable navigation container */}
       <nav className="p-6 overflow-y-auto flex-1" style={{ maxHeight: "calc(100vh - 4rem)" }}>
         <motion.ul className="space-y-2" variants={sidebarVariants}>
+          {/* Render navigation items with active state handling */}
           {menuItems.map((item, index) => {
             const isActive = location.pathname === item.path;
             const Icon = item.icon;
@@ -121,6 +128,7 @@ const Sidebar = () => {
         </motion.ul>
       </nav>
       
+      {/* Custom scrollbar styling for better UX */}
       <style jsx>{`
         nav::-webkit-scrollbar {
           width: 6px;

@@ -19,7 +19,7 @@ router = APIRouter()
 URL = os.getenv("URL")
 
 
-# Endpoint to add appointment
+# Endpoint to add a new appointment to the calendar
 @router.post("/add_data_to_calendar")
 def add_data_to_calendar(data:Calendar_schema, db: Session = Depends(get_db)):
     
@@ -35,6 +35,7 @@ def add_data_to_calendar(data:Calendar_schema, db: Session = Depends(get_db)):
     db.refresh(appointment)
     return  data
 
+# Endpoint to retrieve calendar data for a specific job
 @router.get("/get_jobdata_from_calendar")
 def get_data_to_calendar(jobid: Optional[str] = None, db: Session = Depends(get_db)):
     data=db.query(Calendar_table).filter(and_(Calendar_table.jobid==jobid)).all()
@@ -42,6 +43,7 @@ def get_data_to_calendar(jobid: Optional[str] = None, db: Session = Depends(get_
 
 from sqlalchemy import func, and_
 
+# Endpoint to delete a calendar entry based on provided data
 @router.delete("/delete_data_from_calendar")
 def delete_data_from_calendar(data: Calendar_schema, db: Session = Depends(get_db)):
     # Clean input data to remove leading/trailing spaces
@@ -52,6 +54,7 @@ def delete_data_from_calendar(data: Calendar_schema, db: Session = Depends(get_d
     endtime = data.endtime.strip()
     jobid=data.jobid
 
+    # Query to find matching records with trimmed values
     ans = db.query(Calendar_table).filter(and_(
         func.trim(Calendar_table.jobtitle) == jobtitle,
         func.trim(Calendar_table.startdate) == startdate,
@@ -74,7 +77,7 @@ def delete_data_from_calendar(data: Calendar_schema, db: Session = Depends(get_d
         return {"message": "No matching record found."}
 
 
-
+# Pydantic models for email functionality
 class Email(BaseModel):
     id:int
     email:str
@@ -86,10 +89,12 @@ class EmailRequest(BaseModel):
     linkkk: str
     encodedhiringmanagerid: str
     encodedjobid: str
+
+# Email configuration
 sender_email = "talharajput3455@gmail.com"
 sender_password = "lbuy utbx drvb segn"
     
-    
+# Endpoint to send emails to multiple recipients
 @router.post("/send_email")
 def send_email(request: EmailRequest):
     print(request.to_email)
@@ -136,6 +141,7 @@ def send_email(request: EmailRequest):
     return {"message": "Email process completed.", "results": results}
 
 
+# Endpoint to update the status of a calendar entry
 @router.put("/update_status")
 def update_status(data: Calendar_schema2, db: Session = Depends(get_db)):
     """
@@ -180,6 +186,7 @@ def update_status(data: Calendar_schema2, db: Session = Depends(get_db)):
     return {"message": "Status updated successfully", "updated_entry": calendar_entry}
 
 
+# Endpoint to get the status of a specific calendar entry
 @router.get("/get_status")
 def get_status(jobtitle:str,startdate:str,starttime:str,enddate:str,endtime:str,jobid:int, db: Session = Depends(get_db)):
     """
@@ -210,11 +217,11 @@ def get_status(jobtitle:str,startdate:str,starttime:str,enddate:str,endtime:str,
     return {'status':calendar_entry.status}
 
 
-
-
+# Encryption configuration for secure ID handling
 key = b'VzqJzLm3OxaW7x42Dgfdf45Tf8tZXC9NVXIXYJv3BQk='  # Use the same key for both encryption and decryption
 cipher = Fernet(key)
 
+# Endpoint to encrypt IDs for secure transmission
 @router.post('/encryptid')
 async def encrypt_id(request: Request):
     print(request)
@@ -224,6 +231,7 @@ async def encrypt_id(request: Request):
     encodedlst = [cipher.encrypt(str(val).encode()).decode() for val in value]
     return {'encodedlst': encodedlst}
 
+# Endpoint to decrypt previously encrypted IDs
 @router.post('/decryptid')
 async def decrypt_id(request: Request):
     data = await request.json()
@@ -232,6 +240,7 @@ async def decrypt_id(request: Request):
     return {'decodedlst': decodedlst}
 
 
+# Endpoint to get calendar entry by candidate ID
 @router.put("/get_id")
 def get_id(candidate_id:int, db: Session = Depends(get_db)):
     """
@@ -245,6 +254,7 @@ def get_id(candidate_id:int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Calendar entry not found")
     return 
 
+# Endpoint to get all available slots for a specific job
 @router.get("/getSlots")
 async def get_slots(jobid: int, db: Session = Depends(get_db)):
     # Query the database to get slots by jobid, loading only the required columns
@@ -260,7 +270,7 @@ async def get_slots(jobid: int, db: Session = Depends(get_db)):
     return slots
 
 
-# Create a new calendar slot
+# Endpoint to add a new calendar slot
 @router.post("/addSlot")
 async def add_slot(slot: Slot1, db: Session = Depends(get_db)):
     # print(slot)
@@ -277,7 +287,7 @@ async def add_slot(slot: Slot1, db: Session = Depends(get_db)):
     db.refresh(db_slot)
     return db_slot
 
-# Remove a calendar slot by ID
+# Endpoint to remove a calendar slot by ID
 @router.delete("/removeSlot/{slotId}")
 async def remove_slot(slotId: str, db: Session = Depends(get_db)):
     # print(slotId)
@@ -332,10 +342,7 @@ async def remove_slot(slotId: str, db: Session = Depends(get_db)):
 
 from datetime import datetime
 
-# Get current date and time
-
-
-# Select or unselect a calendar slot
+# Endpoint to select or unselect a calendar slot
 @router.post("/selectSlot")
 async def select_slot(request:Request, db: Session = Depends(get_db)):
     request_data = await request.json()

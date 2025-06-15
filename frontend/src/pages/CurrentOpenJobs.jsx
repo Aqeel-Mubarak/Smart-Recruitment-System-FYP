@@ -1,3 +1,23 @@
+/**
+ * CurrentOpenJobs Component
+ * 
+ * This component displays a list of current job openings with various management features:
+ * - View and filter jobs (all/open/closed)
+ * - Create new jobs
+ * - Edit existing jobs
+ * - Close jobs
+ * - View candidates
+ * - Manage interview slots
+ * - Share job application links
+ * 
+ * Features:
+ * - Responsive design with animations using Framer Motion
+ * - Dropdown menus for actions
+ * - Modal dialogs for job details and editing
+ * - Real-time status updates
+ * - Clipboard integration for sharing
+ */
+
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 import Navbarapp from "../components/Navbarapp";
@@ -8,11 +28,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Briefcase, Plus, Filter, MoreVertical, Users, Calendar, Link, XCircle, Loader2, Edit3, FileText } from "lucide-react";
 
 const CurrentOpenJobs = () => {
+  /**
+   * State management for jobs list and loading state
+   */
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [hiringmanagerid, setHiringmanagerid] = useState();
   const { user, setUser } = useAppContext();
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+  /**
+   * State management for UI elements and modals
+   */
   const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(null);
   const [dropdownPositions, setDropdownPositions] = useState({});
@@ -20,10 +47,18 @@ const CurrentOpenJobs = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDescriptionModalOpen, setIsDescriptionModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState({ title: '', description_text: '', status: 'open', deadline: '' });
+
+  /**
+   * Refs for handling dropdown positioning and click outside detection
+   */
   const filterDropdownRef = useRef(null);
   const dropdownRefs = useRef([]);
   const navigate = useNavigate();
 
+  /**
+   * Fetch current user's ID on component mount
+   * Used to identify the hiring manager for job management
+   */
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     axios.get(`${API_BASE_URL}/me`, {
@@ -39,10 +74,15 @@ const CurrentOpenJobs = () => {
       });
   }, []);
 
+  // Set page title
   useEffect(() => {
     document.title = "Jobs";
   }, []);
 
+  /**
+   * Fetch jobs based on current filter (all/open/closed)
+   * Updates the jobs list and loading state
+   */
   const fetchJobs = async () => {
     setLoading(true);
     const token = localStorage.getItem('accessToken');
@@ -70,10 +110,16 @@ const CurrentOpenJobs = () => {
     }
   };
 
+  /**
+   * Fetch jobs whenever jobType filter changes
+   */
   useEffect(() => {
     fetchJobs();
   }, [jobType]);
 
+  /**
+   * UI interaction handlers for filter dropdown
+   */
   const toggleFilterDropdown = () => {
     setFilterDropdownVisible(!filterDropdownVisible);
   };
@@ -83,10 +129,17 @@ const CurrentOpenJobs = () => {
     setFilterDropdownVisible(false);
   };
 
+  /**
+   * Navigation handlers for different job management features
+   */
   const handleViewCandidates = async (jobId) => {
     navigate(`/shortlist-candidate?jobId=${jobId}`)
   };
 
+  /**
+   * Job management functions for closing jobs
+   * Updates job status and refreshes the list
+   */
   const closeOpenedJob = async (job_id) => {
     const token = localStorage.getItem('accessToken');
     try {
@@ -113,6 +166,9 @@ const CurrentOpenJobs = () => {
     }
   };
 
+  /**
+   * Modal handlers for job editing and description viewing
+   */
   const openEditModal = (job) => {
     navigate('/resume-upload', { 
       state: { 
@@ -139,6 +195,10 @@ const CurrentOpenJobs = () => {
     setIsDescriptionModalOpen(false);
   };
 
+  /**
+   * Form submission handler for job editing
+   * Updates job details and refreshes the list
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsModalOpen(false);
@@ -169,6 +229,10 @@ const CurrentOpenJobs = () => {
     }
   };
 
+  /**
+   * Dropdown positioning logic
+   * Calculates optimal position for dropdown menus based on available space
+   */
   const toggleDropdown = (index, event) => {
     if (dropdownVisible === index) {
       setDropdownVisible(null);
@@ -188,6 +252,10 @@ const CurrentOpenJobs = () => {
     setDropdownVisible(index);
   };
 
+  /**
+   * Click outside handler for dropdowns
+   * Closes dropdowns when clicking outside their area
+   */
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRefs.current.some(ref => ref && !ref.contains(event.target))) {
@@ -209,6 +277,9 @@ const CurrentOpenJobs = () => {
     };
   }, [dropdownVisible, filterDropdownVisible]);
 
+  /**
+   * Navigation handlers for job creation and slot management
+   */
   const handleCreateJob = () => {
     navigate('/create-job');
   };
@@ -218,6 +289,10 @@ const CurrentOpenJobs = () => {
     navigate(`/Calendar/${isManagement}/${e}`, { state: { jobid: e, hiringmanagerid: hiringmanagerid } });
   };
 
+  /**
+   * URL sharing functionality
+   * Copies job application URL to clipboard
+   */
   const handleLink = (id) => {
     if (!id) return;
     const url = `http://207.180.240.67/application/${id}`;
@@ -230,6 +305,10 @@ const CurrentOpenJobs = () => {
     }
   };
 
+  /**
+   * Fallback for clipboard API
+   * Used when modern clipboard API is not available
+   */
   function copyTextFallback(text) {
     const textArea = document.createElement("textarea");
     textArea.value = text;
@@ -241,15 +320,18 @@ const CurrentOpenJobs = () => {
 
   return (
     <>
+      {/* Main container with gradient background */}
       <div className="min-h-screen flex flex-col bg-gradient-to-br from-indigo-50 to-white">
         <Navbarapp />
         <div className="flex pt-16 h-full">
           <Sidebar />
+          {/* Main content area with animation */}
           <motion.main
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex-grow p-6 overflow-hidden"
           >
+            {/* Header section with title and action buttons */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <Briefcase className="w-8 h-8 text-indigo-600" />
@@ -291,11 +373,13 @@ const CurrentOpenJobs = () => {
               </div>
             </div>
 
+            {/* Main jobs table container with loading states */}
             <motion.div
               layout
               className="bg-white/80 backdrop-blur-lg shadow-lg rounded-xl overflow-hidden border border-gray-100"
             >
               <AnimatePresence mode="wait">
+                {/* Loading state */}
                 {loading ? (
                   <motion.div
                     initial={{ opacity: 0 }}
@@ -442,6 +526,7 @@ const CurrentOpenJobs = () => {
               </AnimatePresence>
             </motion.div>
 
+            {/* Edit Job Modal */}
             <AnimatePresence>
               {isModalOpen && (
                 <motion.div
@@ -553,7 +638,7 @@ const CurrentOpenJobs = () => {
               )}
             </AnimatePresence>
 
-            {/* Description Modal */}
+            {/* Job Description Modal */}
             <AnimatePresence>
               {isDescriptionModalOpen && (
                 <motion.div
@@ -622,6 +707,8 @@ const CurrentOpenJobs = () => {
           </motion.main>
         </div>
       </div>
+
+      {/* Custom scrollbar styles */}
       <style>
         {`
           .custom-scrollbar::-webkit-scrollbar {

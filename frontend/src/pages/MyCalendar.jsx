@@ -12,9 +12,9 @@ import { useLocation } from 'react-router-dom';
 import { useParams } from "react-router-dom";
 import { use } from 'react';
 
-
-
+// Main Calendar component that handles interview scheduling
 const MyCalendar =  () => {
+  // State management for calendar events and UI
   const [events, setEvents] = useState([]);
   const [status, setStatus] = useState('false');
   const location = useLocation();
@@ -24,7 +24,8 @@ const MyCalendar =  () => {
   const [jobid,setJobid]=useState()
   const {candidateid,setCandidateid,user,setUser,booked,setBooked}=useAppContext()
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  // setCandidateid(undefined)
+
+  // Initialize user context based on whether it's a candidate or HR
   useEffect (() => {
     setCandidateid(candidateid1)
     setUser(candidateid1===undefined ? 'HR' : 'Candidate' )
@@ -32,6 +33,8 @@ const MyCalendar =  () => {
   },[]
   )
   console.log(user,candidateid,booked,candidateid1)
+
+  // Function to decode encrypted IDs from URL parameters
   const decode = async () => {
     try {
       const response = await  axios.post(`${API_BASE_URL}/decryptid`,
@@ -51,11 +54,14 @@ const MyCalendar =  () => {
   decode()
   console.log(hiringmanagerid,jobid)
   const {popUp,setPopUp} = useAppContext()
+
+  // State to store time slot information for scheduling
   const [time, setTime] = useState({
     hiringmanagerid:hiringmanagerid,jobid:jobid,jobtitle:title,
     startdate:'00',starttime:'00',enddate:'00',endtime:'00',status:status
   });
-  // Handle date range selection
+
+  // Handle date/time selection from calendar
   const handleSelect = (selectionInfo) => {
     const startdate = moment(selectionInfo.start).format('YYYY-MM-DD');
     const starttime = moment(selectionInfo.start).format(' HH:mm:ss');
@@ -69,38 +75,44 @@ const MyCalendar =  () => {
     setPopUp(true);
   
     }
-    const handlePopUp = () => {
-      setPopUp(!popUp)
-    }
-    useEffect ( () => {
-      axios
-        .get(`${API_BASE_URL}/get_jobdata_from_calendar`,{params:{hiringmanagerid:hiringmanagerid,jobid:jobid}})     
-          .then((response) => {
-            const formattedEvents = response.data.map((event) => ({
-              title: event.jobtitle,
-              start: moment(event.startdate+event.starttime).format('YYYY-MM-DDTHH:mm:ss'), // Ensure ISO 8601 format
-              end:  moment(event.enddate+event.endtime).format('YYYY-MM-DDTHH:mm:ss'),
-              // status:event.status
-            }));
-            setEvents(formattedEvents);
-            console.log(events)
-          })
-          .catch((error) => {
-            console.error('Error booking an appointment:', error);
-          });}
-    ,[popUp,setPopUp,hiringmanagerid])
+
+  // Toggle popup visibility
+  const handlePopUp = () => {
+    setPopUp(!popUp)
+  }
+
+  // Fetch and display existing calendar events
+  useEffect ( () => {
+    axios
+      .get(`${API_BASE_URL}/get_jobdata_from_calendar`,{params:{hiringmanagerid:hiringmanagerid,jobid:jobid}})     
+        .then((response) => {
+          const formattedEvents = response.data.map((event) => ({
+            title: event.jobtitle,
+            start: moment(event.startdate+event.starttime).format('YYYY-MM-DDTHH:mm:ss'), // Ensure ISO 8601 format
+            end:  moment(event.enddate+event.endtime).format('YYYY-MM-DDTHH:mm:ss'),
+            // status:event.status
+          }));
+          setEvents(formattedEvents);
+          console.log(events)
+        })
+        .catch((error) => {
+          console.error('Error booking an appointment:', error);
+        });}
+  ,[popUp,setPopUp,hiringmanagerid])
 
   const handledelete= () => {
     isDeleted(true)
   }
   
-  // Handle event clicks for deleting events
+  // Handle event clicks to view/edit existing appointments
   const handleEventClick = (selectionInfo) => {
     const title= (selectionInfo.event.title)
     const startdate = moment(selectionInfo.event.start).format('YYYY-MM-DD');
     const starttime = moment(selectionInfo.event.start).format(' HH:mm:ss');
     const enddate = moment(selectionInfo.event.end).format(' YYYY-MM-DD');// Correctly get start time
     const endtime = moment(selectionInfo.event.end).format(' HH:mm:ss'); // Correctly get end time
+
+    // Fetch appointment status when an event is clicked
     const statusfunction = () => {
       axios
         .get(`${API_BASE_URL}/get_status`,{params:{
@@ -124,13 +136,13 @@ const MyCalendar =  () => {
     statusfunction();
     ;}
     
-    
   
   console.log(booked)
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <h1 className="text-2xl font-bold mb-6 text-center text-black" >My Calendar</h1>
       <div className="bg-white shadow-md rounded-lg p-4">
+        {/* FullCalendar component with configuration */}
         <FullCalendar 
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
@@ -148,6 +160,7 @@ const MyCalendar =  () => {
           height="auto"
         />
       </div>
+      {/* Render popup component when popUp state is true */}
       {popUp &&   <CalendarPopUp jobtitle={time.jobtitle} startdate={time.startdate} starttime={time.starttime} enddate={time.enddate} endtime={time.endtime} status={time.status} hiringmanagerid={time.hiringmanagerid} jobid={time.jobid} />
   }
     </div>

@@ -1,16 +1,21 @@
+# Import required libraries for password hashing and JWT operations
 from passlib.context import CryptContext
 from jose import  jwt
 from jose.exceptions import JWTError
 from datetime import datetime, timedelta
 from app.core.config import settings
 
+# Initialize password hashing context using bcrypt algorithm
+# 'deprecated="auto"' allows for automatic handling of deprecated hash formats
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Hash password
+# Function to hash a plain text password using bcrypt
+# Returns a hashed string that can be safely stored in the database
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
-# Verify password
+# Function to verify if a plain text password matches a hashed password
+# Returns True if the password matches, False otherwise
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
  
@@ -18,6 +23,12 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def create_access_token(data: dict) -> str:
     """
     Create a JWT token with the provided data and an expiration time.
+    
+    Args:
+        data (dict): Dictionary containing the data to be encoded in the token
+        
+    Returns:
+        str: Encoded JWT token string
     """
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -30,6 +41,15 @@ def decode_access_token(token: str) -> dict:
     """
     Decode a JWT token and return the payload.
     Raises exceptions for invalid or expired tokens.
+    
+    Args:
+        token (str): The JWT token string to decode
+        
+    Returns:
+        dict: The decoded token payload
+        
+    Raises:
+        JWTError: If token is invalid, expired, or missing required claims
     """
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])

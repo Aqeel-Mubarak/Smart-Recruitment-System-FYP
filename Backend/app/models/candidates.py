@@ -1,9 +1,14 @@
+# Import necessary SQLAlchemy components for database modeling
 from sqlalchemy import Column, Integer, String, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from app.database import Base
 
 
 class Candidate(Base):
+    """
+    Candidate model representing job applicants in the system.
+    This model stores candidate information and their relationship with job descriptions.
+    """
     __tablename__ = "candidates"
 
     id = Column(Integer, primary_key=True, index=True)

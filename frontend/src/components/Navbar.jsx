@@ -1,3 +1,4 @@
+// Import necessary dependencies for React, routing, animations, and icons
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -5,11 +6,20 @@ import { buttonVariants } from './animations';
 import { Home, Info, Mail, LogIn, Menu, X } from 'lucide-react';
 import logo from '../assets/logo.png';
 
+// Main Navbar component with responsive design and animations
+// Features:
+// - Responsive layout with mobile menu
+// - Animated transitions using Framer Motion
+// - Gradient background with blur effect
+// - Interactive hover and tap animations
 const Navbar = () => {
+  // State to control mobile menu visibility
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Toggle function for mobile menu
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
+  // Animation variants for the navbar sliding in from top
   const navVariants = {
     hidden: { y: -100 },
     visible: { 
@@ -22,11 +32,13 @@ const Navbar = () => {
     }
   };
 
+  // Animation variants for logo rotation on hover
   const logoVariants = {
     initial: { rotate: 0 },
     hover: { rotate: 360, transition: { duration: 0.8 } }
   };
 
+  // Animation variants for mobile menu expansion/collapse
   const mobileMenuVariants = {
     closed: { 
       opacity: 0,
@@ -45,6 +57,7 @@ const Navbar = () => {
   };
 
   return (
+    // Main navigation container with gradient background and blur effect
     <motion.nav 
       initial="hidden"
       animate="visible"
@@ -53,7 +66,7 @@ const Navbar = () => {
     >
       <div className="container mx-auto">
         <div className="flex justify-between items-center">
-          {/* Logo */}
+          {/* Logo section with animated rotation effect */}
           <Link to="/login" className="flex items-center space-x-2">
             <motion.img 
               src={logo} 
@@ -74,7 +87,7 @@ const Navbar = () => {
             </motion.span>
           </Link>
 
-          {/* Desktop Navigation Links */}
+          {/* Desktop navigation links - hidden on mobile screens */}
           <div className="hidden md:flex items-center space-x-6">
             <motion.div 
               className="flex space-x-6"
@@ -82,6 +95,7 @@ const Navbar = () => {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
+              {/* About link with icon */}
               <Link to="/about">
                 <motion.span 
                   className="text-white/90 hover:text-white font-medium transition-colors inline-flex items-center space-x-1"
@@ -106,6 +120,7 @@ const Navbar = () => {
               </a>
             </motion.div>
             
+            {/* Get Started button with login icon */}
             <Link to="/signup">
               <motion.button
                 className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg font-medium backdrop-blur-sm transition-colors inline-flex items-center space-x-2"
@@ -122,7 +137,7 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile menu toggle button - only visible on mobile screens */}
           <motion.button 
             className="md:hidden text-white p-2 rounded-lg hover:bg-white/10"
             onClick={toggleMenu}
@@ -134,7 +149,7 @@ const Navbar = () => {
           </motion.button>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile menu with animated expansion/collapse */}
         <AnimatePresence>
           {isMenuOpen && (
             <motion.div
@@ -144,6 +159,7 @@ const Navbar = () => {
               variants={mobileMenuVariants}
               className="md:hidden overflow-hidden"
             >
+              {/* Mobile menu items with touch feedback animations */}
               <div className="py-4 flex flex-col space-y-4 border-t border-white/10 mt-4">
                 <Link to="/about" onClick={() => setIsMenuOpen(false)}>
                   <motion.div 

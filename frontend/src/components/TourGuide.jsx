@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import Joyride from 'react-joyride';
 
+/**
+ * TourGuide Component
+ * 
+ * This component implements an interactive tour guide for the application using react-joyride.
+ * It provides a step-by-step walkthrough of the main features and navigation elements
+ * to help new users understand the application's functionality.
+ */
 const TourGuide = () => {
-  // Initialize runTour as false.
+  // State to control whether the tour should run
   const [runTour, setRunTour] = useState(false);
 
-  // Check localStorage on mount. If the tour has not been shown before, run it.
+  /**
+   * Effect hook to check if the tour has been shown before
+   * If not shown, automatically start the tour and mark it as shown in localStorage
+   */
   useEffect(() => {
     const tourShown = localStorage.getItem('tourShown');
     if (!tourShown) {
@@ -14,14 +24,22 @@ const TourGuide = () => {
     }
   }, []);
 
+  /**
+   * Callback function to handle tour events
+   * Stops the tour when it's either finished or skipped by the user
+   */
   const handleTourCallback = (data) => {
     const { status } = data;
     if (status === 'finished' || status === 'skipped') {
-      // Stop the tour once finished or skipped.
       setRunTour(false);
     }
   };
 
+  /**
+   * Tour steps configuration
+   * Each step defines a target element (using CSS selectors) and its corresponding explanation
+   * The steps guide users through the main navigation items in the sidebar
+   */
   const steps = [
     {
       target: '.sidebar-home-link',
@@ -53,6 +71,14 @@ const TourGuide = () => {
     },
   ];
 
+  /**
+   * Render the Joyride tour component with custom styling
+   * The tour is configured to:
+   * - Run only when runTour state is true
+   * - Show steps continuously
+   * - Include a skip button
+   * - Use custom styling for a consistent look and feel
+   */
   return (
     <Joyride
       steps={steps}

@@ -1,3 +1,4 @@
+# Import necessary modules for user management and database operations
 from app.models import User
 import cv2
 import logging
@@ -10,35 +11,37 @@ from app.database import Base, get_db
 import time
 from datetime import datetime
 from typing import List, Optional
+# Import user authentication function
 from app.api.users import get_current_user
+# Import database models
 from app.models import Candidate, JobDescription, User
-# FastAPI
+# Import FastAPI and related modules
 from fastapi import FastAPI, Request, HTTPException, WebSocket, WebSocketDisconnect, UploadFile, File, Form, Depends, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from app.database import Base, get_db
-# Database
+# Import SQLAlchemy modules for database operations
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, create_engine, func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker, Session
 
-# AI/ML
+# Import AI/ML related modules
 from PIL import Image
 import numpy as np
 from groq import Groq
 import speech_recognition as sr
 
-# Configure logging
+# Configure logging with basic settings
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize FastAPI app
+# Initialize FastAPI application
 app = FastAPI()
 
-# Add this line to define a router
+# Create API router for organizing endpoints
 router = APIRouter()
 
-# Configure CORS
+# Configure CORS middleware to allow cross-origin requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173"],
@@ -47,9 +50,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-
-# Initialize Groq client
+# Initialize Groq client for AI-powered question generation
 GROQ_API_KEY = "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"
 groq_client = None
 if GROQ_API_KEY:
@@ -58,12 +59,13 @@ if GROQ_API_KEY:
     except Exception as e:
         logging.error(f"Failed to initialize Groq client: {e}")
 
-# Generate timestamps for file storage
+# Generate timestamps and create directory for storing interview answers
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 ANSWERS_DIR = f"answers_{timestamp}"
 os.makedirs(ANSWERS_DIR, exist_ok=True)
 
 # Database Models
+# Model for storing interview information
 class DBInterview(Base):
     __tablename__ = "interviews"
     
@@ -72,10 +74,11 @@ class DBInterview(Base):
     experience = Column(String)
     created_at = Column(DateTime, default=func.now())
     
-    # Relationships
+    # Define relationships with other tables
     questions = relationship("DBQuestion", back_populates="interview", cascade="all, delete-orphan")
     skills = relationship("DBSkill", back_populates="interview", cascade="all, delete-orphan")
 
+# Model for storing interview questions
 class DBQuestion(Base):
     __tablename__ = "questions"
     
@@ -83,9 +86,10 @@ class DBQuestion(Base):
     text = Column(String, nullable=False)
     interview_id = Column(String, ForeignKey("interviews.id"))
     
-    # Relationships
+    # Define relationship with interview
     interview = relationship("DBInterview", back_populates="questions")
 
+# Model for storing required skills
 class DBSkill(Base):
     __tablename__ = "skills"
     
@@ -93,9 +97,10 @@ class DBSkill(Base):
     name = Column(String, nullable=False)
     interview_id = Column(String, ForeignKey("interviews.id"))
     
-    # Relationships
+    # Define relationship with interview
     interview = relationship("DBInterview", back_populates="skills")
 
+# Model for storing interview summaries
 class DBInterviewSummary(Base):
     __tablename__ = "interview_summaries"
     
@@ -106,14 +111,11 @@ class DBInterviewSummary(Base):
     completed_at = Column(DateTime, default=func.now())
     hr_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     
-    # Use string reference for DBInterview (which is defined in this file)
+    # Define relationships with other tables
     interview = relationship("DBInterview", backref="summaries")
-    # Use the actual User class since it's imported
     hr = relationship(User, backref="interview_summaries")
 
-
-
-
+# Pydantic models for request validation
 class QuestionRequest(BaseModel):
     job_title: str
     skills: Optional[List[str]] = []
@@ -185,7 +187,7 @@ async def generate_questions(request: QuestionRequest, db: Session = Depends(get
             experience=request.experience
         )
         
-        # Add skills
+        # Add skills to the interview
         for skill in request.skills:
             if skill.strip():
                 db_skill = DBSkill(name=skill.strip(), interview=db_interview)
@@ -421,7 +423,7 @@ async def transcribe_audio(
     if question_id is None:
         raise HTTPException(status_code=400, detail="Question ID is required")
     
-    # Create unique filenames
+    # Create unique filenames for audio processing
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     sanitized_title = "".join(c if c.isalnum() else "_" for c in job_title.lower())
     temp_audio_path = f"temp_audio_{timestamp}.webm"
@@ -432,7 +434,7 @@ async def transcribe_audio(
         audio_data = await file.read()
         logging.info(f"Received audio file size: {len(audio_data)} bytes")
         
-        # Save the uploaded file
+        # Save the uploaded file temporarily
         with open(temp_audio_path, "wb") as temp_file:
             temp_file.write(audio_data)
         
@@ -461,7 +463,7 @@ async def transcribe_audio(
             with open(audio_path, "wb") as audio_file:
                 audio_file.write(source_file.read())
         
-        # Transcribe the audio - try multiple approaches
+        # Initialize transcription with default value
         transcription = "Audio recorded, but transcription failed"
         
         # Try Google Speech Recognition with improved parameters
@@ -787,7 +789,7 @@ import logging
 from app.api.users import get_current_user  # ✅ Import get_current_user
 from app.models import Candidate, JobDescription, User
 
-# Response models
+# Response models for interview summaries
 class InterviewSummaryResponse(BaseModel):
     id: int
     email: str

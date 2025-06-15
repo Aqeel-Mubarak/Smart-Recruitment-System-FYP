@@ -1,3 +1,21 @@
+/**
+ * CreateJob Component
+ * 
+ * A form for creating new job postings with:
+ * - Job title and description
+ * - Application deadline
+ * - Form validation
+ * - Success feedback
+ * - Animated UI elements
+ * 
+ * Features:
+ * - Responsive design
+ * - Input validation
+ * - Loading states
+ * - Success modal with animation
+ * - Automatic redirection after success
+ */
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -8,6 +26,8 @@ import { Briefcase, Calendar, FileText, CheckCircle } from 'lucide-react';
 
 function CreateJob() {
   const navigate = useNavigate();
+  
+  // State management for form fields and UI states
   const [jobTitle, setJobTitle] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [deadline, setDeadline] = useState("");
@@ -15,14 +35,21 @@ function CreateJob() {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  // Calculate minimum date for deadline (tomorrow) to prevent past dates
   const today = new Date();
   today.setDate(today.getDate()+1);
   const formattedToday = today.toISOString().split("T")[0];
 
+  // Set page title when component mounts
   useEffect(() => {
     document.title = "Create Job";
   }, []);
 
+  /**
+   * Handles job creation form submission
+   * Makes API call to create new job posting
+   * Shows success modal and redirects on success
+   */
   const handleCreateJob = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -33,6 +60,7 @@ function CreateJob() {
       return;
     }
 
+    // Prepare form data for API submission
     const formData = new FormData();
     formData.append("title", jobTitle);
     formData.append("description", jobDescription);
@@ -40,6 +68,7 @@ function CreateJob() {
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
     try {
+      // Make API call to create job
       await axios.post(`${API_BASE_URL}/create/add_job_description`, formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -56,6 +85,7 @@ function CreateJob() {
     }
   };
 
+  // Animation configuration for form elements
   const formVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { 
@@ -65,29 +95,34 @@ function CreateJob() {
     }
   };
 
+  // Animation configuration for input fields
   const inputVariants = {
     focus: { scale: 1.02 },
     blur: { scale: 1 }
   };
 
   return (
+    // Main container with gradient background
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-white">
       <Navbarapp />
       
       <div className="flex pt-16 h-full">
         <Sidebar />
         
+        {/* Main content area with entrance animation */}
         <motion.main
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex-grow p-6 overflow-hidden"
         >
+          {/* Form container with glassmorphism effect */}
           <motion.div 
             className="max-w-4xl mx-auto bg-white/80 backdrop-blur-lg shadow-lg rounded-xl p-8"
             variants={formVariants}
             initial="hidden"
             animate="visible"
           >
+            {/* Page title with icon animation */}
             <motion.h1
               className="text-2xl md:text-3xl font-bold mb-6 text-center text-gray-900 flex items-center justify-center gap-3"
               initial={{ y: -20 }}
@@ -98,8 +133,10 @@ function CreateJob() {
               Create New Job
             </motion.h1>
             
+            {/* Job creation form with animated inputs */}
             <form onSubmit={handleCreateJob} className="flex flex-col">
               <div className="space-y-4 flex-1">
+                {/* Job title input with icon and animation */}
                 <motion.div
                   variants={inputVariants}
                   whileFocus="focus"
@@ -121,6 +158,7 @@ function CreateJob() {
                   />
                 </motion.div>
 
+                {/* Job description textarea with icon and animation */}
                 <motion.div
                   variants={inputVariants}
                   whileFocus="focus"
@@ -142,6 +180,7 @@ function CreateJob() {
                   />
                 </motion.div>
 
+                {/* Application deadline input with icon and animation */}
                 <motion.div
                   variants={inputVariants}
                   whileFocus="focus"
@@ -164,6 +203,7 @@ function CreateJob() {
                 </motion.div>
               </div>
 
+              {/* Submit button with loading state and animation */}
               <div className="flex justify-center items-center gap-4 mt-4">
                 <motion.button
                   type="submit"
@@ -173,6 +213,7 @@ function CreateJob() {
                   disabled={isLoading}
                 >
                   {isLoading ? (
+                    // Loading spinner animation
                     <>
                       <motion.div 
                         className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
@@ -182,6 +223,7 @@ function CreateJob() {
                       Creating...
                     </>
                   ) : (
+                    // Default button state
                     <>
                       <CheckCircle className="w-5 h-5" />
                       Create Job
@@ -192,9 +234,11 @@ function CreateJob() {
             </form>
           </motion.div>
 
+          {/* Success modal with animations and progress bar */}
           <AnimatePresence>
             {showSuccess && (
               <div className="fixed inset-0 flex items-center justify-center z-50">
+                {/* Backdrop with blur effect */}
                 <motion.div
                   className="fixed inset-0 bg-black/50 backdrop-blur-sm"
                   initial={{ opacity: 0 }}
@@ -202,6 +246,7 @@ function CreateJob() {
                   exit={{ opacity: 0 }}
                   onClick={(e) => e.stopPropagation()}
                 />
+                {/* Modal content with spring animation */}
                 <motion.div
                   className="bg-white rounded-xl p-8 shadow-xl w-[90%] max-w-md relative mx-auto"
                   initial={{ scale: 0.5, opacity: 0, y: 0 }}
@@ -209,6 +254,7 @@ function CreateJob() {
                   exit={{ scale: 0.5, opacity: 0 }}
                   transition={{ type: "spring", duration: 0.5 }}
                 >
+                  {/* Success icon with rotation animation */}
                   <motion.div 
                     className="w-20 h-20 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-6"
                     initial={{ rotate: 180, scale: 0 }}
@@ -218,6 +264,7 @@ function CreateJob() {
                     <CheckCircle className="w-10 h-10 text-green-600" />
                   </motion.div>
 
+                  {/* Success message with fade-in animation */}
                   <motion.h2
                     className="text-2xl font-bold text-center text-gray-900 mb-2"
                     initial={{ opacity: 0, y: 20 }}
@@ -236,6 +283,7 @@ function CreateJob() {
                     Your job has been created successfully
                   </motion.p>
 
+                  {/* Progress bar for redirect countdown */}
                   <motion.div
                     className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-4"
                     initial={{ opacity: 0 }}
@@ -250,6 +298,7 @@ function CreateJob() {
                     />
                   </motion.div>
 
+                  {/* Redirect message with fade-in animation */}
                   <motion.p
                     className="text-sm text-center text-gray-500"
                     initial={{ opacity: 0 }}

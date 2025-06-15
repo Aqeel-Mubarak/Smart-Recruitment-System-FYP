@@ -1,3 +1,6 @@
+# This module provides functions for parsing and extracting text from various document formats
+# including PDF, DOC, and DOCX files, as well as utility functions for text processing.
+
 from fastapi import UploadFile
 from docx import Document
 from io import BytesIO
@@ -14,8 +17,14 @@ def extract_email(text: str) -> Optional[str]:
     Extract email address from the given text using regular expressions.
     Returns None if no email is found.
     """
+    # Clean the text by replacing multiple whitespace characters with a single space
     cleaned_text = re.sub(r'\s+', ' ', text)  # Replace any whitespace characters with a single space
 
+    # Regular expression pattern to match email addresses
+    # Matches: username@domain.tld where:
+    # - username can contain letters, numbers, and special characters ._%+-
+    # - domain can contain letters, numbers, dots, and hyphens
+    # - TLD must be 2-4 characters long
     email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}'
 
     # Find all matches (in case there are multiple emails)
@@ -28,9 +37,20 @@ def extract_email(text: str) -> Optional[str]:
 def parse_pdf(file: UploadFile):
     """
     Parse the text content from a PDF file using PyPDF2.
+    
+    Args:
+        file (UploadFile): A FastAPI UploadFile object containing the PDF file
+        
+    Returns:
+        str: The extracted text content from the PDF
+        
+    Raises:
+        ValueError: If there's an error parsing the PDF file
     """
     try:
+        # Read the file content into memory
         file_content = file.file.read()
+        # Create a PDF reader object from the file content
         reader = PdfReader(BytesIO(file_content))
         pdf_text = ""
 
@@ -48,12 +68,21 @@ def parse_doc(file: UploadFile):
     """
     Parse the text content from a DOC or DOCX file.
     Determines the file type and calls the appropriate parsing function.
+    
+    Args:
+        file (UploadFile): A FastAPI UploadFile object containing the DOC/DOCX file
+        
+    Returns:
+        str: The extracted text content from the document
+        
+    Raises:
+        ValueError: If the file format is not supported
     """
     if file.content_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-        # Parse .docx files
+        # Parse .docx files using the dedicated DOCX parser
         return parse_docx(file)
     elif file.content_type == "application/msword":
-        # Parse .doc files
+        # Parse .doc files using the dedicated DOC parser
         return parse_doc_file(file)
     else:
         raise ValueError("Unsupported file format for parsing.")
@@ -61,10 +90,20 @@ def parse_doc(file: UploadFile):
 def parse_docx(file: UploadFile):
     """
     Parse the text content from a DOCX file using python-docx.
+    
+    Args:
+        file (UploadFile): A FastAPI UploadFile object containing the DOCX file
+        
+    Returns:
+        str: The extracted text content from the DOCX file
+        
+    Raises:
+        ValueError: If there's an error parsing the DOCX file
     """
     try:
-        # Read the DOCX file content using BytesIO
+        # Read the DOCX file content into memory
         file_content = file.file.read()  # Read the file content into memory
+        # Create a Document object from the file content
         document = Document(BytesIO(file_content))  # Create a Document object using BytesIO
         doc_text = ""
         
@@ -79,10 +118,21 @@ def parse_docx(file: UploadFile):
 def parse_doc_file(file: UploadFile):
     """
     Parse the text content from a DOC file using textract.
+    
+    Args:
+        file (UploadFile): A FastAPI UploadFile object containing the DOC file
+        
+    Returns:
+        str: The extracted text content from the DOC file
+        
+    Raises:
+        ValueError: If there's an error parsing the DOC file
     """
     try:
         # Use textract to extract text from DOC files
+        # textract handles the complex process of extracting text from older DOC format
         text = textract.process(file.file)
+        # Decode the extracted bytes to a UTF-8 string
         return text.decode("utf-8")
     except Exception as e:
         raise ValueError(f"Error parsing DOC file: {str(e)}")

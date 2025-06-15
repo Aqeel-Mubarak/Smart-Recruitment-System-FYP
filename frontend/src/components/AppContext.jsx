@@ -1,17 +1,28 @@
 import React, { createContext, useContext, useState } from "react";
 
-// Create the context
+// Create a new context that will be used throughout the application
+// This context will hold global state and functions that can be accessed by any component
 const AppContext = createContext();
 
-// Provide the context
+// AppProvider component that wraps the application and provides context values
+// This component manages all the global state and makes it available to child components
 export const AppProvider = ({ children }) => {
-  const [popUp, setPopUp] = useState(false); // For managing the popup state
+  // State for controlling popup visibility across the application
+  const [popUp, setPopUp] = useState(false);
+  
+  // State for managing events data
   const [events, setEvents] = useState([])
-  const [user, setUser] = useState('HR'); // For managing the popup state
+  
+  // State for tracking the current user role (defaults to 'HR')
+  const [user, setUser] = useState('HR');
+  
+  // State for storing the currently selected candidate's ID
   const [candidateid,setCandidateid]=useState()
+  
+  // State for tracking booking status
   const [booked,setBooked]=useState(false)
 
-  
+  // Provide all state values and their setters to child components
   return (
     <AppContext.Provider value={{ popUp, setPopUp,events,setEvents,user, setUser,candidateid,setCandidateid,booked,setBooked}}>
       {children}
@@ -19,7 +30,8 @@ export const AppProvider = ({ children }) => {
   );
 };
 
-// Custom hook to use the context
+// Custom hook that provides easy access to the context
+// Components can use this hook to access and modify the global state
 export const useAppContext = () => {
   return useContext(AppContext);
 };

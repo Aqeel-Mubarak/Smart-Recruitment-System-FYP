@@ -71,7 +71,6 @@ const ApplicationForm = () => {
     fetchJob();
   }, [id]);
 
-  // Check if the screen is mobile
   const [isMobile, setIsMobile] = useState(false);
   
   useEffect(() => {
@@ -79,13 +78,10 @@ const ApplicationForm = () => {
       setIsMobile(window.innerWidth < 768);
     };
     
-    // Initial check
     checkIfMobile();
     
-    // Add event listener
     window.addEventListener('resize', checkIfMobile);
     
-    // Clean up
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
 
@@ -172,7 +168,7 @@ const ApplicationForm = () => {
       <Navbar/>
 
       <div className="p-4 md:p-8 mt-20 flex flex-col md:flex-row md:h-[calc(100vh-80px)]">
-        {/* Job Details Section for Mobile */}
+        {/* Mobile View: Collapsible Job Details Section */}
         {isMobile && (
           <motion.div
             variants={formContainerVariants}
@@ -192,6 +188,7 @@ const ApplicationForm = () => {
               {showJobDetails ? <FiChevronUp /> : <FiChevronDown />}
             </motion.div>
 
+            {/* Animated Job Details Content */}
             <AnimatePresence>
               {showJobDetails && (
                 <motion.div
@@ -201,6 +198,7 @@ const ApplicationForm = () => {
                   transition={{ duration: 0.3 }}
                   className="overflow-hidden"
                 >
+                  {/* Loading State */}
                   {loading ? (
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -217,6 +215,7 @@ const ApplicationForm = () => {
                     <motion.p variants={itemVariants} className="text-red-600 mt-4">{error}</motion.p>
                   ) : (
                     <>
+                      {/* Job Title Section */}
                       <motion.div variants={itemVariants} className="mt-4 mb-4">
                         <label className="block font-medium text-sm mb-2 text-gray-700 flex items-center gap-2">
                           <FiBriefcase className="inline text-indigo-600" />
@@ -227,6 +226,7 @@ const ApplicationForm = () => {
                         </div>
                       </motion.div>
 
+                      {/* Job Description Section */}
                       <motion.div variants={itemVariants}>
                         <label className="block font-medium text-sm mb-2 text-gray-700 flex items-center gap-2">
                           <FiAlignLeft className="inline text-indigo-600" />
@@ -244,7 +244,7 @@ const ApplicationForm = () => {
           </motion.div>
         )}
 
-        {/* Application Form */}
+        {/* Main Application Form Section */}
         <motion.div
           variants={formContainerVariants}
           initial="hidden"
@@ -256,6 +256,7 @@ const ApplicationForm = () => {
             Application Form
           </motion.h2>
 
+          {/* Name Input Field */}
           <motion.div variants={itemVariants} className="relative">
             <label className="block font-medium text-sm mb-2 text-gray-700 flex items-center gap-2">
               <FiUser className="inline text-indigo-600" />
@@ -272,6 +273,7 @@ const ApplicationForm = () => {
             />
           </motion.div>
 
+          {/* Email Input Field */}
           <motion.div variants={itemVariants} className="relative">
             <label className="block font-medium text-sm mb-2 text-gray-700 flex items-center gap-2">
               <FiMail className="inline text-indigo-600" />
@@ -288,6 +290,7 @@ const ApplicationForm = () => {
             />
           </motion.div>
 
+          {/* Resume Upload Section */}
           <motion.div variants={itemVariants}>
             <label className="block font-medium text-sm mb-2 text-gray-700 flex items-center gap-2">
               <FiFileText className="inline text-indigo-600" />
@@ -297,6 +300,7 @@ const ApplicationForm = () => {
               whileHover={{ scale: 1.01 }}
               className="flex flex-col gap-3"
             >
+              {/* File Upload Drop Zone */}
               <div className={`flex items-center justify-center gap-3 cursor-pointer ${fileName ? 'bg-green-50 border-green-600' : 'bg-indigo-50 border-indigo-600'} border-2 border-dashed p-4 md:p-6 rounded-lg transition-all hover:bg-indigo-100`}>
                 {!fileName ? (
                   <div className="flex flex-col md:flex-row items-center gap-2 text-center md:text-left">
@@ -323,6 +327,7 @@ const ApplicationForm = () => {
                 )}
                 <input type="file" id="resume-upload" name="resume" onChange={handleFileChange} className="hidden" required accept=".pdf,.doc,.docx" />
               </div>
+              {/* File Upload Success Message */}
               {fileName && (
                 <motion.p
                   initial={{ opacity: 0, y: -10 }}
@@ -336,6 +341,7 @@ const ApplicationForm = () => {
             </motion.div>
           </motion.div>
 
+          {/* Submit Button */}
           <motion.button
             variants={itemVariants}
             whileHover={{ scale: 1.02 }}
@@ -363,6 +369,7 @@ const ApplicationForm = () => {
             )}
           </motion.button>
 
+          {/* Form Status Messages */}
           {message && !showModal && (
             <motion.p
               initial={{ opacity: 0, y: -10 }}
@@ -376,7 +383,7 @@ const ApplicationForm = () => {
           )}
         </motion.div>
 
-        {/* Job Information for Desktop */}
+        {/* Desktop View: Job Information Panel */}
         {!isMobile && (
           <motion.div
             variants={formContainerVariants}
@@ -389,6 +396,7 @@ const ApplicationForm = () => {
               Job Information
             </motion.h2>
 
+            {/* Loading State */}
             {loading ? (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -405,6 +413,7 @@ const ApplicationForm = () => {
               <motion.p variants={itemVariants} className="text-red-600">{error}</motion.p>
             ) : (
               <>
+                {/* Job Title Section */}
                 <motion.div variants={itemVariants} className="mb-6">
                   <label className="block font-medium text-sm mb-2 text-gray-700 flex items-center gap-2">
                     <FiBriefcase className="inline text-indigo-600" />
@@ -415,6 +424,7 @@ const ApplicationForm = () => {
                   </div>
                 </motion.div>
 
+                {/* Job Description Section */}
                 <motion.div variants={itemVariants}>
                   <label className="block font-medium text-sm mb-2 text-gray-700 flex items-center gap-2">
                     <FiAlignLeft className="inline text-indigo-600" />
@@ -430,6 +440,7 @@ const ApplicationForm = () => {
         )}
       </div>
       
+      {/* Success Modal */}
       {showModal && <Modal message={message} onClose={closeModal} />}
     </div>
   );

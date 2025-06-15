@@ -1,3 +1,15 @@
+/**
+ * SignUpPage Component
+ * 
+ * A comprehensive signup form with animated UI elements and validation.
+ * Features:
+ * - Multi-step form with personal and company information
+ * - Form validation and error handling
+ * - Success/Error modal with animations
+ * - Responsive design with mobile optimization
+ * - Animated transitions using Framer Motion
+ */
+
 import React, {useState} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import backgroundImage from '../assets/background2.jpg';
@@ -7,6 +19,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { fadeIn, slideUp, formFieldVariants, buttonVariants } from '../components/animations';
 import { UserPlus, Loader2, CheckCircle, XCircle, Mail } from 'lucide-react';
 
+/**
+ * Modal Component
+ * Displays success or error messages with animations
+ * @param {string} message - The message to display
+ * @param {function} onClose - Function to handle modal close
+ * @param {string} status - 'success' or 'error' to determine modal style
+ */
 const Modal = ({ message, onClose, status }) => {
   return (
     <AnimatePresence>
@@ -24,6 +43,7 @@ const Modal = ({ message, onClose, status }) => {
           exit={{ scale: 0.5, opacity: 0 }}
           transition={{ type: "spring", duration: 0.5 }}
         >
+          {/* Status icon with animation */}
           <motion.div 
             className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6 ${
               status === 'success' ? 'bg-green-100' : 'bg-red-100'
@@ -39,6 +59,7 @@ const Modal = ({ message, onClose, status }) => {
             )}
           </motion.div>
 
+          {/* Status message */}
           <motion.h2
             className={`text-2xl font-bold text-center mb-2 ${
               status === 'success' ? 'text-green-600' : 'text-red-600'
@@ -59,6 +80,7 @@ const Modal = ({ message, onClose, status }) => {
             {message}
           </motion.p>
 
+          {/* Progress bar for successful signup */}
           {status === 'success' && (
             <>
               <motion.div
@@ -86,6 +108,7 @@ const Modal = ({ message, onClose, status }) => {
             </>
           )}
 
+          {/* Action button */}
           <motion.button
             className={`w-full py-3 px-6 rounded-lg font-medium shadow-lg flex items-center justify-center gap-2 ${
               status === 'success' 
@@ -106,6 +129,8 @@ const Modal = ({ message, onClose, status }) => {
 
 const SignupPage = () => {
   const navigate = useNavigate();
+  
+  // Form state management
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -118,6 +143,7 @@ const SignupPage = () => {
     password: "",
   });
 
+  // Form handlers and state
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -126,6 +152,7 @@ const SignupPage = () => {
     });
   };
 
+  // UI state management
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -134,6 +161,12 @@ const SignupPage = () => {
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+  /**
+   * Handles form submission
+   * Makes API call to create new user account
+   * Shows success/error modal based on response
+   * Redirects to login on success
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -164,6 +197,10 @@ const SignupPage = () => {
     }
   };
 
+  /**
+   * Handles modal close and navigation
+   * Redirects to login on success, closes modal on error
+   */
   const handleSignIn = () => {
     if (status === 'success') {
       navigate('/login');
@@ -182,6 +219,7 @@ const SignupPage = () => {
       <Navbar />
 
       <div className="relative min-h-screen py-20 px-4">
+        {/* Background image with fade-in animation */}
         <motion.div
           className="absolute inset-0 bg-cover bg-center bg-fixed"
           initial={{ opacity: 0 }}
@@ -192,10 +230,12 @@ const SignupPage = () => {
           }}
         />
 
+        {/* Main form container */}
         <motion.div 
           className="relative z-10 max-w-2xl mx-auto"
           variants={slideUp}
         >
+          {/* Form card with glassmorphism effect */}
           <motion.div
             className="bg-white/80 backdrop-blur-lg p-8 shadow-xl rounded-xl border border-white/20"
             variants={formFieldVariants}
@@ -203,6 +243,7 @@ const SignupPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
+            {/* Error message display */}
             {errorMessage && (
               <motion.div 
                 className="bg-red-50 text-red-600 p-4 rounded-lg mb-6"
@@ -220,8 +261,10 @@ const SignupPage = () => {
               Create Account
             </motion.h2>
             
+            {/* Signup form with animated fields */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* First Name input */}
                 <motion.div variants={formFieldVariants}>
                   <label className="block text-gray-700 text-sm font-medium mb-2">
                     First Name
@@ -236,6 +279,7 @@ const SignupPage = () => {
                   />
                 </motion.div>
 
+                {/* Last Name input */}
                 <motion.div variants={formFieldVariants}>
                   <label className="block text-gray-700 text-sm font-medium mb-2">
                     Last Name

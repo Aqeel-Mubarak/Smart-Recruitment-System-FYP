@@ -1,10 +1,12 @@
+# Import necessary SQLAlchemy components for database modeling
 from sqlalchemy import Column, Integer, String, Text, ForeignKey,Boolean
 from sqlalchemy.orm import relationship
 from app.database import Base
 
 
-
+# User model representing the users table in the database
 class User(Base):
+    # Define the table name in the database
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)

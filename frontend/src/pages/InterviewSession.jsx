@@ -1,3 +1,21 @@
+/**
+ * InterviewSession Component
+ * 
+ * A comprehensive interview session page that handles:
+ * - Real-time video streaming and recording
+ * - Eye gaze tracking and analysis
+ * - Question presentation and answer recording
+ * - Interview feedback and analysis
+ * - Email submission of interview results
+ * 
+ * Features:
+ * - WebRTC video streaming
+ * - WebSocket communication for gaze tracking
+ * - Speech synthesis for questions
+ * - Audio recording and analysis
+ * - Real-time feedback
+ */
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -8,7 +26,7 @@ import {
   CheckCircle, Loader2, ArrowRight, RefreshCw, BarChart2, Printer, X
 } from 'lucide-react';
 
-// Animation variants
+// Animation variants for UI transitions
 const fadeIn = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { duration: 0.5 } }
@@ -24,7 +42,7 @@ const InterviewSession = () => {
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
-  // State variables
+  // Core interview state
   const [interview, setInterview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -33,7 +51,7 @@ const InterviewSession = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [audioFeedback, setAudioFeedback] = useState('');
 
-  // Answer tracking
+  // Interview progress tracking
   const [selectedQuestion, setSelectedQuestion] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [interviewStarted, setInterviewStarted] = useState(false);
@@ -41,19 +59,22 @@ const InterviewSession = () => {
   const [interviewAnalysis, setInterviewAnalysis] = useState('');
   const [analysisLoading, setAnalysisLoading] = useState(false);
 
-  // Refs
+  // Refs for media handling
   const videoRef = useRef(null);
   const socketRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
-  // Additional state for email
+  // Email submission state
   const [userEmail, setUserEmail] = useState('');
   const [emailError, setEmailError] = useState('');
   const [submittingInterview, setSubmittingInterview] = useState(false);
   const [interviewSubmitted, setInterviewSubmitted] = useState(false);
 
-  // Load interview data
+  /**
+   * Fetches interview data from the API
+   * Initializes the interview state and prepares answer tracking
+   */
   useEffect(() => {
     const fetchInterview = async () => {
       try {
@@ -84,7 +105,10 @@ const InterviewSession = () => {
     }
   }, [interviewId]);
 
-  // Initialize webcam
+  /**
+   * Initializes webcam access and video streaming
+   * Sets up video constraints and initializes WebSocket connection
+   */
   const enableWebcam = async () => {
     try {
       if (stream) {
@@ -92,7 +116,7 @@ const InterviewSession = () => {
         stream.getTracks().forEach(track => track.stop());
       }
       
-      // Request camera access
+      // Request camera access with specific constraints
       const newStream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           width: { ideal: 640 },
@@ -119,7 +143,10 @@ const InterviewSession = () => {
     }
   };
 
-  // Initialize WebSocket connection
+  /**
+   * Initializes WebSocket connection for gaze tracking
+   * Handles connection events and message processing
+   */
   const initWebSocket = () => {
     try {
       if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
@@ -157,7 +184,10 @@ const InterviewSession = () => {
     }
   };
 
-  // Send video frame to backend
+  /**
+   * Captures and sends video frames to the backend for gaze analysis
+   * Optimizes performance by reducing image quality
+   */
   const sendVideoFrameToBackend = () => {
     if (!videoRef.current || !videoRef.current.videoWidth) {
       return; // Video not ready yet
@@ -180,7 +210,10 @@ const InterviewSession = () => {
     }
   };
 
-  // Send video frames at regular intervals
+  /**
+   * Sets up periodic video frame capture and sending
+   * Optimizes performance by using a 250ms interval
+   */
   useEffect(() => {
     let intervalId;
     
@@ -200,7 +233,10 @@ const InterviewSession = () => {
     };
   }, [stream, interviewEnded]);
 
-  // Clean up resources when component unmounts
+  /**
+   * Cleanup function to release resources when component unmounts
+   * Stops video stream, closes WebSocket, and cancels speech synthesis
+   */
   useEffect(() => {
     return () => {
       if (stream) {
@@ -216,7 +252,10 @@ const InterviewSession = () => {
     };
   }, []);
 
-  // Validate email function
+  /**
+   * Validates email format and presence
+   * @returns {boolean} True if email is valid
+   */
   const validateEmail = () => {
     if (!userEmail) {
       setEmailError('Email is required');
@@ -233,7 +272,10 @@ const InterviewSession = () => {
     return true;
   };
 
-  // Start the interview - modified to require email
+  /**
+   * Starts the interview session
+   * Validates email, enables webcam, and speaks the first question
+   */
   const startInterview = () => {
     // Validate email first
     if (!validateEmail()) {

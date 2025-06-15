@@ -6,7 +6,9 @@ import axios from 'axios';
 import { motion } from 'framer-motion';
 import { fadeIn, slideUp, formFieldVariants, buttonVariants } from '../components/animations';
 
+// Password reset component that handles new password creation after receiving reset token
 const NewPassword = () => {
+  // State management
   const [password, setPassword] = useState('');
   const [Cpassword, setCPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -15,9 +17,11 @@ const NewPassword = () => {
   const navigate = useNavigate();
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+  // Form submission handler
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Password validation
     if (password !== Cpassword) {
       setErrorMessage("Passwords do not match");
       return;
@@ -26,11 +30,13 @@ const NewPassword = () => {
     setLoading(true);
     setErrorMessage('');
 
+    // Prepare API request data
     const formData = new FormData();
     formData.append('password', password);
     formData.append('token', token);
 
     try {
+      // API call to reset password
       const response = await axios.post(`${API_BASE_URL}/create-new-password`, formData);
       setLoading(false);
       navigate('/');
@@ -42,6 +48,7 @@ const NewPassword = () => {
   };
 
   return (
+    // Main container with animations
     <motion.div 
       className="min-h-screen overflow-hidden flex flex-col bg-gray-50"
       initial="initial"
@@ -51,6 +58,7 @@ const NewPassword = () => {
       <Navbar />
 
       <div className="flex flex-1 relative">
+        {/* Animated background image */}
         <motion.div
           className="absolute inset-0 bg-cover bg-center bg-fixed"
           initial={{ opacity: 0 }}
@@ -61,10 +69,12 @@ const NewPassword = () => {
           }}
         />
 
+        {/* Main content area with animations */}
         <motion.div 
           className="relative z-10 w-full md:w-1/2 flex items-center justify-center min-h-screen py-20"
           variants={slideUp}
         >
+          {/* Form container with glass effect */}
           <motion.div
             className="bg-white/80 backdrop-blur-lg p-8 shadow-xl rounded-xl w-full max-w-md mx-4 border border-white/20"
             variants={formFieldVariants}
@@ -72,6 +82,7 @@ const NewPassword = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
+            {/* Error message display */}
             {errorMessage && (
               <motion.div 
                 className="bg-red-50 text-red-600 p-4 rounded-lg mb-6"
@@ -82,6 +93,7 @@ const NewPassword = () => {
               </motion.div>
             )}
             
+            {/* Form title */}
             <motion.h2 
               className="text-3xl font-bold mb-6 text-gray-800"
               variants={formFieldVariants}
@@ -89,7 +101,9 @@ const NewPassword = () => {
               Create New Password
             </motion.h2>
             
+            {/* Password reset form */}
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* New password input */}
               <motion.div variants={formFieldVariants}>
                 <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="password">
                   Password
@@ -104,6 +118,7 @@ const NewPassword = () => {
                 />
               </motion.div>
 
+              {/* Confirm password input */}
               <motion.div variants={formFieldVariants}>
                 <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="Cpassword">
                   Confirm Password
@@ -118,6 +133,7 @@ const NewPassword = () => {
                 />
               </motion.div>
 
+              {/* Submit button with loading state */}
               <motion.button
                 type="submit"
                 className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
@@ -129,6 +145,7 @@ const NewPassword = () => {
                 {loading ? "Resetting..." : "Reset Password"}
               </motion.button>
 
+              {/* Sign up link */}
               <motion.div 
                 className="text-center mt-6"
                 variants={formFieldVariants}

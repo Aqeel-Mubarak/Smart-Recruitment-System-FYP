@@ -5,7 +5,18 @@ import axios from 'axios';
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Clock, Mail, User, Briefcase, CalendarClock, AlertCircle, Search, Filter, MapPin, Building } from 'lucide-react';
 
+/**
+ * UpcomingInterviews Component
+ * 
+ * This component displays a list of upcoming interviews with features for:
+ * - Viewing interview details (candidate, job, date, time)
+ * - Searching interviews by candidate name, job title, or email
+ * - Sorting interviews by date, name, or job title
+ * - Filtering interviews based on search terms
+ * - Real-time status updates (Starting Soon, Today, Tomorrow, etc.)
+ */
 const UpcomingInterviews = () => {
+  // State management for interviews data and UI states
   const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,10 +26,12 @@ const UpcomingInterviews = () => {
   const [sortOrder, setSortOrder] = useState("asc"); // asc, desc
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+  // Set page title on component mount
   useEffect(() => {
     document.title = "Upcoming Interviews";
   }, []);
 
+  // Fetch interviews data from API on component mount
   useEffect(() => {
     const fetchInterviews = async () => {
       try {
@@ -47,10 +60,11 @@ const UpcomingInterviews = () => {
     fetchInterviews();
   }, []);
 
+  // Effect to handle filtering and sorting of interviews
   useEffect(() => {
     let result = [...interviews];
     
-    // Apply search filter
+    // Apply search filter based on candidate name, job title, or email
     if (searchTerm) {
       result = result.filter(interview => 
         interview.candidate_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -59,7 +73,7 @@ const UpcomingInterviews = () => {
       );
     }
     
-    // Apply sorting
+    // Apply sorting based on selected field and order
     result.sort((a, b) => {
       if (sortBy === "date") {
         const dateA = new Date(a.date + " " + a.time);
@@ -79,6 +93,7 @@ const UpcomingInterviews = () => {
     setFilteredInterviews(result);
   }, [interviews, searchTerm, sortBy, sortOrder]);
 
+  // Utility function to format date in a readable format
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', {
@@ -89,6 +104,7 @@ const UpcomingInterviews = () => {
     });
   };
 
+  // Utility function to format time in 12-hour format
   const formatTime = (timeStr) => {
     const [hours, minutes] = timeStr.split(':');
     const time = new Date();
@@ -100,6 +116,7 @@ const UpcomingInterviews = () => {
     });
   };
 
+  // Function to determine interview status based on time difference
   const getTimeStatus = (date, time) => {
     const interviewTime = new Date(date + " " + time);
     const now = new Date();
@@ -112,6 +129,7 @@ const UpcomingInterviews = () => {
     return { label: "Upcoming", color: "bg-indigo-100 text-indigo-600" };
   };
 
+  // Handler for sorting interviews
   const handleSort = (type) => {
     if (sortBy === type) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -121,20 +139,24 @@ const UpcomingInterviews = () => {
     }
   };
 
+  // Main render function with responsive layout and animations
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-white">
       <NavbarApp />
       
+      {/* Main layout with sidebar and content area */}
       <div className="flex h-[calc(100vh-4rem)] mt-16">
         <aside className="w-[19%] fixed left-0">
           <Sidebar />
         </aside>
 
+        {/* Main content area with animations */}
         <motion.main
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="w-[81%] ml-[19%] p-6"
         >
+          {/* Header section with title and controls */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <CalendarClock className="w-8 h-8 text-indigo-600" />
@@ -144,6 +166,7 @@ const UpcomingInterviews = () => {
               </div>
             </div>
 
+            {/* Search and sort controls */}
             <div className="flex items-center gap-4">
               <motion.div 
                 className="relative"
@@ -160,6 +183,7 @@ const UpcomingInterviews = () => {
                 />
               </motion.div>
 
+              {/* Sort buttons with active state indicators */}
               <div className="flex items-center gap-2">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -201,8 +225,10 @@ const UpcomingInterviews = () => {
             </div>
           </div>
 
+          {/* Main content area with loading, error, and interview list states */}
           <AnimatePresence mode="wait">
             {loading ? (
+              // Loading spinner with animation
               <motion.div
                 key="loading"
                 initial={{ opacity: 0 }}
@@ -216,6 +242,7 @@ const UpcomingInterviews = () => {
                 </div>
               </motion.div>
             ) : error ? (
+              // Error state with icon and message
               <motion.div
                 key="error"
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -228,6 +255,7 @@ const UpcomingInterviews = () => {
                 <p className="text-red-600">{error}</p>
               </motion.div>
             ) : filteredInterviews.length === 0 ? (
+              // Empty state with icon and message
               <motion.div
                 key="empty"
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -246,6 +274,7 @@ const UpcomingInterviews = () => {
                 </p>
               </motion.div>
             ) : (
+              // Interview list with staggered animation
               <motion.div
                 key="interviews"
                 initial={{ opacity: 0 }}
@@ -255,6 +284,7 @@ const UpcomingInterviews = () => {
                 {filteredInterviews.map((interview, index) => {
                   const timeStatus = getTimeStatus(interview.date, interview.time);
                   return (
+                    // Individual interview card with hover effects
                     <motion.div
                       key={index}
                       initial={{ opacity: 0, y: 20 }}
@@ -267,6 +297,7 @@ const UpcomingInterviews = () => {
                       className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-indigo-50 overflow-hidden hover:shadow-xl transition-all duration-300"
                     >
                       <div className="p-6">
+                        {/* Interview header with job title and status */}
                         <div className="flex items-center justify-between mb-6">
                           <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center">
@@ -285,7 +316,9 @@ const UpcomingInterviews = () => {
                           </div>
                         </div>
 
+                        {/* Interview details grid */}
                         <div className="grid md:grid-cols-2 gap-6">
+                          {/* Left column: Candidate info */}
                           <div className="space-y-4">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
@@ -308,6 +341,7 @@ const UpcomingInterviews = () => {
                             </div>
                           </div>
 
+                          {/* Right column: Date and time info */}
                           <div className="space-y-4">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">

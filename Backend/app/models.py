@@ -1,7 +1,9 @@
+# Import necessary SQLAlchemy components for database modeling
 from sqlalchemy import Column, Integer, String, Text, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from .database import Base
 
+# Model representing job postings/descriptions in the system
 class JobDescription(Base):
     __tablename__ = "job_descriptions"
 
@@ -16,6 +18,7 @@ class JobDescription(Base):
     calendars = relationship("Calendar", back_populates="job")
 
 
+# Model representing job applicants/candidates
 class Candidate(Base):
     __tablename__ = "candidates"
 
@@ -31,6 +34,7 @@ class Candidate(Base):
     # calendars= relationship("Calendar", back_populates="candidates")
 
 
+# Model representing system users (HR personnel, admins)
 class User(Base):
     __tablename__ = "users"
 
@@ -51,7 +55,7 @@ class User(Base):
     jobs = relationship("JobDescription", back_populates="hr")
     
     
-#Define the Calendar table (model)
+# Model representing interview scheduling calendar slots
 class Calendar(Base):
     __tablename__ = "calendar"
     
@@ -66,6 +70,7 @@ class Calendar(Base):
     job = relationship("JobDescription", back_populates="calendars")
     # candidates = relationship("Candidate", back_populates="calendars")
 
+    # Method to convert calendar entry to dictionary format
     def to_dict(self):
         return {
             "id": self.id,

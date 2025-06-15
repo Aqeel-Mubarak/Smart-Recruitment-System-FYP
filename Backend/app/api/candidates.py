@@ -12,17 +12,19 @@ from sentence_transformers import SentenceTransformer
 from app.utils.qdrant_utils import get_embedding
 import numpy as np
 
-# Load environment variables
+# Load environment variables from .env file
 load_dotenv()
 
+# Create FastAPI router for candidate-related endpoints
 router = APIRouter()
 
-# Request to filter candidates by prompt
+# Pydantic model for filtering candidates by prompt
 class PromptRequest(BaseModel):
     prompt: str
     job_description_id: int
 
-# Updated AnalysisRequest now includes job_description_id for job analysis
+# Pydantic model for candidate analysis requests
+# Supports both prompt-based and job-based analysis
 class AnalysisRequest(BaseModel):
     candidate_id: int
     resume_text: str
@@ -34,7 +36,7 @@ class GroqAnalyzer:
     """Handler for Groq LLM-based resume analysis."""
     
     def __init__(self):
-        """Initialize the Groq client."""
+        """Initialize the Groq client with API key."""
         self.api_key = "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"
         if not self.api_key:
             raise ValueError("GROQ_API_KEY not found in .env file")
@@ -54,6 +56,7 @@ class GroqAnalyzer:
                   with each heading on its own separate line in bold.
         """
         try:
+            # Configure system and user messages for the LLM
             messages = [
                 {
                     "role": "system",
@@ -79,6 +82,7 @@ Resume Content:
 {resume_text}"""
                 }
             ]
+            # Make API call to Groq LLM
             response = self.client.chat.completions.create(
                 messages=messages,
                 model="llama-3.3-70b-versatile",
@@ -90,18 +94,21 @@ Resume Content:
             print(f"Groq analysis error: {e}")
             return {"analysis": f"Analysis failed: {str(e)}"}
 
-# Initialize the analyzer
+# Initialize the Groq analyzer instance
 try:
     groq_analyzer = GroqAnalyzer()
 except Exception as e:
     print(f"Error initializing Groq analyzer: {e}")
     raise
 
-# Initialize Nomic embedding model
+# Initialize the Nomic embedding model for semantic similarity calculations
 embedding_model = SentenceTransformer("nomic-ai/nomic-embed-text-v1", trust_remote_code=True)
 
 def calculate_prompt_score(prompt_embedding: np.ndarray, candidate_embedding: np.ndarray) -> float:
-    """Calculate the prompt score by comparing prompt embedding with candidate embedding."""
+    """
+    Calculate the semantic similarity score between prompt and candidate embeddings.
+    Returns a score between 0 and 100.
+    """
     try:
         score = np.dot(prompt_embedding, candidate_embedding) / (
             np.linalg.norm(prompt_embedding) * np.linalg.norm(candidate_embedding)
@@ -115,8 +122,10 @@ def calculate_prompt_score(prompt_embedding: np.ndarray, candidate_embedding: np
 async def filter_candidates(request: PromptRequest, db: Session = Depends(get_db)):
     """
     Filter and analyze candidates for a specific job using prompt score and assign rankings.
+    Returns a list of candidates sorted by their prompt score.
     """
     try:
+        # Fetch all candidates for the specified job
         candidates = db.query(Candidate).filter(Candidate.job_description_id == request.job_description_id).all()
         if not candidates:
             raise HTTPException(status_code=404, detail="No candidates found for the selected job description")
@@ -125,6 +134,7 @@ async def filter_candidates(request: PromptRequest, db: Session = Depends(get_db
         prompt_embedding = embedding_model.encode(request.prompt)
         for candidate in candidates:
             try:
+                # Get candidate embedding and calculate similarity score
                 candidate_embedding = get_embedding(candidate.id)
                 if candidate_embedding is not None:
                     prompt_score = calculate_prompt_score(prompt_embedding, candidate_embedding)
@@ -138,8 +148,10 @@ async def filter_candidates(request: PromptRequest, db: Session = Depends(get_db
             except Exception as e:
                 print(f"Error processing candidate {candidate.id}: {e}")
                 continue
+        # Sort candidates by prompt score
         analyzed_candidates.sort(key=lambda x: x["prompt_score"], reverse=True)
         ranked_candidates = []
+        # Assign ranks to candidates
         for index, candidate in enumerate(analyzed_candidates, start=1):
             ranked_candidates.append({
                 **candidate,
@@ -156,6 +168,7 @@ async def filter_candidates(request: PromptRequest, db: Session = Depends(get_db
 def get_all_candidates(job_description_id: int = None, db: Session = Depends(get_db)):
     """
     Get all candidates filtered by job_description_id and sorted by job score.
+    Returns a list of candidates sorted by their score in descending order.
     """
     try:
         if job_description_id is not None:
@@ -174,8 +187,9 @@ def get_all_candidates(job_description_id: int = None, db: Session = Depends(get
 async def analyze_candidate(request: AnalysisRequest, db: Session = Depends(get_db)):
     """
     Analyze a single candidate's resume using the LLM.
-    The analysis_type parameter determines whether the analysis is prompt-based or job-based.
-    For job-based analysis, the 'job_description_id' field is used to fetch the full job description.
+    Supports two types of analysis:
+    1. Prompt-based: Uses the provided prompt for analysis
+    2. Job-based: Uses the job description from the database for analysis
     """
     try:
         candidate_id = request.candidate_id
@@ -199,22 +213,17 @@ async def analyze_candidate(request: AnalysisRequest, db: Session = Depends(get_
         error_msg = f"Error analyzing candidate: {str(e)}"
         print(error_msg)
         raise HTTPException(status_code=500, detail=error_msg)
+
+# Pydantic model for shortlisting candidates
 class ShortlistRequest(BaseModel):
     candidate_ids: List[int]
     job_description_id: int
 
-# Add this new endpoint in candidates.py
 @router.post("/update_candidates_status")
 async def shortlist_candidates(request: ShortlistRequest, db: Session = Depends(get_db)):
     """
     Update the status of selected candidates to 'shortlisted' for a specific job.
-    
-    Args:
-        request: ShortlistRequest containing candidate_ids and job_description_id
-        db: Database session
-    
-    Returns:
-        Dict with success message and number of candidates updated
+    Performs a bulk update operation on the database.
     """
     try:
         # Update status for all specified candidates
@@ -237,6 +246,8 @@ async def shortlist_candidates(request: ShortlistRequest, db: Session = Depends(
         error_msg = f"Error updating candidate status: {str(e)}"
         print(error_msg)
         raise HTTPException(status_code=500, detail=error_msg)
+
+# Pydantic model for tracking candidate status counts
 class CandidateStatusCount(BaseModel):
     waiting: int
     shortlisted: int

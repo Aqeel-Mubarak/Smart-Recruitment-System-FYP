@@ -1,3 +1,17 @@
+/**
+ * Home Page Component
+ * 
+ * This is the main dashboard page that displays key recruitment metrics and statistics.
+ * It includes:
+ * - Total applications count
+ * - Today's interviews
+ * - Waiting candidates
+ * - A pie chart showing candidate status distribution
+ * 
+ * The page automatically refreshes data every 5 minutes and includes
+ * loading states and error handling.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip } from 'recharts';
@@ -8,6 +22,7 @@ import Sidebar from '../components/Sidebar';
 import { motion } from 'framer-motion';
 
 const Home = () => {
+  // State management for dashboard metrics
   const [totalApplications, setTotalApplications] = useState(0);
   const [todayInterviews, setTodayInterviews] = useState(0);
   const [waitingCandidate, setWaitingCandidate] = useState(0);
@@ -16,6 +31,14 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+  /**
+   * Fetches all dashboard data from the API
+   * Includes:
+   * - Total applications count
+   * - User's name
+   * - Today's interviews count
+   * - Number of waiting candidates
+   */
   const fetchData = async () => {
     setLoading(true);
     setError("");
@@ -83,12 +106,14 @@ const Home = () => {
     }
   };
 
+  // Set up data fetching on component mount and refresh every 5 minutes
   useEffect(() => {
     fetchData();
     const intervalId = setInterval(fetchData, 5 * 60 * 1000);
     return () => clearInterval(intervalId);
   }, [API_BASE_URL]);
 
+  // Loading state UI with animated spinner
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-white flex items-center justify-center">
@@ -109,18 +134,24 @@ const Home = () => {
     );
   }
 
-  // Calculate the interviewed candidates
+  // Calculate statistics for the pie chart
   const interviewedCandidates = Math.max(0, totalApplications - waitingCandidate);
   const waitingPercentage = totalApplications > 0 ? Math.round((waitingCandidate / totalApplications) * 100) : 0;
   const interviewedPercentage = totalApplications > 0 ? Math.round((interviewedCandidates / totalApplications) * 100) : 0;
 
+  // Data for the pie chart visualization
   const pieChartData = [
     { name: "Waiting Candidates", value: waitingCandidate, percentage: waitingPercentage },
     { name: "Interviewed Candidates", value: interviewedCandidates, percentage: interviewedPercentage }
   ];
 
+  // Color scheme for the pie chart
   const COLORS = ['#6366F1', '#10B981'];
 
+  /**
+   * Custom label renderer for the pie chart
+   * Displays percentage values in the center of each pie slice
+   */
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
@@ -140,11 +171,13 @@ const Home = () => {
     );
   };
 
+  // Animation variants for card elements
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 }
   };
 
+  // Main dashboard layout with animated components
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-white relative">
       <TourGuide />
@@ -183,6 +216,7 @@ const Home = () => {
           <FaUserCircle className="text-indigo-600 text-3xl cursor-pointer hover:text-indigo-700 transition-colors" />
         </motion.div>
 
+        {/* Dashboard metrics cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <motion.div 
             className="bg-white/80 backdrop-blur-lg shadow-lg rounded-xl p-6 text-center hover:shadow-xl transition-all"
@@ -223,6 +257,7 @@ const Home = () => {
           </motion.div>
         </div>
 
+        {/* Candidate status distribution chart */}
         <div className="grid grid-cols-1 gap-6">
           <motion.div 
             className="bg-white/80 backdrop-blur-lg shadow-lg rounded-xl p-6"

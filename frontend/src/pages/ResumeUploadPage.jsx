@@ -7,9 +7,11 @@ import Select from "react-select";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, FileText, Plus, RefreshCw, UserCheck, Briefcase, XCircle, PlusCircle, CheckCircle, Loader2 } from "lucide-react";
 
+// Success Modal Component - Displays a success message with animation when resumes are uploaded
 const SuccessModal = ({ onClose }) => {
   const [progress, setProgress] = useState(0);
 
+  // Progress bar animation effect
   useEffect(() => {
     const timer = setInterval(() => {
       setProgress(prev => {
@@ -95,7 +97,9 @@ const SuccessModal = ({ onClose }) => {
   );
 };
 
+// Main Resume Upload Page Component
 const ResumeUploadPage = () => {
+  // State management for files, job description, and UI states
   const [files, setFiles] = useState([]);
   const [jobDescription, setJobDescription] = useState('');
   const [jobId, setJobId] = useState(null);
@@ -112,10 +116,12 @@ const ResumeUploadPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Set page title
   useEffect(() => {
     document.title = "Resume Upload";
   }, []);
 
+  // Fetch hiring manager ID on component mount
   useEffect(() => {
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     const token = localStorage.getItem('accessToken');
@@ -128,6 +134,7 @@ const ResumeUploadPage = () => {
     .catch((error) => console.error(error));
   }, []);
 
+  // Fetch available jobs when hiring manager ID is available
   useEffect(() => {
     if (!hiringManagerId) return;
 
@@ -152,8 +159,8 @@ const ResumeUploadPage = () => {
     fetchJobs();
   }, [hiringManagerId]);
 
+  // Handle job selection from URL state
   useEffect(() => {
-    // Check if we have state passed from navigation
     if (location.state && location.state.selectedJob) {
       setSelectedOption(location.state.selectedJob);
       setJobDescription(location.state.selectedJob.description);
@@ -161,6 +168,7 @@ const ResumeUploadPage = () => {
     }
   }, [location.state]);
 
+  // File handling functions
   const handleFileChange = (event) => {
     const selectedFiles = event.target.files;
     if (selectedFiles.length > 0) {
@@ -168,6 +176,7 @@ const ResumeUploadPage = () => {
     }
   };
 
+  // Drag and drop handlers
   const handleDragOver = (e) => {
     e.preventDefault();
     setIsDragging(true);
@@ -187,6 +196,7 @@ const ResumeUploadPage = () => {
     }
   };
 
+  // Job selection handler
   const handleJobSelect = (option) => {
     setSelectedOption(option);
     if (option) {
@@ -198,6 +208,7 @@ const ResumeUploadPage = () => {
     }
   };
 
+  // Update job description handler
   const handleJobDescriptionUpdate = async () => {
     if (!selectedOption || !jobDescription) {
       setJobDescriptionStatus('Please select a job and provide a description.');
@@ -235,6 +246,7 @@ const ResumeUploadPage = () => {
     }
   };
 
+  // Resume upload handler
   const handleResumeUpload = async () => {
     if (files.length === 0) {
       setUploadStatus('Please select at least one file.');
@@ -272,11 +284,13 @@ const ResumeUploadPage = () => {
     }
   };
 
+  // Modal close handler
   const handleModalClose = () => {
     setShowSuccessModal(false);
     navigate('/shortlist-candidates');
   };
 
+  // Custom styles for the job selection dropdown
   const customSelectStyles = {
     control: (base, state) => ({
       ...base,
@@ -321,6 +335,7 @@ const ResumeUploadPage = () => {
     }),
   };
 
+  // Main render
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-indigo-50 to-white">
       <Navbarapp />

@@ -1,3 +1,10 @@
+// ShortlistCandidate.jsx
+// This component provides a comprehensive interface for hiring managers to:
+// 1. View and filter candidates for specific job positions
+// 2. Analyze candidate resumes against job requirements
+// 3. View candidate score distributions
+// 4. Schedule interviews with selected candidates
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import Navbarapp from '../components/Navbarapp';
@@ -19,7 +26,8 @@ import {
   Cell,
 } from "recharts";
 
-// Helper function to render analysis text with bold headings on separate lines.
+// Helper function to format analysis text with bold headings
+// Splits text by newlines and applies bold formatting to lines starting with **
 const renderAnalysisText = (analysis) => {
   return analysis.split('\n').map((line, index) => {
     if (line.startsWith('**') && line.indexOf('**', 2) !== -1) {
@@ -37,7 +45,8 @@ const renderAnalysisText = (analysis) => {
   });
 };
 
-// Modified computeDistribution function that accepts a field parameter.
+// Computes the distribution of candidate scores across predefined ranges
+// Used for generating the score distribution chart
 const computeDistribution = (candidates, field = 'score') => {
   const dist = {
     'Below 40': 0,
@@ -60,7 +69,7 @@ const computeDistribution = (candidates, field = 'score') => {
   return dist;
 };
 
-// Define bar colors for each score range.
+// Color mapping for different score ranges in the distribution chart
 const barColors = {
   'Below 40': '#f56565',    // red-500
   '40-50': '#ed8936',       // orange-500
@@ -70,7 +79,7 @@ const barColors = {
   'Above 80': '#9f7aea'      // purple-500
 };
 
-// Transformation function for range labels: Replace "Below 40" with "<40" and "Above 80" with "80<"
+// Helper function to transform range labels for better display in the chart
 const transformRangeLabel = (label) => {
   if (label === "Below 40") return "<40";
   if (label === "Above 80") return "80<";
@@ -78,6 +87,7 @@ const transformRangeLabel = (label) => {
 };
 
 const ShortlistCandidate = () => {
+  // State management for candidates and filtering
   const [candidates, setCandidates] = useState([]);
   const [filteredCandidates, setFilteredCandidates] = useState([]);
   const [prompt, setPrompt] = useState('');
@@ -93,10 +103,12 @@ const ShortlistCandidate = () => {
   const [analyzing, setAnalyzing] = useState(false); // New state for analyzing
   const [filterComplete, setFilterComplete] = useState(false);
 
+  // Set page title on component mount
   useEffect(() => {
     document.title = "Shortlist Candidates";
   }, []);
-  // State for analysis modal
+
+  // State for managing the analysis modal
   const [analysisModal, setAnalysisModal] = useState({
     isOpen: false,
     type: null,
@@ -105,6 +117,7 @@ const ShortlistCandidate = () => {
     loading: false
   });
 
+  // Get API base URL from environment variables
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const navigate = useNavigate();
   const location = useLocation();
@@ -112,7 +125,7 @@ const ShortlistCandidate = () => {
   const jobId = searchParams.get("jobId");
   console.log(jobId);
 
-  // Preselect default job if passed via location.state.
+  // Effect to preselect job based on URL parameters or location state
   useEffect(() => {
     if (location.state && location.state.selectedJob) {
       setSelectedOption(location.state.selectedJob);
@@ -124,7 +137,7 @@ const ShortlistCandidate = () => {
     }
   }, [location.state, jobId, jobs]);
 
-  // Fetch hiring manager ID.
+  // Effect to fetch hiring manager ID on component mount
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     axios
@@ -135,7 +148,7 @@ const ShortlistCandidate = () => {
       .catch((error) => console.error(error));
   }, [API_BASE_URL]);
 
-  // Fetch job descriptions and auto-select a default.
+  // Effect to fetch job descriptions when hiring manager ID is available
   useEffect(() => {
     if (!hiringmanagerid) return;
     const fetchJobs = async () => {
@@ -159,14 +172,14 @@ const ShortlistCandidate = () => {
     fetchJobs();
   }, [hiringmanagerid, API_BASE_URL]);
 
-  // Automatically fetch candidates when a job is selected.
+  // Effect to fetch candidates when a job is selected
   useEffect(() => {
     if (selectedOption) {
       fetchCandidates();
     }
   }, [selectedOption]);
 
-  // Fetch candidates for the selected job.
+  // Function to fetch candidates for the selected job
   const fetchCandidates = async () => {
     try {
       const token = localStorage.getItem('accessToken');
@@ -195,7 +208,7 @@ const ShortlistCandidate = () => {
     }
   };
 
-  // Filter candidates based on specific requirements.
+  // Function to filter candidates based on specific requirements
   const handlePromptSearch = async () => {
     if (!prompt.trim() || !selectedOption) return;
     setAnalyzing(true);
@@ -232,7 +245,7 @@ const ShortlistCandidate = () => {
     }
   };
 
-  // Handle analysis view
+  // Function to handle viewing candidate analysis
   const handleViewAnalysis = async (candidateId, resumeText, type) => {
     setAnalysisModal({
       isOpen: true,
@@ -269,7 +282,7 @@ const ShortlistCandidate = () => {
     }
   };
 
-  // Remove active prompt filter.
+  // Function to remove active prompt filter
   const removeFilter = async () => {
     setActiveFilter("");
     setFilterComplete(false);
@@ -297,7 +310,7 @@ const ShortlistCandidate = () => {
     }
   };
 
-  // Toggle checkbox selection.
+  // Function to handle checkbox selection for individual candidates
   const handleCheckboxChange = (candidateId) => {
     setCheckedCandidates((prev) => {
       const newChecked = new Set(prev);
@@ -310,7 +323,7 @@ const ShortlistCandidate = () => {
     });
   };
 
-  // Handle select all checkbox
+  // Function to handle select all checkbox
   const handleSelectAll = () => {
     if (checkedCandidates.size === filteredCandidates.length) {
       // If all are selected, clear the selection
@@ -322,11 +335,10 @@ const ShortlistCandidate = () => {
     }
   };
 
-
-  // Add a new state to track email sending status
+  // State for tracking email sending status
   const [sendingEmails, setSendingEmails] = useState(false);
 
-  // Modify the handleEmail function to include loading state and redirection
+  // Function to handle sending interview emails to selected candidates
   const handleEmail = async () => {
     if (!selectedOption || !selectedOption.value) {
       alert("Please select a job first");
@@ -406,7 +418,8 @@ const ShortlistCandidate = () => {
       setSendingEmails(false);
     }
   };
-  // Custom styles for react-select.
+
+  // Custom styles for react-select dropdown
   const customSelectStyles = {
     control: (base) => ({
       ...base,
@@ -423,17 +436,18 @@ const ShortlistCandidate = () => {
     }),
   };
 
-  // Compute candidate score distribution.
+  // Compute score distribution for the chart
   const distribution = computeDistribution(filteredCandidates, 'score');
   const maxCountValue = Math.max(...Object.values(distribution), 1);
   const graphTitle = "Job Relevancy Score";
 
-  // Transform distribution for the Recharts vertical bar chart.
+  // Transform distribution data for the chart
   const chartData = Object.entries(distribution).map(([range, count]) => ({
     range: transformRangeLabel(range),
     count,
   }));
 
+  // Function to handle viewing candidate resume
   const handleViewResume = async (candidate) => {
     const token = localStorage.getItem('accessToken');
     try {
@@ -740,15 +754,6 @@ const ShortlistCandidate = () => {
           </AnimatePresence>
         </motion.div>
 
-        {/* Schedule Interview Button */}
-        {/* <div className="flex justify-center mt-6">
-          <button
-            onClick={handleEmail}
-            className="px-8 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium"
-          >
-            Schedule Interview
-          </button>
-        </div> */}
         {/* Schedule Interview Button */}
         <div className="flex justify-center mt-6">
           <button

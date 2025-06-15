@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, FileText, Users, Calendar, BarChart2, BriefcaseIcon, Brain, Zap, Shield } from 'lucide-react';
 
+// SVG component for the hero section illustration
+// Creates a modern, abstract representation of a recruitment system
 const HeroSVG = () => (
   <svg viewBox="0 0 500 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-lg mx-auto drop-shadow-2xl">
     <ellipse cx="250" cy="350" rx="180" ry="30" fill="#e0e7ff" />
@@ -23,9 +25,12 @@ const HeroSVG = () => (
   </svg>
 );
 
+// Main About component that displays information about the Smart Recruitment System
 const About = () => {
   const navigate = useNavigate();
 
+  // Animation variants for container elements
+  // Controls the staggered animation of child elements
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -34,6 +39,8 @@ const About = () => {
     }
   };
 
+  // Animation variants for individual items
+  // Defines the spring animation for each feature card
   const itemVariants = {
     hidden: { y: 40, opacity: 0 },
     visible: {
@@ -43,6 +50,8 @@ const About = () => {
     }
   };
 
+  // Array of features to be displayed in the features section
+  // Each feature contains an icon, title, and description
   const features = [
     { icon: <Brain className="w-6 h-6" />, title: "AI-Powered Resume Analysis", description: "Advanced LLMs analyze resumes to match candidates with job requirements efficiently." },
     { icon: <FileText className="w-6 h-6" />, title: "Smart Resume Processing", description: "Automated resume parsing and information extraction to streamline the recruitment process." },
@@ -55,10 +64,12 @@ const About = () => {
   ];
 
   return (
+    // Main container with gradient background
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-blue-100 to-white flex flex-col relative overflow-x-hidden">
-      {/* Animated Gradient Background */}
+      {/* Animated gradient background overlay */}
       <div className="absolute inset-0 z-0 animate-gradient bg-gradient-to-br from-indigo-200 via-blue-100 to-white opacity-80" />
-      {/* Back Button */}
+      
+      {/* Back button with hover and tap animations */}
       <motion.button
         onClick={() => navigate(-1)}
         className="absolute top-5 left-5 flex items-center bg-white shadow-md px-4 py-2 rounded-lg text-indigo-700 font-medium hover:bg-indigo-100 transition z-20"
@@ -69,13 +80,13 @@ const About = () => {
         Back
       </motion.button>
 
-      {/* Hero Section */}
+      {/* Hero section with illustration and main heading */}
       <section className="relative z-10 flex flex-col md:flex-row items-center justify-center pt-28 pb-12 px-4 md:px-0">
-        {/* SVG Illustration */}
+        {/* SVG Illustration container */}
         <div className="w-full md:w-1/2 flex items-center justify-center mb-8 md:mb-0">
           <HeroSVG />
         </div>
-        {/* Hero Text */}
+        {/* Hero text content */}
         <div className="w-full md:w-1/2 flex flex-col items-center md:items-start mt-10 md:mt-0 md:pl-12">
           <motion.h1 className="text-5xl md:text-6xl font-extrabold text-indigo-900 mb-6 text-center md:text-left leading-tight drop-shadow-lg">
             About Smart Recruitment System
@@ -86,12 +97,13 @@ const About = () => {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Features section with animated cards */}
       <section className="container mx-auto px-4 pt-8 pb-20 relative z-10">
         <motion.div variants={containerVariants} initial="hidden" animate="visible">
           <motion.h2 className="text-4xl md:text-5xl font-extrabold text-indigo-900 mb-12 text-center" variants={itemVariants}>
             Platform Features
           </motion.h2>
+          {/* Grid of feature cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 max-w-7xl mx-auto">
             {features.map((feature, index) => (
               <motion.div
@@ -115,7 +127,7 @@ const About = () => {
         </motion.div>
       </section>
 
-      {/* Bottom CTA Section */}
+      {/* Call-to-action section with gradient background */}
       <section className="relative z-10 bg-gradient-to-r from-indigo-500 to-blue-500 py-16 px-4 text-center mt-8">
         <motion.h2 className="text-3xl md:text-4xl font-extrabold text-white mb-6 drop-shadow-lg" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           Experience the future of recruitment
@@ -133,7 +145,7 @@ const About = () => {
         </motion.button>
       </section>
 
-      {/* Subtle animated background shapes */}
+      {/* Decorative animated background shapes */}
       <div className="pointer-events-none absolute top-0 left-0 w-full h-full z-0 overflow-hidden">
         <div className="absolute left-1/2 top-0 w-[600px] h-[600px] bg-indigo-200 rounded-full opacity-30 blur-3xl animate-pulse-slow" style={{ transform: 'translateX(-50%)' }} />
         <div className="absolute right-0 bottom-0 w-[400px] h-[400px] bg-blue-200 rounded-full opacity-20 blur-2xl animate-pulse-slow" />

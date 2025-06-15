@@ -7,32 +7,32 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { addDays } from 'date-fns';
 
-
+// Calendar component that displays a monthly calendar with navigation controls
 function Calendar() {
+  // Get URL parameters and calendar store state
   const { isManagement1 } = useParams();
   const { selectedDate, setSelectedDate,selectedJob, fetchTimeSlots,timeSlots} = useCalendarStore();
-  // if (!isManagement1){
-  //   toggleUserType()
-  // }
+  
+  // Calculate the start and end of the current month
   const monthStart = startOfMonth(selectedDate);
   const monthEnd = endOfMonth(selectedDate);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
   const today = new Date();
+
+  // Fetch available time slots when a job is selected
   useEffect(() => {
     if (selectedJob) {
       fetchTimeSlots(selectedJob.id);  // Fetch slots for the selected job
     }
   }, [selectedJob, fetchTimeSlots]);
 
+  // Handle date selection in the calendar
   const handleDateClick = (date) => {
-    // if (isAfter(date, new Date()) || isSameDay(date, new Date())) {
-    //   setSelectedDate(date);
-    // }
     setSelectedDate(date);
-
   };
 
+  // Navigation functions for month and year
   const previousMonth = () => {
     setSelectedDate(addMonths(selectedDate, -1));
   };
@@ -48,13 +48,16 @@ function Calendar() {
   const nextYear = () => {
     setSelectedDate(addYears(selectedDate, 1));
   };
+
+  // Format selected date and get available time slots for that date
   console.log('Selected Date:', selectedDate);  
-  const formattedDate = format(selectedDate, 'yyyy-MM-dd'); // Format the selectedDate
+  const formattedDate = format(selectedDate, 'yyyy-MM-dd');
   const slotsForSelectedDate = timeSlots[formattedDate] || [];
 
   return (
     <div className="w-full max-w-md bg-white rounded-lg shadow">
       <div className="p-4">
+        {/* Calendar header with navigation controls */}
         <div className="flex items-center justify-between mb-4">
           <button
             onClick={previousYear}
@@ -85,6 +88,7 @@ function Calendar() {
           </button>
         </div>
 
+        {/* Days of week header */}
         <div className="grid grid-cols-7 gap-1 mb-2">
           {Array.from({ length: 7 }).map((_, index) => {
             const firstDayOfMonth = startOfMonth(selectedDate);
@@ -100,8 +104,10 @@ function Calendar() {
           })}
         </div>
 
+        {/* Calendar grid with dates */}
         <div className="grid grid-cols-7 gap-1">
           {daysInMonth.map((date) => {
+            // Determine various states for each date cell
             const isSelected = isSameDay(date, selectedDate);
             const isToday = isSameDay(date, today);
             const isPast = !isAfter(date, today) && !isSameDay(date, today);

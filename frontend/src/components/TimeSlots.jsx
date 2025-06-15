@@ -3,8 +3,10 @@ import { format } from 'date-fns';
 import { useCalendarStore } from '../store';
 import { useNavigate } from 'react-router-dom';
 
-
+// TimeSlots component for managing and displaying interview time slots
+// Handles both management view (creating slots) and candidate view (booking slots)
 function TimeSlots() {
+  // Destructure required state and functions from the calendar store
   const {
     selectedDate,
     timeSlots,
@@ -20,15 +22,18 @@ function TimeSlots() {
     setPastSlot,
   } = useCalendarStore();
   const navigate = useNavigate();
+
+  // Local state for handling drag interactions
   const [isDragging, setIsDragging] = useState(false);
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [filteredSlots, setFilteredSlots] = useState([]);
   
+  // Format the selected date to use as a key for timeSlots object
   const dateKey = format(selectedDate, 'yyyy-MM-dd');
   console.log(timeSlots)
   const slotsForDate = timeSlots[dateKey] || [];
 
-  // Update filtered slots whenever dependencies change
+  // Effect to filter slots based on selected job and user role
   useEffect(() => {
     const fetchAndFilterSlots = async () => {
       if (slotsForDate && selectedJob) {
@@ -44,7 +49,7 @@ function TimeSlots() {
   }, [slotsForDate, selectedJob, isManagement,timeSlots,selectTimeSlot,
     removeTimeSlot,fetchTimeSlots]);
 
-  // Fetch slots when selectedJob changes
+  // Effect to fetch time slots when selected job changes
   useEffect(() => {
     const fetchAndUpdateSlots = async () => {
       if (selectedJob) {
@@ -54,13 +59,14 @@ function TimeSlots() {
     fetchAndUpdateSlots();
   }, [selectedJob, fetchTimeSlots]);
 
-      const handleReturn = () => {
-        if (isManagement){
+  // Navigation handler for management view
+  const handleReturn = () => {
+    if (isManagement){
           navigate("/open-jobs")
-        }
     }
+  }
 
-
+  // Generate array of time slots from 8 AM to 8 PM with specified interval
   const generateTimeSlots = () => {
     const slots = [];
     const interval = slotDuration;
@@ -73,35 +79,7 @@ function TimeSlots() {
     return slots;
   };
 
-  // const handleSlotInteraction = async (startTime) => {
-  //   if (!selectedJob) return;
-
-  //   const endTime = format(
-  //     new Date(selectedDate.setHours(
-  //       parseInt(startTime.split(':')[0]),
-  //       parseInt(startTime.split(':')[1]) + slotDuration
-  //     )),
-  //     'HH:mm'
-  //   );
-
-  //   const newSlot = {
-  //     id: `${dateKey}-${startTime}-${selectedJob.id}`,
-  //     startTime,
-  //     endTime,
-  //     isSelected: false,
-  //     jobId: selectedJob.id,
-  //   };
-
-  //   const existingSlot = filteredSlots.find(
-  //     slot => slot.startTime === startTime && slot.jobId === selectedJob.id
-  //   );
-
-  //   if (existingSlot) {
-  //     removeTimeSlot(dateKey, existingSlot.id);
-  //   } else {
-  //     addTimeSlot(dateKey, newSlot);
-  //   }
-  // };
+  // Handle slot interaction (creation/deletion) with validation for past dates/times
   const handleSlotInteraction = async (startTime) => {
     if (!selectedJob) return;
     console.log(startTime);
@@ -129,12 +107,13 @@ function TimeSlots() {
     setPastSlot('')
     console.log(pastSlot)
     
-    // Existing logic for creating endTime and slots...
+    // Calculate end time based on slot duration
     const endTime = format(
       new Date(slotTime.getTime() + slotDuration * 60000),
       'HH:mm'
     );
   
+    // Create new slot object
     const newSlot = {
       id: `${dateKey}-${startTime}-${selectedJob.id}`,
       startTime,
@@ -143,6 +122,7 @@ function TimeSlots() {
       jobId: selectedJob.id,
     };
   
+    // Check if slot already exists and handle accordingly
     const existingSlot = filteredSlots.find(
       slot => slot.startTime === startTime && slot.jobId === selectedJob.id
     );
@@ -154,6 +134,7 @@ function TimeSlots() {
     }
   };
 
+  // Mouse event handlers for drag interaction
   const handleMouseDown = (time) => {
     if (!isManagement || !selectedJob) return;
     setIsMouseDown(true);
@@ -169,6 +150,7 @@ function TimeSlots() {
     setIsMouseDown(false);
   };
 
+  // Handle slot selection for candidates
   const handleSlotClick = (slot) => {
     console.log("agya ha")
     if (!isManagement && slot && slot.id) {
@@ -176,8 +158,10 @@ function TimeSlots() {
     }
   };
 
+  // Render component
   return (
     <div className="flex-1 p-4">
+      {/* Legend and management controls */}
       <div className="flex items-center space-x-2 justify-between mb-4">
         <div className='flex flex-row '>
         <div>
@@ -191,6 +175,7 @@ function TimeSlots() {
 
       </div>
 
+      {/* Date display and validation message */}
       <div className="flex items-center mb-6">
         <div className="w-5 h-5 text-blue-500">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -201,10 +186,10 @@ function TimeSlots() {
         <h2 className="text-xl font-semibold ml-2">
           {format(selectedDate, 'MMMM d, yyyy')}
         </h2>
-        {/* <h2 className='ml-48'>{pastSlot}</h2> */}
         {pastSlot && <h2 className='text-xl text-red-600 ml-60 font-semibold underline animate-blink'>{pastSlot}</h2>}
       </div>
 
+      {/* Grid of time slots */}
       <div 
         className="grid grid-cols-4 gap-4"
         onMouseUp={handleMouseUp}

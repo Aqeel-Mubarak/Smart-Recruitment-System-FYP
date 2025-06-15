@@ -27,10 +27,16 @@ import AdminDashboard from './pages/AdminDashboard';
 import UsersPage from './pages/UsersPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 
+
+/**
+ * Main App component that handles routing for the entire application
+ * Uses React Router for navigation and route protection
+ */
 function App() {
   return (
     <Router>
       <Routes>
+        {/* Public Routes - Accessible without authentication */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/adminlogin" element={<AdminLoginPage />} />
@@ -41,11 +47,14 @@ function App() {
         <Route path="/verify/:token" element={<Verification />}/>
         <Route path="/application/:id" element={<ApplicationForm />} />
         <Route path="/about" element={<About />} />
+        <Route path='/shortlist-candidate' element={<ShortlistCandidate/>} />
+
+        {/* Protected Routes - Require authentication */}
         <Route element={<ProtectedRoute />}>
           <Route path="/home" element={<Home />} />
           <Route path="/create-job" element={<CreateJob />} />
           <Route path="/reports" element={<Report />} />
-          <Route path='/shortlist-candidate' element={<ShortlistCandidate/>} />
+          {/* <Route path='/shortlist-candidate' element={<ShortlistCandidate/>} /> */}
           <Route path='/resume-upload' element={<ResumeUploadPage/>} />
           <Route path='/open-jobs' element={<CurrentOpenJobs/>} />
           <Route path="/contact" element={<ContactPage />} />
@@ -53,7 +62,8 @@ function App() {
           <Route path="/upcoming-interviews" element={< UpcomingInterviews/>} />
           <Route path="/Create-Interview" element={<CreateInterview/>} />
           
-          <Route path="/video-analysis" element={<VideoAnalysis />} /> {/* Route for VideoAnalysis */}
+          {/* Interview and Analysis Related Routes */}
+          <Route path="/video-analysis" element={<VideoAnalysis />} />
           <Route path="/interview/:interviewId" element={<InterviewSession />} />
           <Route path="/admin/summaries" element={<InterviewSummaries />} />
           <Route path="/admin/summaries" element={<InterviewSummaries />} />

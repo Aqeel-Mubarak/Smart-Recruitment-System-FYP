@@ -1,3 +1,4 @@
+# Import required FastAPI components for routing and dependency injection
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
@@ -7,6 +8,7 @@ from app.models import Calendar, JobDescription, Candidate, User
 from app.api.users import get_current_user  # ✅ Import get_current_user
 from typing import List, Dict, Optional
 
+# Create a router instance for report-related endpoints
 router = APIRouter()
 
 @router.get("/top_candidates")
@@ -20,7 +22,9 @@ def get_top_candidates(
     If job_title_id is provided, only return candidates for that job.
     """
     try:
-        # Get all shortlisted candidates for the logged-in HR
+        # Build the base query to fetch candidate information
+        # Joins with JobDescription to get job title information
+        # Filters for shortlisted candidates and current HR's jobs
         query = db.query(
             Candidate.id,
             Candidate.name,
@@ -35,25 +39,30 @@ def get_top_candidates(
             JobDescription.hr_id == current_user.id  # ✅ Only logged-in HR's candidates
         )
 
+        # Apply additional filter if specific job title is requested
         if job_title_id is not None:
             query = query.filter(JobDescription.id == job_title_id)
 
+        # Execute query and order results by candidate score in descending order
         shortlisted_candidates = query.order_by(desc(Candidate.score)).all()
 
-        # Process candidates and get their interview details
+        # Process each candidate and enrich with interview information
         candidates_data = []
         for candidate in shortlisted_candidates:
-            # Find interview details for this candidate
+            # Query the Calendar table to find scheduled interviews for this candidate
             interview = db.query(Calendar).filter(
                 Calendar.selectedby == candidate.email,
                 Calendar.isselected == 't' # ✅ Fix: Use Boolean instead of 't'
             ).first()
 
+            # Format interview information or set default message
             interview_summary = "No interview scheduled"
             if interview:
+                # Parse interview ID to extract date and time
                 date_str, time_str, _ = interview.id.rsplit('-', 2)
                 interview_summary = f" {date_str} at {time_str}"
 
+            # Create a dictionary with all candidate information
             candidates_data.append({
                 "id": candidate.id,
                 "name": candidate.name,
@@ -67,6 +76,7 @@ def get_top_candidates(
         return candidates_data
 
     except Exception as e:
+        # Handle any errors during the process
         error_msg = f"Error fetching shortlisted candidates: {str(e)}"
         print(error_msg)
         raise HTTPException(status_code=500, detail=error_msg)
@@ -79,6 +89,8 @@ def get_job_titles(
     """
     Fetch all unique job titles for the logged-in HR.
     """
+    # Query to get distinct job titles for the current HR
+    # Returns only job ID and title pairs
     job_data = (
         db.query(JobDescription.id, JobDescription.title)
         .filter(JobDescription.hr_id == current_user.id)  # ✅ Only HR's jobs
@@ -86,4 +98,5 @@ def get_job_titles(
         .all()
     )
 
+    # Transform the query results into a list of dictionaries
     return [{"id": item[0], "title": item[1]} for item in job_data]

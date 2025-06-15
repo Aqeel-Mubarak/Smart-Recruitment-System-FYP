@@ -1,10 +1,12 @@
+// CalendarPopUp Component - A modal component for displaying and managing calendar event details
+// Used for both viewing event details and managing bookings for job interviews
 import React, { useState } from "react";
 import axios from "axios";
 import { useAppContext } from "./AppContext";
 import moment from "moment";
 
 const CalendarPopUp = (props) => {
-
+  // Destructuring context values for managing popup state, events, and user information
   const { popUp, setPopUp, events, setEvents } = useAppContext();
   const jobtitle = props.jobtitle;
   const hiringmanagerid = props.hiringmanagerid;
@@ -14,12 +16,13 @@ const CalendarPopUp = (props) => {
   console.log(user)
   console.log(booked)
 
-  // Handle title input change
+  // Event handler for title input changes
   const handleChange = (event) => {
     setTitle(event.target.value);
   };
 
-  // Handle Save Button
+  // Handles saving a new calendar event
+  // Makes API call to add event and then refreshes the calendar data
   const handleSave = () => {
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     console.log(jobtitle,
@@ -45,6 +48,7 @@ const CalendarPopUp = (props) => {
       })
       .then((response) => {
         console.log(response.data)
+        // Format the events data for calendar display
         const formattedEvents = response.data.map((event) => ({
           title: event.jobtitle,
           start: moment(event.startdate + event.starttime).format(
@@ -64,6 +68,8 @@ const CalendarPopUp = (props) => {
         setPopUp(false); // Close popup
       });
   };
+
+  // Fetches the current status of an event
   const statusfunction = () => {
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     axios
@@ -82,7 +88,8 @@ const CalendarPopUp = (props) => {
       });
   }
 
-  // Handle Delete Button
+  // Handles deletion of a calendar event
+  // Makes API call to delete event and refreshes calendar data
   const handleDelete = () => {
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     console.log(jobtitle,
@@ -111,6 +118,7 @@ const CalendarPopUp = (props) => {
         return axios.get(`${API_BASE_URL}/get_jobdata_from_calendar`, { params: { hiringmanagerid: hiringmanagerid, jobid: jobid } });
       })
       .then((response) => {
+        // Format and update events after deletion
         const formattedEvents = response.data.map((event) => ({
           title: event.title,
           start: moment(event.startdate + event.starttime).format(
@@ -130,6 +138,9 @@ const CalendarPopUp = (props) => {
         setPopUp(false); // Close popup
       });
   };
+
+  // Handles booking status updates for candidates
+  // Updates the booking status and closes the popup
   const handleStatus = () => {
     console.log(booked)
     setBooked(true)
@@ -162,12 +173,15 @@ const CalendarPopUp = (props) => {
           ; // Close popup
       });
   };
+
+  // Render the popup modal with event details and action buttons
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-lg w-96 p-6 text-center relative">
         <h2 className="text-2xl text-purple-600 font-bold mb-6">
           Event Details
         </h2>
+        {/* Title input field */}
         <div className="text-start">
           <label className="text-lg font-bold mx-4">Title</label>
           <input
@@ -177,6 +191,7 @@ const CalendarPopUp = (props) => {
             placeholder="Enter your title here"
           />
         </div>
+        {/* Event details display section */}
         <div className="text-left mt-4">
           <p className="text-lg font-semibold p-2">
             <strong>Start Date :</strong> {props.startdate}
@@ -190,14 +205,18 @@ const CalendarPopUp = (props) => {
           <p className="text-lg font-semibold p-2">
             <strong>End Time :</strong> {props.endtime}
           </p>
+          {/* Status display for non-HR users */}
           {user != 'HR' && <p className="text-lg font-semibold p-2">
             <strong>Status :</strong> {status == "true" ? "Booked " : "Available"}
           </p>}
+          {/* Warning message for users who have already booked */}
           {user != 'HR' && booked === true && <p className="text-base font-semibold p-2 text-red-600">
             <strong>You have already done your booking</strong>
           </p>}
         </div>
+        {/* Action buttons section - different buttons shown based on user role */}
         <div className="flex justify-between mt-8">
+          {/* Book button for non-HR users */}
           {user != 'HR' && <button
             onClick={() => {
               if (booked === false) {
@@ -208,6 +227,7 @@ const CalendarPopUp = (props) => {
           >
             Book Here
           </button>}
+          {/* Delete and Save buttons for HR users */}
           {user === 'HR' && <button
             onClick={handleDelete}
             className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition"
@@ -220,6 +240,7 @@ const CalendarPopUp = (props) => {
           >
             Save
           </button>}
+          {/* Close button for all users */}
           <button
             onClick={() => setPopUp(false)}
             className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition"

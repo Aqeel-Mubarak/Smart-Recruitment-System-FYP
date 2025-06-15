@@ -7,22 +7,33 @@ import Navbarapp from "../components/Navbarapp";
 import Sidebar from "../components/Sidebar";
 
 export default function VideoAnalysis() {
+  // State management for video file and preview
   const [videoFile, setVideoFile] = useState(null);
   const [videoPreview, setVideoPreview] = useState(null);
+  
+  // State management for upload process
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  
+  // State management for notifications
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  
+  // State management for video analysis results
   const [summary, setSummary] = useState("");
   const [videoId, setVideoId] = useState("");
   const [processingStatus, setProcessingStatus] = useState("");
+  
+  // Refs for DOM elements and polling interval
   const fileInputRef = useRef(null);
   const pollIntervalRef = useRef(null);
 
+  // Set page title on component mount
   useEffect(() => {
     document.title = "Video Analysis";
   }, []);
 
+  // Handle file selection and validation
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file && (file.type === "video/mp4" || file.type === "video/mkv" || file.type === "video/avi")) {
@@ -38,6 +49,7 @@ export default function VideoAnalysis() {
     }
   };
 
+  // Handle video upload to server
   const handleUpload = async () => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
@@ -94,6 +106,7 @@ export default function VideoAnalysis() {
     setUploading(false);
   };
 
+  // Poll server for video processing status
   const startPolling = (id) => {
     if (pollIntervalRef.current) {
       clearInterval(pollIntervalRef.current);
@@ -128,6 +141,7 @@ export default function VideoAnalysis() {
     }, 5000); // Poll every 5 seconds
   };
 
+  // Utility functions
   const openFileSelector = () => {
     fileInputRef.current.click();
   };
@@ -136,6 +150,7 @@ export default function VideoAnalysis() {
     setOpenSnackbar(false);
   };
 
+  // Cleanup polling interval on component unmount
   useEffect(() => {
     return () => {
       if (pollIntervalRef.current) {
@@ -144,7 +159,7 @@ export default function VideoAnalysis() {
     };
   }, []);
 
-  // Animation variants
+  // Animation variants for Framer Motion
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { 
@@ -171,15 +186,17 @@ export default function VideoAnalysis() {
     }
   };
 
+  // Main component render
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-white">
-      {/* Navbar and Sidebar */}
+      {/* Navigation components */}
       <Navbarapp />
       
       <aside className="fixed left-0 top-16 w-[19%] h-[calc(100vh-4rem)] bg-white/80 backdrop-blur-lg shadow-lg">
         <Sidebar />
       </aside>
 
+      {/* Main content area with animations */}
       <motion.div 
         className="ml-[20%] pt-24 p-8 flex justify-center"
         initial="hidden"
@@ -190,8 +207,10 @@ export default function VideoAnalysis() {
           variants={itemVariants}
           className="w-full max-w-3xl"
         >
+          {/* Main card container */}
           <Card className="bg-white/80 backdrop-blur-lg shadow-lg border border-indigo-50 rounded-xl overflow-hidden">
             <CardContent className="p-8">
+              {/* Header section */}
               <motion.div variants={itemVariants} className="flex items-center gap-3 mb-6">
                 <Video className="w-7 h-7 text-indigo-600" />
                 <Typography variant="h5" component="h1" className="font-bold text-gray-800">
@@ -199,6 +218,7 @@ export default function VideoAnalysis() {
                 </Typography>
               </motion.div>
 
+              {/* Description and file upload section */}
               <motion.div
                 variants={itemVariants}
                 className="mb-6"
@@ -207,6 +227,7 @@ export default function VideoAnalysis() {
                   Upload an interview video to get AI-powered insights and feedback on the interview performance.
                 </Typography>
                 
+                {/* Hidden file input */}
                 <input
                   type="file"
                   accept="video/mp4, video/mkv, video/avi"
@@ -215,6 +236,7 @@ export default function VideoAnalysis() {
                   ref={fileInputRef}
                 />
 
+                {/* File upload dropzone */}
                 <motion.div 
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
@@ -272,6 +294,7 @@ export default function VideoAnalysis() {
                 </motion.div>
               </motion.div>
 
+              {/* Video preview section */}
               <AnimatePresence>
                 {videoPreview && (
                   <motion.div 
@@ -294,6 +317,7 @@ export default function VideoAnalysis() {
                 )}
               </AnimatePresence>
 
+              {/* Upload progress section */}
               <AnimatePresence>
                 {uploading && (
                   <motion.div 
@@ -321,6 +345,7 @@ export default function VideoAnalysis() {
                 )}
               </AnimatePresence>
 
+              {/* Processing status section */}
               <AnimatePresence>
                 {!uploading && processingStatus === "processing" && (
                   <motion.div 
@@ -342,6 +367,7 @@ export default function VideoAnalysis() {
                 )}
               </AnimatePresence>
 
+              {/* Upload button */}
               <motion.div variants={itemVariants} className="mt-6">
                 <Button
                   variant="contained"
@@ -366,6 +392,7 @@ export default function VideoAnalysis() {
                 </Button>
               </motion.div>
 
+              {/* Analysis results section */}
               <AnimatePresence>
                 {summary && (
                   <motion.div 
@@ -381,6 +408,7 @@ export default function VideoAnalysis() {
                       </Typography>
                     </div>
                     
+                    {/* Summary content with markdown-style bold text handling */}
                     <Box className="prose prose-sm max-w-none">
                       <Typography variant="body1" component="div" sx={{ 
                         whiteSpace: "pre-wrap",
@@ -406,6 +434,7 @@ export default function VideoAnalysis() {
         </motion.div>
       </motion.div>
 
+      {/* Notification snackbar */}
       <Snackbar 
         open={openSnackbar} 
         autoHideDuration={6000} 

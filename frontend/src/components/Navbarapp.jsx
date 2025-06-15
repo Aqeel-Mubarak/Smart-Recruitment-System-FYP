@@ -1,4 +1,7 @@
 // src/components/Navbarapp.jsx
+// Main navigation component for the application
+// Handles responsive navigation, page routing, and user authentication
+
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,10 +10,13 @@ import { LogOut, Home, Info, Mail, FileText, BriefcaseIcon, Users, Calendar, Bar
 import logo from '../assets/logo.png';
 
 const Navbarapp = () => {
+  // Get current location for active page tracking
   const location = useLocation();
+  // State to control mobile menu visibility
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Map paths to page titles and icons
+  // Configuration object mapping routes to their display information
+  // Each route has a title and corresponding icon component
   const pageInfo = {
     '/home': { title: 'Home', icon: Home },
     '/about': { title: 'About', icon: Info },
@@ -25,13 +31,16 @@ const Navbarapp = () => {
     '/Create-Interview': { title: 'Create AI Interview', icon: MessageCircle },
   };
 
+  // Get current page information or default to Dashboard
   const currentPage = pageInfo[location.pathname] || { title: 'Dashboard', icon: Home };
 
+  // Handle user logout by clearing token and redirecting to home
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
     window.location.href = '/';
   };
 
+  // Animation variants for the main navigation bar
   const navVariants = {
     hidden: { y: -100 },
     visible: { 
@@ -44,11 +53,13 @@ const Navbarapp = () => {
     }
   };
 
+  // Animation variants for the logo rotation effect
   const logoVariants = {
     initial: { rotate: 0 },
     hover: { rotate: 360, transition: { duration: 0.8 } }
   };
 
+  // Animation variants for mobile menu transitions
   const mobileMenuVariants = {
     closed: { 
       opacity: 0,
@@ -66,9 +77,11 @@ const Navbarapp = () => {
     }
   };
 
+  // Get the current page's icon component
   const PageIcon = currentPage.icon;
 
   return (
+    // Main navigation container with gradient background and blur effect
     <motion.nav 
       initial="hidden"
       animate="visible"
@@ -77,7 +90,7 @@ const Navbarapp = () => {
     >
       <div className="container mx-auto">
         <div className="flex justify-between items-center">
-          {/* Logo and Page Title */}
+          {/* Logo and current page title section */}
           <div className="flex items-center space-x-2 md:space-x-4 overflow-hidden">
             <Link to="/home" className="flex items-center space-x-2">
               <motion.img 
@@ -97,6 +110,7 @@ const Navbarapp = () => {
                 Smart Recruitment System
               </motion.span>
             </Link>
+            {/* Current page indicator with icon */}
             <motion.div 
               className="flex items-center space-x-1 md:space-x-2 text-white/90 pl-2 md:pl-6 border-l border-white/20 text-sm md:text-base"
               initial={{ opacity: 0 }}
@@ -110,7 +124,7 @@ const Navbarapp = () => {
             </motion.div>
           </div>
 
-          {/* Desktop Navigation Links */}
+          {/* Desktop navigation links - hidden on mobile */}
           <motion.div 
             className="hidden md:flex items-center space-x-6"
             initial={{ opacity: 0 }}
@@ -142,6 +156,7 @@ const Navbarapp = () => {
               </a>
             </div>
 
+            {/* Logout button with animation */}
             <motion.button
               onClick={handleLogout}
               className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg font-medium backdrop-blur-sm transition-colors inline-flex items-center space-x-2"
@@ -157,7 +172,7 @@ const Navbarapp = () => {
             </motion.button>
           </motion.div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile menu toggle button - only visible on mobile */}
           <motion.button 
             className="md:hidden text-white p-2 rounded-lg hover:bg-white/10"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -169,7 +184,7 @@ const Navbarapp = () => {
           </motion.button>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile menu with animation - only visible on mobile */}
         <AnimatePresence>
           {isMenuOpen && (
             <motion.div
