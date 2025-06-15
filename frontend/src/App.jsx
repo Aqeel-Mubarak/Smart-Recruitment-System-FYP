@@ -47,14 +47,13 @@ function App() {
         <Route path="/verify/:token" element={<Verification />}/>
         <Route path="/application/:id" element={<ApplicationForm />} />
         <Route path="/about" element={<About />} />
-        <Route path='/shortlist-candidate' element={<ShortlistCandidate/>} />
 
         {/* Protected Routes - Require authentication */}
         <Route element={<ProtectedRoute />}>
           <Route path="/home" element={<Home />} />
           <Route path="/create-job" element={<CreateJob />} />
           <Route path="/reports" element={<Report />} />
-          {/* <Route path='/shortlist-candidate' element={<ShortlistCandidate/>} /> */}
+          <Route path='/shortlist-candidate' element={<ShortlistCandidate/>} />
           <Route path='/resume-upload' element={<ResumeUploadPage/>} />
           <Route path='/open-jobs' element={<CurrentOpenJobs/>} />
           <Route path="/contact" element={<ContactPage />} />
