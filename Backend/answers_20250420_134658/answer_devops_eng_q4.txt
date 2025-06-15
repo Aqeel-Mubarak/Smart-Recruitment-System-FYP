@@ -1,1 +1,0 @@
-I deployment as actually my two features in deployment was not working correctly so now I am talking and see where the problem is and I will try to correct it that is all for now
