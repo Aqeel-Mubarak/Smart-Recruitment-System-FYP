@@ -108,6 +108,11 @@ const ShortlistCandidate = () => {
     document.title = "Shortlist Candidates";
   }, []);
 
+  // Set initial filtered candidates
+  useEffect(() => {
+    setFilteredCandidates(candidates);
+  }, []);
+
   // State for managing the analysis modal
   const [analysisModal, setAnalysisModal] = useState({
     isOpen: false,
@@ -541,15 +546,167 @@ const ShortlistCandidate = () => {
                 className="w-full h-32 p-4 rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
               />
             </div>
-            {/* Specific Requirement Input & Filter Button */}
-            <div className="space-y-4">
+          </div>
+
+          {/* Right Column (≈40%): Vertical Bar Chart */}
+          <div className="w-full md:w-2/5">
+            <div className="h-full p-3 rounded-xl bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm">
+              <h2 className="text-lg font-semibold text-gray-800 mb-2 text-center">{graphTitle}</h2>
+              <ResponsiveContainer width="100%" height={180}>
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="range" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Bar dataKey="count">
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={barColors[Object.keys(barColors)[index]]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* Candidate List with Fixed Height */}
+        <div className="flex flex-col gap-4">
+          <motion.div
+            layout
+            className="bg-white/80 backdrop-blur-lg shadow-lg rounded-xl overflow-hidden border border-gray-100"
+          >
+            <div className="h-[300px] overflow-y-auto">
+              <AnimatePresence mode="wait">
+                {!filteredCandidates.length ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex flex-col items-center justify-center p-8 min-h-[200px]"
+                  >
+                    <AlertCircle className="w-8 h-8 text-gray-400" />
+                    <p className="mt-4 text-gray-600">No candidates found</p>
+                  </motion.div>
+                ) : (
+                  <div className="relative">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-indigo-600 text-white">
+                        <tr>
+                          <th className="sticky top-0 bg-indigo-600 px-4 py-3 text-left">
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="checkbox"
+                                checked={checkedCandidates.size === filteredCandidates.length}
+                                onChange={handleSelectAll}
+                                className="w-4 h-4 rounded border-white/30 bg-white/10 text-white focus:ring-0 focus:ring-offset-0"
+                              />
+                              <span className="text-sm font-semibold">Candidate</span>
+                            </div>
+                          </th>
+                          <th className="sticky top-0 bg-indigo-600 px-4 py-3 text-left text-sm font-semibold">Job Relevancy Score</th>
+                          <th className="sticky top-0 bg-indigo-600 px-4 py-3 text-left text-sm font-semibold">Match</th>
+                          {filterComplete && (
+                            <th className="sticky top-0 bg-indigo-600 px-4 py-3 text-left text-sm font-semibold">Prompt Rank</th>
+                          )}
+                          <th className="sticky top-0 bg-indigo-600 px-4 py-3 text-left text-sm font-semibold">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 bg-transparent">
+                        {filteredCandidates.map((candidate, index) => (
+                          <motion.tr
+                            key={candidate.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className="hover:bg-indigo-50/50 transition-colors"
+                          >
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-4">
+                                <input
+                                  type="checkbox"
+                                  checked={checkedCandidates.has(candidate.id)}
+                                  onChange={() => handleCheckboxChange(candidate.id)}
+                                  className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                />
+                                <div>
+                                  <p className="font-medium text-gray-900">{candidate.name}</p>
+                                  <p className="text-sm text-gray-500">{candidate.email}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                {candidate.score}%
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${candidate.score >= 60
+                                ? 'bg-green-100 text-green-800'
+                                : candidate.score >= 50
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-red-100 text-red-800'
+                                }`}>
+                                {candidate.score >= 60
+                                  ? 'High Match'
+                                  : candidate.score >= 50
+                                    ? 'Medium Match'
+                                    : 'Low Match'}
+                              </span>
+                            </td>
+                            {filterComplete && (
+                              <td className="px-4 py-3">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                  #{candidate.rank || 'N/A'}
+                                </span>
+                              </td>
+                            )}
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => handleViewResume(candidate)}
+                                  className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 font-medium text-sm"
+                                >
+                                  <FileText className="w-4 h-4" />
+                                  View Resume
+                                </button>
+                                <button
+                                  onClick={() => handleViewAnalysis(candidate.id, candidate.resume_text, "job")}
+                                  className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 font-medium text-sm"
+                                >
+                                  <LineChart className="w-4 h-4" />
+                                  Job Analysis
+                                </button>
+                                {filterComplete && (
+                                  <button
+                                    onClick={() => handleViewAnalysis(candidate.id, candidate.resume_text, "prompt")}
+                                    className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 font-medium text-sm"
+                                  >
+                                    <LineChart className="w-4 h-4" />
+                                    Prompt Analysis
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </motion.tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+
+          {/* Prompt Input at Bottom */}
+          <div className="bg-white/80 backdrop-blur-lg shadow-lg rounded-xl p-4 border border-gray-100">
+            <div className="space-y-3">
               <div className="flex gap-3">
                 <input
                   type="text"
                   placeholder="Enter your specific requirements"
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  className="flex-1 h-11 px-4 rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="flex-1 h-10 px-4 rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
                 <button
                   onClick={handlePromptSearch}
@@ -567,38 +724,13 @@ const ShortlistCandidate = () => {
                 </button>
               </div>
               {filterComplete && activeFilter && (
-                <div className="flex items-center gap-2 bg-indigo-50 p-3 rounded-lg">
+                <div className="flex items-center gap-2 bg-indigo-50 p-2 rounded-lg">
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-600">Active Filter:</p>
                     <p className="text-indigo-700">{activeFilter}</p>
                   </div>
                   <button
-                    onClick={async () => {
-                      setActiveFilter("");
-                      setFilterComplete(false);
-                      setFilteredCandidates([]);
-                      // Reload candidates for current job
-                      if (selectedOption) {
-                        try {
-                          const token = localStorage.getItem("accessToken");
-                          const response = await fetch(
-                            `${API_BASE_URL}/get_candidates/${selectedOption.value}`,
-                            {
-                              headers: {
-                                Authorization: `Bearer ${token}`,
-                              },
-                            }
-                          );
-                          if (!response.ok) {
-                            throw new Error("Failed to fetch candidates");
-                          }
-                          const data = await response.json();
-                          setFilteredCandidates(data);
-                        } catch (error) {
-                          console.error("Error fetching candidates:", error);
-                        }
-                      }
-                    }}
+                    onClick={removeFilter}
                     className="text-red-600 hover:text-red-700 p-1"
                   >
                     ×
@@ -608,171 +740,26 @@ const ShortlistCandidate = () => {
             </div>
           </div>
 
-          {/* Right Column (≈40%): Vertical Bar Chart */}
-          <div className="w-full md:w-2/5">
-            <div className="h-full p-4 rounded-xl bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4 text-center">{graphTitle}</h2>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="range" />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip />
-                  <Bar dataKey="count">
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={barColors[Object.keys(barColors)[index]]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+          {/* Schedule Interview Button */}
+          <div className="flex justify-center">
+            <button
+              onClick={handleEmail}
+              disabled={sendingEmails}
+              className={`px-8 py-2 ${sendingEmails
+                  ? 'bg-indigo-400 cursor-not-allowed'
+                  : 'bg-indigo-600 hover:bg-indigo-700'
+                } text-white rounded-xl transition-colors font-medium flex items-center gap-2`}
+            >
+              {sendingEmails ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  Sending Emails...
+                </>
+              ) : (
+                'Schedule Interview'
+              )}
+            </button>
           </div>
-        </div>
-
-        {/* Bottom Row: Candidate Table */}
-        <motion.div
-          layout
-          className="bg-white/80 backdrop-blur-lg shadow-lg rounded-xl overflow-hidden border border-gray-100"
-        >
-          <AnimatePresence mode="wait">
-            {!filteredCandidates.length ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex flex-col items-center justify-center p-8 min-h-[200px]"
-              >
-                <AlertCircle className="w-8 h-8 text-gray-400" />
-                <p className="mt-4 text-gray-600">No candidates found</p>
-              </motion.div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead>
-                    <tr className="bg-indigo-600 text-white">
-                      <th className="px-6 py-4 text-left">
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="checkbox"
-                            checked={checkedCandidates.size === filteredCandidates.length}
-                            onChange={handleSelectAll}
-                            className="w-4 h-4 rounded border-white/30 bg-white/10 text-white focus:ring-0 focus:ring-offset-0"
-                          />
-                          <span className="text-sm font-semibold">Candidate</span>
-                        </div>
-                      </th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold">Job Relevancy Score</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold">Match</th>
-                      {filterComplete && (
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Prompt Rank</th>
-                      )}
-                      <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200 bg-transparent">
-                    {filteredCandidates.map((candidate, index) => (
-                      <motion.tr
-                        key={candidate.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        className="hover:bg-indigo-50/50 transition-colors"
-                      >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-4">
-                            <input
-                              type="checkbox"
-                              checked={checkedCandidates.has(candidate.id)}
-                              onChange={() => handleCheckboxChange(candidate.id)}
-                              className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                            <div>
-                              <p className="font-medium text-gray-900">{candidate.name}</p>
-                              <p className="text-sm text-gray-500">{candidate.email}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                            {candidate.score}%
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${candidate.score >= 60
-                            ? 'bg-green-100 text-green-800'
-                            : candidate.score >= 50
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
-                            }`}>
-                            {candidate.score >= 60
-                              ? 'High Match'
-                              : candidate.score >= 50
-                                ? 'Medium Match'
-                                : 'Low Match'}
-                          </span>
-                        </td>
-                        {filterComplete && (
-                          <td className="px-6 py-4">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                              #{candidate.rank || 'N/A'}
-                            </span>
-                          </td>
-                        )}
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <button
-                              onClick={() => handleViewResume(candidate)}
-                              className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 font-medium text-sm"
-                            >
-                              <FileText className="w-4 h-4" />
-                              View Resume
-                            </button>
-                            <button
-                              onClick={() => handleViewAnalysis(candidate.id, candidate.resume_text, "job")}
-                              className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 font-medium text-sm"
-                            >
-                              <LineChart className="w-4 h-4" />
-                              Job Analysis
-                            </button>
-                            {filterComplete && (
-                              <button
-                                onClick={() => handleViewAnalysis(candidate.id, candidate.resume_text, "prompt")}
-                                className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 font-medium text-sm"
-                              >
-                                <LineChart className="w-4 h-4" />
-                                Prompt Analysis
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </AnimatePresence>
-        </motion.div>
-
-        {/* Schedule Interview Button */}
-        <div className="flex justify-center mt-6">
-          <button
-            onClick={handleEmail}
-            disabled={sendingEmails}
-            className={`px-8 py-3 ${sendingEmails
-                ? 'bg-indigo-400 cursor-not-allowed'
-                : 'bg-indigo-600 hover:bg-indigo-700'
-              } text-white rounded-xl transition-colors font-medium flex items-center gap-2`}
-          >
-            {sendingEmails ? (
-              <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                Sending Emails...
-              </>
-            ) : (
-              'Schedule Interview'
-            )}
-          </button>
         </div>
       </motion.main>
 
